@@ -4,14 +4,25 @@
 
 juce::String DiscoveredDevicesTable::TableRowModel::getNameAndSerialNumber() const
 {
-    const juce::String separator = " - ";
-    try
+    switch (connectionType)
     {
-        return std::get<ximu3::XIMU3_DiscoveredNetworkDevice>(device).device_name + separator + std::get<ximu3::XIMU3_DiscoveredNetworkDevice>(device).serial_number;
-    }
-    catch (const std::bad_variant_access&)
-    {
-        return std::get<ximu3::XIMU3_DiscoveredSerialDevice>(device).device_name + separator + std::get<ximu3::XIMU3_DiscoveredSerialDevice>(device).serial_number;
+        case ximu3::XIMU3_ConnectionTypeUdp:
+        case ximu3::XIMU3_ConnectionTypeTcp:
+        {
+            const auto* const networkDevice = std::get_if<ximu3::XIMU3_DiscoveredNetworkDevice>(&device);
+            return networkDevice->device_name + juce::String(" - ") + networkDevice->serial_number;
+        }
+
+        case ximu3::XIMU3_ConnectionTypeUsb:
+        case ximu3::XIMU3_ConnectionTypeSerial:
+        case ximu3::XIMU3_ConnectionTypeBluetooth:
+        {
+            const auto* const serialDevice = std::get_if<ximu3::XIMU3_DiscoveredSerialDevice>(&device);
+            return serialDevice->device_name + juce::String(" - ") + serialDevice->serial_number;
+        }
+
+        default:
+            return "";
     }
 }
 
@@ -21,27 +32,27 @@ std::unique_ptr<ximu3::ConnectionInfo> DiscoveredDevicesTable::TableRowModel::cr
     {
         case ximu3::XIMU3_ConnectionTypeUdp:
         {
-            const auto& connectionInfo = std::get<ximu3::XIMU3_DiscoveredNetworkDevice>(device).udp_connection_info;
+            const auto& connectionInfo = std::get_if<ximu3::XIMU3_DiscoveredNetworkDevice>(&device)->udp_connection_info;
             return std::make_unique<ximu3::UdpConnectionInfo>(connectionInfo.ip_address, connectionInfo.send_port, connectionInfo.receive_port);
         }
         case ximu3::XIMU3_ConnectionTypeTcp:
         {
-            const auto& connectionInfo = std::get<ximu3::XIMU3_DiscoveredNetworkDevice>(device).tcp_connection_info;
+            const auto& connectionInfo = std::get_if<ximu3::XIMU3_DiscoveredNetworkDevice>(&device)->tcp_connection_info;
             return std::make_unique<ximu3::TcpConnectionInfo>(connectionInfo.ip_address, connectionInfo.port);
         }
         case ximu3::XIMU3_ConnectionTypeUsb:
         {
-            const auto& connectionInfo = std::get<ximu3::XIMU3_DiscoveredSerialDevice>(device).usb_connection_info;
+            const auto& connectionInfo = std::get_if<ximu3::XIMU3_DiscoveredSerialDevice>(&device)->usb_connection_info;
             return std::make_unique<ximu3::UsbConnectionInfo>(connectionInfo.port_name);
         }
         case ximu3::XIMU3_ConnectionTypeSerial:
         {
-            const auto& connectionInfo = std::get<ximu3::XIMU3_DiscoveredSerialDevice>(device).serial_connection_info;
+            const auto& connectionInfo = std::get_if<ximu3::XIMU3_DiscoveredSerialDevice>(&device)->serial_connection_info;
             return std::make_unique<ximu3::SerialConnectionInfo>(connectionInfo.port_name, connectionInfo.baud_rate, connectionInfo.rts_cts_enabled);
         }
         case ximu3::XIMU3_ConnectionTypeBluetooth:
         {
-            const auto& connectionInfo = std::get<ximu3::XIMU3_DiscoveredSerialDevice>(device).bluetooth_connection_info;
+            const auto& connectionInfo = std::get_if<ximu3::XIMU3_DiscoveredSerialDevice>(&device)->bluetooth_connection_info;
             return std::make_unique<ximu3::BluetoothConnectionInfo>(connectionInfo.port_name);
         }
         case ximu3::XIMU3_ConnectionTypeFile:
