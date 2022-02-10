@@ -58,7 +58,7 @@ impl DataMessage for NotificationMessage {
     }
 
     fn get_csv_file_name(&self) -> &'static str {
-        "NotificationMessage.csv"
+        "Notification.csv"
     }
 
     fn get_csv_headings(&self) -> &'static str {
@@ -67,10 +67,6 @@ impl DataMessage for NotificationMessage {
 
     fn to_csv_row(&self) -> String {
         format!("{},{}\n", self.timestamp, char_array_to_string(&self.char_array, self.number_of_bytes))
-    }
-
-    fn to_ascii(&self) -> String {
-        format!("{},{},{}\r\n", Self::get_ascii_id() as char, self.timestamp, char_array_to_string(&self.char_array, self.number_of_bytes))
     }
 }
 
