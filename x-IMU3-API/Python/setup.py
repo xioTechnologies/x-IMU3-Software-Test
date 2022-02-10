@@ -4,8 +4,13 @@ import shutil
 import sys
 from setuptools import setup, Extension
 
-# Build
-sys.argv.append("bdist_wheel")
+for folder in ["build", "dist", "ximu3.egg-info"]:
+    if os.path.exists(folder) and os.path.isdir(folder):
+        shutil.rmtree(folder)
+
+if len(sys.argv) == 1:  # if this script was called without arguments
+    sys.argv.append("install")
+    sys.argv.append("--user")
 
 if platform.system() == "Darwin":  # if macOS
     os.environ["LDFLAGS"] = "-framework cocoa -framework IOKit"
@@ -30,12 +35,5 @@ setup(name="ximu3",
       long_description="See [github](" + github_url + ") for documentation and examples.",
       long_description_content_type='text/markdown',
       license="MIT",
-      ext_modules=[ext_modules])
-
-# Upload (prerequisite: "pip install wheel" and "pip install twine")
-os.system("python -m twine upload --verbose dist/* -u __token__ -p pypi-" + open("token.txt").read())
-
-# Clean up
-shutil.rmtree("build")
-shutil.rmtree("dist")
-shutil.rmtree("ximu3.egg-info")
+      ext_modules=[ext_modules],
+      classifiers=["Programming Language :: Python :: 3.10"])  # versions shown by pyversions badge in README
