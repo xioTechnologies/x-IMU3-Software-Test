@@ -109,11 +109,6 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI --config Release
 
-      - name: Build and install Python package
-        run: |
-          cd x-IMU3-API/Python
-          python setup.py install --user
-
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Upload library
         uses: actions/upload-release-asset@v1
