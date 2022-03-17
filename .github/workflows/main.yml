@@ -56,7 +56,7 @@ jobs:
           cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI
 
       - if: startsWith(github.ref, 'refs/tags/v')
-        name: Zip libray
+        name: Zip library
         run: |
           cd x-IMU3-API/Rust/target/${{ matrix.rust-target }}/release/
           zip -r libximu3-${{ matrix.name }}.zip libximu3.a
