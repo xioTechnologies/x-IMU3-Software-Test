@@ -46,7 +46,7 @@ void StartupGroup::resized()
     checkDeviceTimeToggle.setBounds(bounds.removeFromTop(rowHeight));
 }
 
-SearchForConnectionsGroup::SearchForConnectionsGroup() : ApplicationSettingsGroup("Search For Connections", 1)
+SearchForConnectionsGroup::SearchForConnectionsGroup() : ApplicationSettingsGroup("Search for Connections", 1)
 {
     addAndMakeVisible(searchUsbToggle);
     addAndMakeVisible(searchSerialToggle);
@@ -135,36 +135,28 @@ void CommandsGroup::resized()
     setBounds(timeoutLabel, timeoutValue);
 }
 
-MiscGroup::MiscGroup() : ApplicationSettingsGroup("Misc", 3)
+MiscGroup::MiscGroup() : ApplicationSettingsGroup("Misc", 2)
 {
     addAndMakeVisible(hideUnusedDeviceSettingsButton);
-    addAndMakeVisible(showApplicationErrorsButton);
-    addAndMakeVisible(showNotificationsButton);
+    addAndMakeVisible(closeSendingCommandDialogWhenCompleteButton);
 
     hideUnusedDeviceSettingsButton.onClick = [this]
     {
         ApplicationSettings::getSingleton().hideUnusedDeviceSettings = hideUnusedDeviceSettingsButton.getToggleState();
     };
 
-    showApplicationErrorsButton.onClick = [this]
+    closeSendingCommandDialogWhenCompleteButton.onClick = [this]
     {
-        ApplicationSettings::getSingleton().showApplicationErrors = showApplicationErrorsButton.getToggleState();
-    };
-
-    showNotificationsButton.onClick = [this]
-    {
-        ApplicationSettings::getSingleton().showNotificationAndErrorMessages = showNotificationsButton.getToggleState();
+        ApplicationSettings::getSingleton().closeSendingCommandDialogWhenComplete = closeSendingCommandDialogWhenCompleteButton.getToggleState();
     };
 
     hideUnusedDeviceSettingsButton.setToggleState(ApplicationSettings::getSingleton().hideUnusedDeviceSettings, juce::dontSendNotification);
-    showApplicationErrorsButton.setToggleState(ApplicationSettings::getSingleton().showApplicationErrors, juce::dontSendNotification);
-    showNotificationsButton.setToggleState(ApplicationSettings::getSingleton().showNotificationAndErrorMessages, juce::dontSendNotification);
+    closeSendingCommandDialogWhenCompleteButton.setToggleState(ApplicationSettings::getSingleton().closeSendingCommandDialogWhenComplete, juce::dontSendNotification);
 }
 
 void MiscGroup::resized()
 {
     auto bounds = getContentBounds();
     hideUnusedDeviceSettingsButton.setBounds(bounds.removeFromTop(rowHeight));
-    showApplicationErrorsButton.setBounds(bounds.removeFromTop(rowHeight));
-    showNotificationsButton.setBounds(bounds.removeFromTop(rowHeight));
+    closeSendingCommandDialogWhenCompleteButton.setBounds(bounds.removeFromTop(rowHeight));
 }

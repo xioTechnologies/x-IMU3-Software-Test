@@ -7,7 +7,6 @@
 #include "DevicePanelHeader.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <list>
-#include "Notifications.h"
 #include "WindowContainer.h"
 #include "Windows/Window.h"
 #include "Ximu3.hpp"
@@ -34,7 +33,7 @@ public:
 
     ximu3::Connection& getConnection();
 
-    void sendCommands(const std::vector<CommandMessage>& commands, std::function<void(const std::vector<CommandMessage>& responses, const std::vector<CommandMessage>& failedCommands)> callback = nullptr);
+    void sendCommands(const std::vector<CommandMessage>& commands, SafePointer <juce::Component> callbackOwner = nullptr, std::function<void(const std::vector<CommandMessage>& responses, const std::vector<CommandMessage>& failedCommands)> callback = nullptr);
 
     const juce::Colour& getColourTag() const;
 
@@ -42,7 +41,7 @@ public:
 
     void cleanupWindows();
 
-    juce::String getDeviceNameAndSerialNumber() const;
+    juce::String getDeviceDescriptor() const;
 
     DevicePanelContainer& getDevicePanelContainer();
 
@@ -54,14 +53,10 @@ private:
     const juce::Colour colourTag;
 
     DevicePanelHeader header { *this, devicePanelContainer };
-    Notifications notificationsPopup;
-    DevicePanelFooter footer { notificationsPopup, *connection };
+    DevicePanelFooter footer { *connection };
 
     std::map<juce::Identifier, std::shared_ptr<Window>> windows;
     std::unique_ptr<WindowContainer> windowContainer;
-
-    std::function<void(ximu3::XIMU3_DecodeError)> decodeErrorCallback;
-    uint64_t decodeErrorCallbackID;
 
     void handleAsyncUpdate() override;
 

@@ -26,33 +26,36 @@ public:
 
     DiscoveredDevicesTable();
 
+    void resized() override;
+
     void setRows(std::vector<Row> rows_);
 
     const std::vector<Row>& getRows() const;
 
-    void paint(juce::Graphics& g) override;
-
-    void resized() override;
-
     std::function<void()> onSelectionChanged;
 
 private:
-    static constexpr int selectedColumnID = 1;
-    static constexpr int nameAndSerialNumberColumnID = 2;
-    static constexpr int connectionInfoColumnID = 3;
+    enum class ColumnIDs
+    {
+        selected = 1,
+        device,
+        connection,
+    };
 
     std::vector<Row> rows;
 
-    CustomToggleButton buttonSelectAll { "" };
-    SimpleLabel labelSelectAll { "Select All" };
-    SimpleLabel numConnectionsFoundLabel;
+    CustomToggleButton selectAllButton { "" };
+    SimpleLabel deviceLabel { "Device" };
+    SimpleLabel connectionLabel { "Connection" };
     juce::TableListBox table { "", this };
 
     void selectionChanged();
 
     int getNumRows() override;
 
-    void paintRowBackground(juce::Graphics& g, int rowNumber, int, int, bool) override;
+    void paintRowBackground(juce::Graphics&, int, int, int, bool) override
+    {
+    }
 
     void paintCell(juce::Graphics&, int, int, int, int, bool) override
     {

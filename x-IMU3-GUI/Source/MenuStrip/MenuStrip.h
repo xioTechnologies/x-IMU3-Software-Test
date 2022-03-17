@@ -10,14 +10,10 @@
 class DevicePanelContainer;
 
 class MenuStrip : public juce::Component,
-                  private juce::ComponentListener,
-                  private juce::Value::Listener,
                   private juce::Timer
 {
 public:
-    MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devicePanelsContainer_);
-
-    ~MenuStrip() override;
+    MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devicePanelContainer_);
 
     void paint(juce::Graphics& g) override;
 
@@ -25,25 +21,24 @@ public:
 
 private:
     juce::ValueTree& windowLayout;
-    DevicePanelContainer& devicePanelsContainer;
+    DevicePanelContainer& devicePanelContainer;
 
-    IconButton searchButton { IconButton::Style::menuStrip, BinaryData::search_svg, 1.0f, "Search For Connections", nullptr, "" };
+    IconButton searchButton { IconButton::Style::menuStrip, BinaryData::search_svg, 1.0f, "Search for Connections", nullptr, "" };
     IconButton manualButton { IconButton::Style::menuStripDropdown, BinaryData::manual_svg, 1.0f, "Manual Connection", std::bind(&MenuStrip::getManualConnectMenu, this) };
     IconButton disconnectButton { IconButton::Style::menuStripDropdown, BinaryData::disconnect_svg, 1.0f, "Disconnect", std::bind(&MenuStrip::getDisconnectMenu, this) };
     IconButton showHideWindowButton { IconButton::Style::menuStripDropdown, BinaryData::window_svg, 1.0f, "Show/Hide Windows", std::bind(&MenuStrip::getWindowMenu, this) };
     IconButton windowLayoutButton { IconButton::Style::menuStripDropdown, BinaryData::layout_svg, 1.0f, "Window Layout", std::bind(&MenuStrip::getWindowLayoutMenu, this) };
     IconButton devicePanelLayoutButton { IconButton::Style::menuStripDropdown, BinaryData::rows_svg, 1.0f, "Device Panel Layout", std::bind(&MenuStrip::getPanelLayoutMenu, this) };
     IconButton shutdownButton { IconButton::Style::menuStrip, BinaryData::shutdown_svg, 0.8f, "Shutdown All Devices" };
-    IconButton sendCommandButton { IconButton::Style::menuStrip, BinaryData::json_svg, 0.8f, "Send Command To All Devices" };
-    IconButton dataLoggerStartStopButton { IconButton::Style::menuStrip, BinaryData::record_svg, 0.8f, "Start Data Logger", nullptr, BinaryData::stop_svg, 0.8f, "Stop Data Logger" };
+    IconButton sendCommandButton { IconButton::Style::menuStrip, BinaryData::json_svg, 0.8f, "Send Command to All Devices" };
+    IconButton dataLoggerStartStopButton { IconButton::Style::menuStrip, BinaryData::record_svg, 0.8f, "Start/Stop Data Logger", nullptr, BinaryData::stop_svg, 0.8f };
     Stopwatch dataLoggerTime;
     IconButton toolsButton { IconButton::Style::menuStripDropdown, BinaryData::tools_svg, 1.0f, "Tools", std::bind(&MenuStrip::getToolsMenu, this) };
-    IconButton applicationErrorsButton { IconButton::Style::menuStrip, BinaryData::warning_white_svg, 1.0f, "Application Error Messages", nullptr, BinaryData::warning_orange_svg };
-    juce::TextButton versionButton { "v" + juce::JUCEApplication::getInstance()->getApplicationVersion().upToLastOccurrenceOf(".", false, false), "About" };
     IconButton mainSettingsButton { IconButton::Style::menuStrip, BinaryData::settings_svg, 1.0f, "Application Settings" };
+    juce::TextButton versionButton { "v" + juce::JUCEApplication::getInstance()->getApplicationVersion().upToLastOccurrenceOf(".", false, false), "About" };
 
     SimpleLabel connectionLabel { "Connection", UIFonts::defaultFont, juce::Justification::centred };
-    SimpleLabel viewLabel { "View", UIFonts::defaultFont, juce::Justification::centred };
+    SimpleLabel layoutLabel { "Layout", UIFonts::defaultFont, juce::Justification::centred };
     SimpleLabel commandsLabel { "Commands", UIFonts::defaultFont, juce::Justification::centred };
     SimpleLabel dataLoggerLabel { "Data Logger", UIFonts::defaultFont, juce::Justification::centred };
     SimpleLabel toolsLabel { "Tools", UIFonts::defaultFont, juce::Justification::centred };
@@ -58,11 +53,11 @@ private:
 
     std::vector<ButtonGroup> buttonGroups {
             { connectionLabel,  { searchButton,              manualButton,       disconnectButton }},
-            { viewLabel,        { showHideWindowButton,      windowLayoutButton, devicePanelLayoutButton }},
+            { layoutLabel,      { showHideWindowButton,      windowLayoutButton, devicePanelLayoutButton }},
             { commandsLabel,    { shutdownButton,            sendCommandButton }},
             { dataLoggerLabel,  { dataLoggerStartStopButton, dataLoggerTime }},
             { toolsLabel,       { toolsButton }},
-            { applicationLabel, { applicationErrorsButton,   versionButton,      mainSettingsButton }}
+            { applicationLabel, { mainSettingsButton,        versionButton }}
     };
 
     const std::map<DevicePanelContainer::Layout, juce::String> layoutIcons {
@@ -89,10 +84,6 @@ private:
     juce::PopupMenu getToolsMenu() const;
 
     void setWindowLayout(juce::ValueTree windowLayout_);
-
-    void componentChildrenChanged(juce::Component&) override;
-
-    void valueChanged(juce::Value& value) override;
 
     void timerCallback() override;
 

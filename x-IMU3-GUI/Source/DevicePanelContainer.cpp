@@ -1,21 +1,7 @@
 #include "ApplicationSettings.h"
 #include "DevicePanel/DevicePanel.h"
 #include "DevicePanelContainer.h"
-
-template<typename Type>
-static void eraseThenDestroy(std::vector<std::unique_ptr<Type>>& vector, Type& objectToRemove)
-{
-    for (size_t index = 0; index < vector.size(); index++)
-    {
-        if (vector[index].get() == &objectToRemove)
-        {
-            auto removed = std::move(vector[index]);
-            vector.erase(vector.begin() + (int) index);
-            removed.reset();
-            return;
-        }
-    }
-}
+#include "Dialogs/ErrorDialog.h"
 
 DevicePanelContainer::DevicePanelContainer(juce::ValueTree& windowLayout_, GLRenderer& glRenderer_)
         : windowLayout(windowLayout_),
@@ -27,19 +13,12 @@ DevicePanelContainer::DevicePanelContainer(juce::ValueTree& windowLayout_, GLRen
     addChildComponent(&accordionResizeBar);
 }
 
-DevicePanelContainer::~DevicePanelContainer()
-{
-}
-
 void DevicePanelContainer::resized()
 {
-    if (devicePanels.empty())
-    {
-        return;
-    }
-
     if (layout == Layout::accordion)
     {
+        const auto width = findParentComponentOfClass<juce::Viewport>()->getViewWidth();
+
         for (size_t index = 0; index < devicePanels.size(); index++)
         {
             auto& devicePanel = devicePanels[index];
@@ -47,12 +26,12 @@ void DevicePanelContainer::resized()
 
             if (expandedDevicePanel == devicePanel.get())
             {
-                devicePanel->setBounds(0, y, getWidth(), expandedPanelHeight);
-                accordionResizeBar.setBounds(0, devicePanel->getBottom(), getWidth(), UILayout::panelMargin);
+                devicePanel->setBounds(0, y, width, expandedPanelHeight);
+                accordionResizeBar.setBounds(0, devicePanel->getBottom(), width, UILayout::panelMargin);
             }
             else
             {
-                devicePanel->setBounds(0, y, getWidth(), DevicePanel::collapsedHeight);
+                devicePanel->setBounds(0, y, width, DevicePanel::collapsedHeight);
             }
         }
         return;
@@ -108,14 +87,16 @@ void DevicePanelContainer::connectToDevice(const ximu3::ConnectionInfo& connecti
     auto connection = std::make_shared<ximu3::Connection>(connectionInfo);
     connection->openAsync([&, connection](auto result)
                           {
-                              if (result != ximu3::XIMU3_ResultOk)
-                              {
-                                  ApplicationErrorsDialog::addError("Unable to open connection " + connection->getInfo()->toString() + ".");
-                                  return;
-                              }
-
-                              juce::MessageManager::callAsync([&, connection]
+                              juce::MessageManager::callAsync([&, connection, result]
                                                               {
+                                                                  if (result != ximu3::XIMU3_ResultOk)
+                                                                  {
+                                                                      DialogLauncher::launchDialog(std::make_unique<ErrorDialog>("Unable to open connection " + connection->getInfo()->toString() + "."));
+                                                                      return;
+                                                                  }
+
+                                                                  onDevicePanelsSizeChanged((int) devicePanels.size(), (int) devicePanels.size() + 1);
+
                                                                   addAndMakeVisible(*devicePanels.emplace_back(std::make_unique<DevicePanel>(windowLayout, connection, glRenderer, *this, [&]
                                                                   {
                                                                       static unsigned int counter;
@@ -138,25 +119,34 @@ void DevicePanelContainer::connectToDevice(const ximu3::ConnectionInfo& connecti
                           });
 }
 
-std::vector<std::unique_ptr<DevicePanel>>& DevicePanelContainer::getDevicePanels()
+std::vector<DevicePanel*> DevicePanelContainer::getDevicePanels() const
 {
-    return devicePanels;
+    std::vector<DevicePanel*> vector;
+    for (auto& devicePanel : devicePanels)
+    {
+        vector.push_back(devicePanel.get());
+    }
+    return vector;
 }
 
 void DevicePanelContainer::removeAllPanels()
 {
-    while (devicePanels.size() > 0)
-    {
-        devicePanels.front()->getConnection().close();
-        eraseThenDestroy(devicePanels, *devicePanels.front());
-    }
+    onDevicePanelsSizeChanged((int) devicePanels.size(), 0);
+    devicePanels.clear();
     resized();
 }
 
 void DevicePanelContainer::removePanel(DevicePanel& panel)
 {
-    panel.getConnection().close();
-    eraseThenDestroy(devicePanels, panel);
+    onDevicePanelsSizeChanged((int) devicePanels.size(), (int) devicePanels.size() - 1);
+    for (size_t index = 0; index < devicePanels.size(); index++)
+    {
+        if (devicePanels[index].get() == &panel)
+        {
+            devicePanels.erase(devicePanels.begin() + (int) index);
+            break;
+        }
+    }
     resized();
 }
 
@@ -235,14 +225,6 @@ void DevicePanelContainer::setLayout(Layout layout_)
 DevicePanelContainer::Layout DevicePanelContainer::getLayout()
 {
     return layout;
-}
-
-void DevicePanelContainer::sendCommands(const std::vector<CommandMessage>& commandMessages)
-{
-    for (auto& devicePanel : devicePanels)
-    {
-        devicePanel->sendCommands(commandMessages);
-    }
 }
 
 void DevicePanelContainer::updateHeightInAccordionMode()

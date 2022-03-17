@@ -26,7 +26,7 @@
     {
         "name": "Gyroscope misalignment",
         "declaration": "FusionMatrix name",
-        "default": "{{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}}",
+        "default": "{{{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}}",
         "calibration": true
     },
     {
@@ -44,7 +44,7 @@
     {
         "name": "Accelerometer misalignment",
         "declaration": "FusionMatrix name",
-        "default": "{{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}}",
+        "default": "{{{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}}",
         "calibration": true
     },
     {
@@ -62,7 +62,7 @@
     {
         "name": "Soft iron matrix",
         "declaration": "FusionMatrix name",
-        "default": "{{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}}",
+        "default": "{{{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}}",
         "calibration": true
     },
     {
@@ -74,7 +74,7 @@
     {
         "name": "High-g accelerometer misalignment",
         "declaration": "FusionMatrix name",
-        "default": "{{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}}",
+        "default": "{{{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}}",
         "calibration": true
     },
     {
@@ -307,25 +307,25 @@
     {
         "name": "Data logger file name prefix",
         "declaration": "char name[32]",
-        "default": "{\"File Name Prefix\"}"
+        "default": "{\"\"}"
     },
     {
-        "name": "Data logger file name number",
-        "declaration": "uint32_t name",
-        "default": "{0}"
-    },
-    {
-        "name": "Data logger file name is time",
+        "name": "Data logger file name time enabled",
         "declaration": "bool name",
         "default": "{true}"
     },
     {
-        "name": "Data logger maximum file size",
+        "name": "Data logger file name counter enabled",
+        "declaration": "bool name",
+        "default": "{false}"
+    },
+    {
+        "name": "Data logger max file size",
         "declaration": "uint32_t name",
         "default": "{0}"
     },
     {
-        "name": "Data logger maximum file period",
+        "name": "Data logger max file period",
         "declaration": "uint32_t name",
         "default": "{0}"
     },
@@ -348,6 +348,16 @@
         "name": "AHRS ignore magnetometer",
         "declaration": "bool name",
         "default": "{false}"
+    },
+    {
+        "name": "AHRS acceleration rejection enabled",
+        "declaration": "bool name",
+        "default": "{true}"
+    },
+    {
+        "name": "AHRS magnetic rejection enabled",
+        "declaration": "bool name",
+        "default": "{true}"
     },
     {
         "name": "Binary mode enabled",
@@ -405,7 +415,7 @@
         "default": "{8}"
     },
     {
-        "name": "High-g message rate divisor",
+        "name": "High-g accelerometer message rate divisor",
         "declaration": "uint32_t name",
         "default": "{32}"
     },

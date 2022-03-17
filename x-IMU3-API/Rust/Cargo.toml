@@ -1,6 +1,6 @@
 [package]
 name = "ximu3"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["x-io Technologies Limited <info@x-io.co.uk>"]
 edition = "2018"
 description = "x-IMU3 API"
@@ -21,4 +21,4 @@ serde_json = "1.0.72"
 serialport = "4.0.1"
 
 [build-dependencies]
-cbindgen = { git = "https://github.com/eqrion/cbindgen" } # TODO: Use version >v0.20.0 once avalaible
+cbindgen = { git = "https://github.com/eqrion/cbindgen" } # TODO: Use version >v0.20.0 once available

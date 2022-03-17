@@ -3,7 +3,9 @@
 #include "LedColourDialog.h"
 #include <limits>
 
-LedColourDialog::LedColourDialog(DevicePanel& devicePanel_) : Dialog(BinaryData::json_svg, "LED Colour", "Close", "", &defaultButton, 60), devicePanel(devicePanel_)
+LedColourDialog::LedColourDialog(DevicePanel& devicePanel_)
+        : Dialog(BinaryData::json_svg, "LED Colour", "Close", "", &defaultButton, 60),
+          devicePanel(devicePanel_)
 {
     addAndMakeVisible(redLabel);
     addAndMakeVisible(greenLabel);
@@ -41,7 +43,7 @@ LedColourDialog::LedColourDialog(DevicePanel& devicePanel_) : Dialog(BinaryData:
         hexValue.setText("", false);
         colourSelector.setCurrentColour(nullColour, juce::dontSendNotification);
 
-        devicePanel.sendCommands({{ "colour", {}}});
+        devicePanel.sendCommands({{ "colour", {}}}); // TODO: Indicate failed command to user
     };
 
     colourSelector.setCurrentColour(nullColour, juce::dontSendNotification);
@@ -96,5 +98,5 @@ void LedColourDialog::changeListenerCallback(juce::ChangeBroadcaster*)
     const auto colourText = colour.toDisplayString(false);
     setText(hexValue, colourText);
 
-    devicePanel.sendCommands({ CommandMessage("{\"colour\":" + colourText.quoted().toStdString() + "}") });
+    devicePanel.sendCommands({ CommandMessage("colour", colourText) }); // TODO: Indicate failed command to user
 }

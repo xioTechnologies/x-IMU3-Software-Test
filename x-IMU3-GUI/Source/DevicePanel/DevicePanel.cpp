@@ -1,7 +1,6 @@
 #include "../DevicePanelContainer.h"
 #include "ApplicationSettings.h"
 #include "DevicePanel.h"
-#include "Dialogs/ApplicationErrorsDialog.h"
 #include "Windows/DeviceSettingsWindow.h"
 #include "Windows/GraphWindow.h"
 #include "Windows/SerialAccessoryTerminalWindow.h"
@@ -22,20 +21,13 @@ DevicePanel::DevicePanel(const juce::ValueTree& windowLayout_,
     windowContainer = std::make_unique<WindowContainer>(*this, windowLayout);
     addAndMakeVisible(*windowContainer);
 
-    addChildComponent(notificationsPopup);
     addAndMakeVisible(header);
     addAndMakeVisible(footer);
-
-    decodeErrorCallback = [&](auto decodeError)
-    {
-        ApplicationErrorsDialog::addError("Decode error on " + connection->getInfo()->toString() + ". " + std::string(ximu3::XIMU3_decode_error_to_string(decodeError)) + ".");
-    };
-    decodeErrorCallbackID = connection->addDecodeErrorCallback(decodeErrorCallback);
 }
 
 DevicePanel::~DevicePanel()
 {
-    connection->removeCallback(decodeErrorCallbackID);
+    connection->close();
 }
 
 void DevicePanel::resized()
@@ -44,10 +36,6 @@ void DevicePanel::resized()
 
     header.setBounds(bounds.removeFromTop(headerHeight + UILayout::panelMargin));
     footer.setBounds(bounds.removeFromBottom(footerHeight + UILayout::panelMargin));
-
-    auto notificationBounds = juce::Rectangle<int>(400, 200);
-    notificationBounds.setPosition(bounds.getRight() - notificationBounds.getWidth(), bounds.getBottom() - notificationBounds.getHeight());
-    notificationsPopup.setBounds(notificationBounds);
 
     bounds.removeFromTop(UILayout::panelMargin);
     windowContainer->setBounds(bounds);
@@ -58,9 +46,9 @@ ximu3::Connection& DevicePanel::getConnection()
     return *connection;
 }
 
-void DevicePanel::sendCommands(const std::vector<CommandMessage>& commands, std::function<void(const std::vector<CommandMessage>& responses, const std::vector<CommandMessage>& failedCommands)> callback)
+void DevicePanel::sendCommands(const std::vector<CommandMessage>& commands, SafePointer <juce::Component> callbackOwner, std::function<void(const std::vector<CommandMessage>& responses, const std::vector<CommandMessage>& failedCommands)> callback)
 {
-    connection->sendCommandsAsync({ commands.begin(), commands.end() }, ApplicationSettings::getSingleton().retries, ApplicationSettings::getSingleton().timeout, [this, commands = commands, callback](auto responses_)
+    connection->sendCommandsAsync({ commands.begin(), commands.end() }, ApplicationSettings::getSingleton().retries, ApplicationSettings::getSingleton().timeout, [this, commands = commands, callbackOwner, callback](auto responses_)
     {
         const std::vector<CommandMessage> responses(responses_.begin(), responses_.end());
 
@@ -69,17 +57,19 @@ void DevicePanel::sendCommands(const std::vector<CommandMessage>& commands, std:
         {
             if (std::find(responses.begin(), responses.end(), command) == responses.end())
             {
-                ApplicationErrorsDialog::addError("Unable to confirm command " + command.json + " for " + connection->getInfo()->toString());
                 failedCommands.push_back(command);
             }
         }
 
-        header.updateDeviceNameAndSerialNumber(responses);
+        juce::MessageManager::callAsync([&, callbackOwner, callback, responses, failedCommands]
+                                        {
+                                            header.updateDeviceDescriptor(responses);
 
-        if (callback != nullptr)
-        {
-            callback(responses, failedCommands);
-        }
+                                            if (callbackOwner != nullptr && callback != nullptr)
+                                            {
+                                                callback(responses, failedCommands);
+                                            }
+                                        });
     });
 }
 
@@ -118,9 +108,9 @@ void DevicePanel::cleanupWindows()
     triggerAsyncUpdate();
 }
 
-juce::String DevicePanel::getDeviceNameAndSerialNumber() const
+juce::String DevicePanel::getDeviceDescriptor() const
 {
-    return header.getDeviceNameAndSerialNumber();
+    return header.getDeviceDescriptor();
 }
 
 DevicePanelContainer& DevicePanel::getDevicePanelContainer()
