@@ -26,11 +26,12 @@ jobs:
   #         draft: false
   #         prerelease: false
 
-  build-macos:
+  build:
     runs-on: ${{ matrix.os }}
     # needs: create-release
 
     strategy:
+      # fail-fast: false
       matrix:
         include:
           - name: macOS Intel
@@ -47,7 +48,7 @@ jobs:
             # cmake-target: xxx
 
     steps:
-      # - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
       - name: Build Rust API
         run: |
