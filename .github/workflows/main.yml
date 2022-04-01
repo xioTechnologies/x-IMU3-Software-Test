@@ -31,18 +31,18 @@ jobs:
     # needs: create-release
 
     strategy:
-      # fail-fast: false
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest
             rust-target: x86_64-apple-darwin
-            # cmake-target: x86_64
+            cmake-osx-architecture: x86_64
           - os: macos-latest
             rust-target: aarch64-apple-darwin
-            # cmake-target: arm64
+            cmake-osx-architecture: arm64
           - os: windows-latest
             rust-target: x86_64-pc-windows-msvc
-            # cmake-target: xxx
+            cmake-osx-architecture: ignored
 
     steps:
       - uses: actions/checkout@v2
@@ -52,12 +52,12 @@ jobs:
           rustup target add ${{ matrix.rust-target }}
           cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.rust-target }}
 
-      # - name: Build CMake targets
-      #   run: |
-      #     mkdir cmake-build-release
-      #     cd cmake-build-release
-      #     cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.cmake-target }}
-      #     cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI
+      - name: Build CMake targets
+        run: |
+          mkdir cmake-build-release
+          cd cmake-build-release
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.cmake-osx-architecture }}
+          cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI
 
       # - if: startsWith(github.ref, 'refs/tags/v')
       #   name: Zip library
