@@ -66,13 +66,6 @@ jobs:
           name: rust-${{ matrix.os }}
           path: x-IMU3-API/Rust/target/release
 
-      # - name: Build CMake targets
-      #   run: |
-      #     mkdir cmake-build-release
-      #     cd cmake-build-release
-      #     cmake .. -DCMAKE_BUILD_TYPE=Release
-      #     cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI
-
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -88,6 +81,30 @@ jobs:
         run: |
           cd x-IMU3-API/Python
           python setup.py install --user
+
+  cmake:
+    runs-on: ${{ matrix.os }}
+    needs: rust
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: rust-${{ matrix.os }}
+          path: x-IMU3-API/Rust/target/release
+
+       - name: Build CMake targets
+         run: |
+           mkdir cmake-build-release
+           cd cmake-build-release
+           cmake .. -DCMAKE_BUILD_TYPE=Release
+           cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI   
 
       # - if: startsWith(github.ref, 'refs/tags/v')
       #   name: Zip library
