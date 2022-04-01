@@ -51,15 +51,15 @@ jobs:
           path: x-IMU3-API/Rust/target/release/${{ matrix.library }}
 
       - if: startsWith(github.ref, 'refs/tags/v')
-          name: Upload library
-          uses: actions/upload-release-asset@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            upload_url: ${{ needs.create-release.outputs.upload_url }}
-            asset_path: x-IMU3-API/Rust/target/release/${{ matrix.library }}
-            asset_name: ${{ matrix.library }}
-            asset_content_type: application/octet-stream
+        name: Upload library
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: x-IMU3-API/Rust/target/release/${{ matrix.library }}
+          asset_name: ${{ matrix.library }}
+          asset_content_type: application/octet-stream
 
 #  python:
 #    runs-on: ${{ matrix.os }}
