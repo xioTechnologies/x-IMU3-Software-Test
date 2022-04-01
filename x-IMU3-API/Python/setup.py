@@ -36,4 +36,6 @@ setup(name="ximu3",
       long_description_content_type='text/markdown',
       license="MIT",
       ext_modules=[ext_modules],
-      classifiers=["Programming Language :: Python :: 3.10"])  # versions shown by pyversions badge in README
+      classifiers=["Programming Language :: Python :: 3.8",
+                   "Programming Language :: Python :: 3.9",
+                   "Programming Language :: Python :: 3.10"])  # versions shown by pyversions badge in README
