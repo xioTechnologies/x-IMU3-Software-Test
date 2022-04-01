@@ -26,9 +26,29 @@ jobs:
   #         draft: false
   #         prerelease: false
 
-  build:
+  rust:
     runs-on: ${{ matrix.os }}
     # needs: create-release
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Rust API
+        run: cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: rust-${{ matrix.os }}
+          path: x-IMU3-API/Rust/target/release
+
+  python:
+    runs-on: ${{ matrix.os }}
+    needs: rust
 
     strategy:
       fail-fast: false
@@ -39,8 +59,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Rust API
-        run: cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml
+      - uses: actions/download-artifact@v3
+        with:
+          name: rust-${{ matrix.os }}
+          path: x-IMU3-API/Rust/target/release
 
       # - name: Build CMake targets
       #   run: |
