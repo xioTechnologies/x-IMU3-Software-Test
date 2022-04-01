@@ -44,7 +44,9 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: rust-${{ matrix.os }}
-          path: x-IMU3-API/Rust/target/release
+          path: |
+            x-IMU3-API/Rust/target/release/*.a
+            x-IMU3-API/Rust/target/release/*.lib
 
   python:
     runs-on: ${{ matrix.os }}
@@ -54,7 +56,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10"] # should match classifiers in setup.py
+        python-version: ["3.10"] # should match classifiers in setup.py
 
     steps:
       - uses: actions/checkout@v2
