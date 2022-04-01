@@ -56,7 +56,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ jobs.create-release.outputs.upload_url }}
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: x-IMU3-API/Rust/target/release/${{ matrix.library-file }}
           asset_name: ${{ matrix.library-file }}
           asset_content_type: application/octet-stream
@@ -97,7 +97,7 @@ jobs:
 #
   cmake:
     runs-on: ${{ matrix.os }}
-    needs: rust
+    needs: [create-release, rust]
 
     strategy:
       fail-fast: false
@@ -135,7 +135,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ jobs.create-release.outputs.upload_url }}
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/${{ matrix.gui-file }}
           asset_name: ${{ matrix.gui-file }}
           asset_content_type: application/octet-stream
