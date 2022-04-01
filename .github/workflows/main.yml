@@ -8,32 +8,36 @@ on:
     branches: [main]
 
 jobs:
-  # create-release:
-  #   runs-on: macos-latest
-  #   outputs:
-  #     upload_url: ${{ steps.create-release.outputs.upload_url }}
+   create-release:
+     runs-on: windows-latest
+     outputs:
+       upload_url: ${{ steps.create-release.outputs.upload_url }}
 
-  #   steps:
-  #     - if: startsWith(github.ref, 'refs/tags/v')
-  #       name: Create release
-  #       id: create-release
-  #       uses: actions/create-release@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         tag_name: ${{ github.ref }}
-  #         release_name: Release ${{ github.ref }}
-  #         draft: false
-  #         prerelease: false
+     steps:
+       - if: startsWith(github.ref, 'refs/tags/v')
+         name: Create release
+         id: create-release
+         uses: actions/create-release@v1
+         env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         with:
+           tag_name: ${{ github.ref }}
+           release_name: Release ${{ github.ref }}
+           draft: false
+           prerelease: false
 
   rust:
     runs-on: ${{ matrix.os }}
-    # needs: create-release
+    needs: create-release
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        include:
+          - os: macos-latest
+            library: libximu3.a
+          - os: windows-latest
+            library: ximu3.lib
 
     steps:
       - uses: actions/checkout@v2
@@ -44,67 +48,76 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: rust-${{ matrix.os }}
-          path: |
-            x-IMU3-API/Rust/target/release/*.a
-            x-IMU3-API/Rust/target/release/*.lib
+          path: x-IMU3-API/Rust/target/release/${{ matrix.library }}
 
-  python:
-    runs-on: ${{ matrix.os }}
-    needs: rust
+      - if: startsWith(github.ref, 'refs/tags/v')
+          name: Upload library
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            upload_url: ${{ needs.create-release.outputs.upload_url }}
+            asset_path: x-IMU3-API/Rust/target/release/${{ matrix.library }}
+            asset_name: ${{ matrix.library }}
+            asset_content_type: application/octet-stream
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest]
-        python-version: ["3.10"] # should match classifiers in setup.py
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: rust-${{ matrix.os }}
-          path: x-IMU3-API/Rust/target/release
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install twine
-          python -m pip install wheel
-
-      - name: Build and install Python package
-        run: |
-          cd x-IMU3-API/Python
-          python setup.py install --user
-
-  cmake:
-    runs-on: ${{ matrix.os }}
-    needs: rust
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: rust-${{ matrix.os }}
-          path: x-IMU3-API/Rust/target/release
-
-      - name: Build CMake targets
-        run: |
-          mkdir cmake-build-release
-          cd cmake-build-release
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI   
+#  python:
+#    runs-on: ${{ matrix.os }}
+#    needs: rust
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [macos-latest, windows-latest]
+#        python-version: ["3.10"] # should match classifiers in setup.py
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: rust-${{ matrix.os }}
+#          path: x-IMU3-API/Rust/target/release
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Install Python dependencies
+#        run: |
+#          python -m pip install --upgrade pip
+#          python -m pip install twine
+#          python -m pip install wheel
+#
+#      - name: Build and install Python package
+#        run: |
+#          cd x-IMU3-API/Python
+#          python setup.py install --user
+#
+#  cmake:
+#    runs-on: ${{ matrix.os }}
+#    needs: rust
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [macos-latest, windows-latest]
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: rust-${{ matrix.os }}
+#          path: x-IMU3-API/Rust/target/release
+#
+#      - name: Build CMake targets
+#        run: |
+#          mkdir cmake-build-release
+#          cd cmake-build-release
+#          cmake .. -DCMAKE_BUILD_TYPE=Release
+#          cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI
 
       # - if: startsWith(github.ref, 'refs/tags/v')
       #   name: Zip library
