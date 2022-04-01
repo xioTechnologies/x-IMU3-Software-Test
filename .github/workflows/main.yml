@@ -69,7 +69,7 @@ jobs:
 #      fail-fast: false
 #      matrix:
 #        os: [macos-latest, windows-latest]
-#        python-version: ["3.10"] # should match classifiers in setup.py
+#        python-version: ["3.8", "3.9", "3.10"] # should match classifiers in setup.py
 #
 #    steps:
 #      - uses: actions/checkout@v2
@@ -94,7 +94,7 @@ jobs:
 #        run: |
 #          cd x-IMU3-API/Python
 #          python setup.py install --user
-#
+
   cmake:
     runs-on: ${{ matrix.os }}
     needs: [create-release, rust]
@@ -121,7 +121,7 @@ jobs:
           mkdir cmake-build-release
           cd cmake-build-release
           cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI
+          cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI --config Release
 
       - if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'macos-latest'
         name: Zip GUI (macOS)
