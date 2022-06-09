@@ -36,16 +36,18 @@ jobs:
         include:
           - os: ubuntu-latest
             library-file: libximu3.a
-          - os: macos-latest
-            library-file: libximu3.a
-          - os: windows-latest
-            library-file: ximu3.lib
+#          - os: macos-latest
+#            library-file: libximu3.a
+#          - os: windows-latest
+#            library-file: ximu3.lib
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Build
-        run: cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml
+        run: |
+          sudo apt-get install libudev-dev
+          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml
 
       - uses: actions/upload-artifact@v3
         with:
