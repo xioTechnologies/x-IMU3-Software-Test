@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Setup Linux
-        run: sudo apt-get install lubudev-dev
+        run: sudo apt-get install libudev-dev
 
       - name: Build
         run: |
