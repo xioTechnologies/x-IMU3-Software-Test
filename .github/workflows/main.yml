@@ -52,6 +52,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Setup Linux
+        run: sudo apt-get install lubudev-dev
+
       - name: Build
         run: |
           rustup target add ${{ matrix.target }}
