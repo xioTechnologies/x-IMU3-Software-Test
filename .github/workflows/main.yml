@@ -54,7 +54,7 @@ jobs:
 
       - name: Build
         run: |
-          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.rust-target }}
+          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target }}
 
 #      - uses: actions/upload-artifact@v3
 #        with:
