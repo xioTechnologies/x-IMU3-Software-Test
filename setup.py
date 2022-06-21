@@ -15,6 +15,8 @@ if len(sys.argv) == 1:  # if this script was called without arguments
 if platform.system() == "Darwin":  # if macOS
     os.environ["LDFLAGS"] = "-framework cocoa -framework IOKit"
     libraries = ["ximu3"]
+elif platform.system() == "Linux":
+    libraries = ["ximu3", "udev" ]
 else:
     libraries = ["ximu3", "ws2_32", "userenv", "setupapi", "advapi32"]
 
