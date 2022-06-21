@@ -62,8 +62,7 @@ jobs:
           rustup target add ${{ matrix.target }}
           cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target }}
 
-      - if: startsWith(github.ref, 'refs/tags/v')
-        name: Zip library
+      - name: Zip library
         run: |
           cd x-IMU3-API/Rust/target/${{ matrix.target }}/release/
           zip -r libximu3-${{ matrix.target }}.zip libximu3.a
