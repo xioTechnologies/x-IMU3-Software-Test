@@ -56,10 +56,11 @@ jobs:
         run: sudo apt-get install libudev-dev
 
       - name: Build
+        env:
+          PKG_CONFIG_PATH: ${{ matrix.target }}
         run: |
-          cargo install cross
           rustup target add ${{ matrix.target }}
-          cross build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target }}
+          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target }}
 
 #      - uses: actions/upload-artifact@v3
 #        with:
