@@ -19,8 +19,8 @@ else:
     libraries = ["ximu3", "ws2_32", "userenv", "setupapi", "advapi32"]
 
 ext_modules = Extension("ximu3",
-                        ["Python-C-API/ximu3.c"],
-                        library_dirs=["../../x-IMU3-API/Rust/target/release"],
+                        ["x-IMU3-API/Python/Python-C-API/ximu3.c"],
+                        library_dirs=["x-IMU3-API/Rust/target/release"],
                         libraries=libraries,
                         define_macros=[("_CRT_SECURE_NO_WARNINGS", "")])
 
