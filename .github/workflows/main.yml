@@ -57,7 +57,8 @@ jobs:
 
       - name: Build
         env:
-          PKG_CONFIG_PATH: /usr/lib/${{ matrix.target }}/pkgconfig
+          PKG_CONFIG_SYSROOT_DIR: /
+          #PKG_CONFIG_PATH: /usr/lib/${{ matrix.target }}/pkgconfig
         run: |
           rustup target add ${{ matrix.target }}
           cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target }}
