@@ -34,12 +34,12 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a  ]
-          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
-          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
-          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
-          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
-          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
+#          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a  ]
+#          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
+#          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
+#          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
+#          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
+          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib ]
 
     steps:
       - uses: actions/checkout@v2
@@ -85,12 +85,12 @@ jobs:
       fail-fast: false
       matrix:
         target:
-        - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
-        - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
-        - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
-        - [ macos-latest, x86_64-apple-darwin, macosx_x86_64  ]
-        - [ macos-latest, aarch64-apple-darwin, macosx_arm64 ]
-        - [ windows-latest, x86_64-pc-windows-gnu, win_amd64 ]
+#        - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
+#        - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
+#        - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
+#        - [ macos-latest, x86_64-apple-darwin, macosx_x86_64  ]
+#        - [ macos-latest, aarch64-apple-darwin, macosx_arm64 ]
+        - [ windows-latest, x86_64-pc-windows-msvc, win_amd64 ]
 
         python-version: [ "cp38-", "cp39-", "cp310-" ]
 
@@ -144,48 +144,48 @@ jobs:
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
           CIBW_BEFORE_BUILD: pip install certifi oldest-supported-numpy # copied from matplotlib
           CIBW_BEFORE_BUILD_LINUX: apt-get update && apt-get install libudev-dev
-#
-#  cmake:
-#    runs-on: ${{ matrix.os }}
-#    needs: [create-release, rust]
-#
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          - os: macos-latest
-#            gui-file: x-IMU3 GUI.zip
-#          - os: windows-latest
-#            gui-file: x-IMU3 GUI.exe
-#
-#    steps:
-#      - uses: actions/checkout@v2
-#
-#      - uses: actions/download-artifact@v3
-#        with:
-#          name: rust-${{ matrix.os }}
-#          path: x-IMU3-API/Rust/target/release
-#
-#      - name: Build targets
-#        run: |
-#          mkdir cmake-build-release
-#          cd cmake-build-release
-#          cmake .. -DCMAKE_BUILD_TYPE=Release
-#          cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI --config Release
-#
-#      - if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'macos-latest'
-#        name: Zip GUI (macOS)
-#        run: |
-#          cd cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/
-#          zip -r "x-IMU3 GUI.zip" "x-IMU3 GUI.app"
-#
-#      - if: startsWith(github.ref, 'refs/tags/v')
-#        name: Upload GUI
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          upload_url: ${{ needs.create-release.outputs.upload_url }}
-#          asset_path: cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/${{ matrix.gui-file }}
-#          asset_name: ${{ matrix.gui-file }}
-#          asset_content_type: application/octet-stream
+
+  cmake:
+    runs-on: ${{ matrix.os }}
+    needs: rust
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            gui-file: x-IMU3 GUI.zip
+          - os: windows-latest
+            gui-file: x-IMU3 GUI.exe
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: rust-${{ matrix.os }}
+          path: x-IMU3-API/Rust/target/release
+
+      - name: Build targets
+        run: |
+          mkdir cmake-build-release
+          cd cmake-build-release
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI --config Release
+
+      - if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'macos-latest'
+        name: Zip GUI (macOS)
+        run: |
+          cd cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/
+          zip -r "x-IMU3 GUI.zip" "x-IMU3 GUI.app"
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Upload GUI
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/${{ matrix.gui-file }}
+          asset_name: ${{ matrix.gui-file }}
+          asset_content_type: application/octet-stream
