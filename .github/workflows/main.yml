@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - if: matrix.os == 'ubuntu-latest'
+      - if: matrix.target[0] == 'ubuntu-latest'
         name: Setup Linux
         run: sudo apt-get install libudev-dev
 
