@@ -27,19 +27,19 @@ jobs:
           prerelease: false
 
   rust:
-    runs-on: ${{ matrix.platform[0] }}
+    runs-on: ${{ matrix.target[0] }}
     needs: create-release
 
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - [ ubuntu-latest, i686-unknown-linux-gnu ]
-          - [ ubuntu-latest, aarch64-unknown-linux-gnu ]
-          - [ ubuntu-latest, x86_64-unknown-linux-gnu ]
-          - [ macos-latest, x86_64-apple-darwin ]
-          - [ macos-latest, aarch64-apple-darwin ]
-          - [ windows-latest, x86_64-pc-windows-gnu ]
+        target:
+          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a  ]
+          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
+          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
+          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
+          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
+          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
 
 #          - os: macos-latest
 #            library-file: libximu3.a
@@ -49,26 +49,27 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Linux
+      - if: matrix.os == 'ubuntu-latest'
+        name: Setup Linux
         run: sudo apt-get install libudev-dev
 
       - name: Build
         env:
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
-          rustup target add ${{ matrix.platform[1] }}
-          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.platform[1] }}
+          rustup target add ${{ matrix.target[1] }}
+          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target[1] }}
 
       - uses: actions/upload-artifact@v3
         with:
-          name: rust-${{ matrix.platform[1] }}
-          path: x-IMU3-API/Rust/target/${{ matrix.platform[1] }}/release/libximu3.a
+          name: rust-${{ matrix.target[1] }}
+          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Zip library
         run: |
-          cd x-IMU3-API/Rust/target/${{ matrix.platform[1] }}/release/
-          zip -r libximu3-${{ matrix.platform[1] }}.zip libximu3.a
+          cd x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/
+          zip -r ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip ${{ matrix.target[2] }}.${{ matrix.target[3] }}
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Upload to release
@@ -77,18 +78,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: x-IMU3-API/Rust/target/release/libximu3.a
-          asset_name: libximu3.a
+          asset_path: x-IMU3-API/Rust/target/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+          asset_name: ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
           asset_content_type: application/octet-stream
 
   python:
-    runs-on: ${{ matrix.platform[0] }}
+    runs-on: ${{ matrix.target[0] }}
     needs: rust
 
     strategy:
       fail-fast: false
       matrix:
-        platform:
+        target:
         - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
         - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
         - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
@@ -100,7 +101,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: rust-${{ matrix.platform[1] }}
+          name: rust-${{ matrix.target[1] }}
           path: x-IMU3-API/Rust/target/release
 
       - name: Set up Python
@@ -116,7 +117,7 @@ jobs:
           python -m pip install twine
           python -m pip install wheel
 
-      - if: matrix.platform[1] == 'ubuntu-latest'
+      - if: matrix.target[1] == 'ubuntu-latest'
         name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -127,7 +128,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.6.1
         env:
           CIBW_ARCHS: all
-          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.platform[2] }}
+          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BEFORE_BUILD: pip install certifi numpy==1.19.2 # copied from matplotlib
@@ -137,7 +138,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.6.1
         env:
           CIBW_ARCHS: all
-          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.platform[2] }}
+          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BEFORE_BUILD: pip install certifi oldest-supported-numpy # copied from matplotlib
