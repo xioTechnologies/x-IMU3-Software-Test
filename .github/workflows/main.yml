@@ -37,14 +37,9 @@ jobs:
           - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a  ]
           - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
-#          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
-#          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
-#          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
-
-#          - os: macos-latest
-#            library-file: libximu3.a
-#          - os: windows-latest
-#            library-file: ximu3.lib
+          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
+          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
+          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
 
     steps:
       - uses: actions/checkout@v2
@@ -93,6 +88,9 @@ jobs:
         - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
         - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
         - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
+        - [ macos-latest, x86_64-apple-darwin, macosx_x86_64  ]
+        - [ macos-latest, aarch64-apple-darwin, macosx_arm64 ]
+        - [ windows-latest, x86_64-pc-windows-gnu, win_amd64 ]
 
         python-version: [ "cp38-", "cp39-", "cp310-" ]
 
@@ -129,10 +127,11 @@ jobs:
         env:
           CIBW_ARCHS: all
           CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
-#          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
-#          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
-#          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
-          CIBW_BEFORE_BUILD: apt-get update && apt-get install libudev-dev && pip install certifi numpy==1.19.2 # copied from matplotlib
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
+          CIBW_BEFORE_BUILD: pip install certifi numpy==1.19.2 # copied from matplotlib
+          CIBW_BEFORE_BUILD_LINUX: apt-get update && apt-get install libudev-dev
 
       - if: matrix.python-version != 'cp38-'
         name: Build wheels (python version != 3.8)
@@ -140,10 +139,11 @@ jobs:
         env:
           CIBW_ARCHS: all
           CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
-#          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
-#          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
-#          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
-          CIBW_BEFORE_BUILD: apt-get update && apt-get install libudev-dev && pip install certifi oldest-supported-numpy # copied from matplotlib
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
+          CIBW_BEFORE_BUILD: pip install certifi oldest-supported-numpy # copied from matplotlib
+          CIBW_BEFORE_BUILD_LINUX: apt-get update && apt-get install libudev-dev
 #
 #  cmake:
 #    runs-on: ${{ matrix.os }}
