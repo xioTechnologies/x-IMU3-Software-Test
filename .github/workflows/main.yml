@@ -156,15 +156,15 @@ jobs:
           - os: ubuntu-latest
             rust: x86_64-unknown-linux-gnu
             gui-file: x-IMU3 GUI Linux.app
-          - os: macos-latest
-            rust: x86_64-apple-darwin
-            gui-file: x-IMU3 GUI Intel.zip
-          - os: macos-latest
-            rust: aarch64-apple-darwin
-            gui-file: x-IMU3 GUI Apple Silicon.zip
-          - os: windows-latest
-            rust: x86_64-pc-windows-msvc
-            gui-file: x-IMU3 GUI.exe
+#          - os: macos-latest
+#            rust: x86_64-apple-darwin
+#            gui-file: x-IMU3 GUI Intel.zip
+#          - os: macos-latest
+#            rust: aarch64-apple-darwin
+#            gui-file: x-IMU3 GUI Apple Silicon.zip
+#          - os: windows-latest
+#            rust: x86_64-pc-windows-msvc
+#            gui-file: x-IMU3 GUI.exe
 
 
     steps:
@@ -178,6 +178,8 @@ jobs:
       - if: matrix.os == 'ubuntu-latest'
         name: Setup Linux
         run: |
+          sudo apt-get install libudev-dev
+#           https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md
           sudo apt update
           sudo apt install libasound2-dev libjack-jackd2-dev \
           ladspa-sdk \
