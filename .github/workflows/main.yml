@@ -129,9 +129,9 @@ jobs:
         env:
           CIBW_ARCHS: all
           CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
-          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
+#          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+#          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
+#          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
           CIBW_BEFORE_BUILD: apt-get update && apt-get install libudev-dev && pip install certifi numpy==1.19.2 # copied from matplotlib
 
       - if: matrix.python-version != 'cp38-'
@@ -140,9 +140,9 @@ jobs:
         env:
           CIBW_ARCHS: all
           CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
-          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
+#          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+#          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
+#          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
           CIBW_BEFORE_BUILD: apt-get update && apt-get install libudev-dev && pip install certifi oldest-supported-numpy # copied from matplotlib
 #
 #  cmake:
