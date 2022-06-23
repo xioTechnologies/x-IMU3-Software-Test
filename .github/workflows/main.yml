@@ -37,7 +37,9 @@ jobs:
           - [ ubuntu-latest, i686-unknown-linux-gnu ]
           - [ ubuntu-latest, aarch64-unknown-linux-gnu ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu ]
-
+          - [ macos-latest, x86_64-apple-darwin ]
+          - [ macos-latest, aarch64-apple-darwin ]
+          - [ windows-latest, x86_64-pc-windows-gnu ]
 
 #          - os: macos-latest
 #            library-file: libximu3.a
@@ -87,11 +89,11 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - [ ubuntu-latest, i686-unknown-linux-gnu ]
-        - [ ubuntu-latest, aarch64-unknown-linux-gnu ]
-        - [ ubuntu-latest, x86_64-unknown-linux-gnu ]
+        - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
+        - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
+        - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
 
-        python-version: [ "cp38-*" ]
+        python-version: [ "cp38-" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -124,11 +126,8 @@ jobs:
         name: Build wheels (python version == 3.8)
         uses: pypa/cibuildwheel@v2.6.1
         env:
-          CIBW_ARCHS_LINUX: auto aarch64
-          CIBW_ARCHS_MACOS: x86_64 arm64
-          CIBW_ARCHS_WINDOWS: auto
-          CIBW_BUILD: ${{ matrix.python-version }}
-          CIBW_SKIP: "*musllinux*"
+          CIBW_ARCHS: all
+          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.platform[2] }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BEFORE_BUILD: pip install certifi numpy==1.19.2 # copied from matplotlib
@@ -137,11 +136,8 @@ jobs:
         name: Build wheels (python version != 3.8)
         uses: pypa/cibuildwheel@v2.6.1
         env:
-          CIBW_ARCHS_LINUX: auto aarch64
-          CIBW_ARCHS_MACOS: x86_64 arm64
-          CIBW_ARCHS_WINDOWS: auto
-          CIBW_BUILD: ${{ matrix.python-version }}
-          CIBW_SKIP: "*musllinux*"
+          CIBW_ARCHS: all
+          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.platform[2] }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BEFORE_BUILD: pip install certifi oldest-supported-numpy # copied from matplotlib
