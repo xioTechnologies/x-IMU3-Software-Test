@@ -37,9 +37,9 @@ jobs:
           - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a  ]
           - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
-          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
-          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
-          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
+#          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
+#          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
+#          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
 
 #          - os: macos-latest
 #            library-file: libximu3.a
