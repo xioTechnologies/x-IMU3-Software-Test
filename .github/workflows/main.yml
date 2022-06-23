@@ -84,7 +84,7 @@ jobs:
 
   python:
     runs-on: ${{ matrix.target[0] }}
-#    needs: rust
+    needs: rust
 
     strategy:
       fail-fast: false
