@@ -27,22 +27,17 @@ jobs:
           prerelease: false
 
   rust:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.platform[0] }}
     needs: create-release
 
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            library-file: libximu3.a
-            target: i686-unknown-linux-gnu
-          - os: ubuntu-latest
-            library-file: libximu3.a
-            target: aarch64-unknown-linux-gnu
-          - os: ubuntu-latest
-            library-file: libximu3.a
-            target: x86_64-unknown-linux-gnu
+        platform:
+          - [ ubuntu-latest, i686-unknown-linux-gnu ]
+          - [ ubuntu-latest, aarch64-unknown-linux-gnu ]
+          - [ ubuntu-latest, x86_64-unknown-linux-gnu ]
+
 
 #          - os: macos-latest
 #            library-file: libximu3.a
@@ -59,19 +54,19 @@ jobs:
         env:
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
-          rustup target add ${{ matrix.target }}
-          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target }}
+          rustup target add ${{ matrix.platform[1] }}
+          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.platform[1] }}
 
       - uses: actions/upload-artifact@v3
         with:
-          name: rust-${{ matrix.target }}
-          path: x-IMU3-API/Rust/target/${{ matrix.target }}/release/libximu3.a
+          name: rust-${{ matrix.platform[1] }}
+          path: x-IMU3-API/Rust/target/${{ matrix.platform[1] }}/release/libximu3.a
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Zip library
         run: |
-          cd x-IMU3-API/Rust/target/${{ matrix.target }}/release/
-          zip -r libximu3-${{ matrix.target }}.zip libximu3.a
+          cd x-IMU3-API/Rust/target/${{ matrix.platform[1] }}/release/
+          zip -r libximu3-${{ matrix.platform[1] }}.zip libximu3.a
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Upload to release
@@ -80,37 +75,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: x-IMU3-API/Rust/target/release/${{ matrix.library-file }}
-          asset_name: ${{ matrix.library-file }}
+          asset_path: x-IMU3-API/Rust/target/release/libximu3.a
+          asset_name: libximu3.a
           asset_content_type: application/octet-stream
 
   python:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.platform[0] }}
     needs: rust
 
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            library-file: libximu3.a
-            target: i686-unknown-linux-gnu
-            python-version: "cp38-*"
-          - os: ubuntu-latest
-            library-file: libximu3.a
-            target: aarch64-unknown-linux-gnu
-            python-version: "cp38-*"
-          - os: ubuntu-latest
-            library-file: libximu3.a
-            target: x86_64-unknown-linux-gnu
-            python-version: "cp38-*"
+        platform:
+        - [ ubuntu-latest, i686-unknown-linux-gnu ]
+        - [ ubuntu-latest, aarch64-unknown-linux-gnu ]
+        - [ ubuntu-latest, x86_64-unknown-linux-gnu ]
+
+        python-version: [ "cp38-*" ]
 
     steps:
       - uses: actions/checkout@v2
 
       - uses: actions/download-artifact@v3
         with:
-          name: rust-${{ matrix.target }}
+          name: rust-${{ matrix.platform[1] }}
           path: x-IMU3-API/Rust/target/release
 
       - name: Set up Python
@@ -126,7 +114,7 @@ jobs:
           python -m pip install twine
           python -m pip install wheel
 
-      - if: matrix.os == 'ubuntu-latest'
+      - if: matrix.platform[1] == 'ubuntu-latest'
         name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
