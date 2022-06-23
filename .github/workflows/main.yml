@@ -73,7 +73,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: x-IMU3-API/Rust/target/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+          asset_path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
           asset_name: ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
           asset_content_type: application/octet-stream
 
