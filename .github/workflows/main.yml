@@ -160,10 +160,10 @@ jobs:
       fail-fast: false
       matrix:
         target:
-        - [ ubuntu-latest, x86_64-unknown-linux-gnu, x-IMU3 GUI ]
-        - [ macos-latest, x86_64-apple-darwin, x-IMU3 GUI Apple Intel.zip  ]
-        - [ macos-latest, aarch64-apple-darwin, x-IMU3 GUI Apple Silicon.zip ]
-        - [ windows-latest, x86_64-pc-windows-msvc, x-IMU3 GUI.exe ]
+        - [ ubuntu-latest, x86_64-unknown-linux-gnu, x-IMU3 GUI, '' ]
+        - [ macos-latest, x86_64-apple-darwin, x-IMU3 GUI Apple Intel.zip, x86_64  ]
+        - [ macos-latest, aarch64-apple-darwin, x-IMU3 GUI Apple Silicon.zip, arm64 ]
+        - [ windows-latest, x86_64-pc-windows-msvc, x-IMU3 GUI.exe, '' ]
 
     steps:
       - uses: actions/checkout@v2
@@ -190,7 +190,7 @@ jobs:
         run: |
           mkdir cmake-build-release
           cd cmake-build-release
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target[3] }}
           cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI --config Release
 
       - if: startsWith(github.ref, 'refs/tags/v') && matrix.target[0] == 'macos-latest'
