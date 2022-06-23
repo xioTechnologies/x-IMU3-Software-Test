@@ -43,8 +43,9 @@ namespace UIFonts
 {
     namespace Typefaces
     {
-        static const juce::Typeface::Ptr montserratMedium = juce::Typeface::createSystemTypefaceFor(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize);
-        static const juce::Typeface::Ptr robotoMonoRegular = juce::Typeface::createSystemTypefaceFor(BinaryData::RobotoMonoRegular_ttf, BinaryData::RobotoMonoRegular_ttfSize);
+        juce::Typeface::Ptr getMontserratMedium();
+
+        juce::Typeface::Ptr getRobotoMonoRegular();
     }
 
 #if JUCE_WINDOWS
@@ -53,9 +54,11 @@ namespace UIFonts
     static constexpr auto montserratAdjustment = 0.0f;
 #endif
 
-    static const juce::Font defaultFont = juce::Font(Typefaces::montserratMedium).withHeight(15.0f + montserratAdjustment);
-    static const juce::Font smallFont = juce::Font(Typefaces::montserratMedium).withHeight(13.0f + montserratAdjustment);
-    static const juce::Font terminalFeedFont = juce::Font(Typefaces::robotoMonoRegular).withHeight(15.0f);
+    const juce::Font& getDefaultFont();
+
+    const juce::Font& getSmallFont();
+
+    const juce::Font& getTerminalFeedFont();
 }
 
 class CustomLookAndFeel : public juce::LookAndFeel_V4
