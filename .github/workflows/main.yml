@@ -26,65 +26,65 @@ jobs:
           draft: false
           prerelease: false
 
-  rust:
-    runs-on: ${{ matrix.target[0] }}
-    needs: create-release
-
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a  ]
-          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
-          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
-#          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
-#          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
-#          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
-
-#          - os: macos-latest
-#            library-file: libximu3.a
-#          - os: windows-latest
-#            library-file: ximu3.lib
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - if: matrix.target[0] == 'ubuntu-latest'
-        name: Setup Linux
-        run: sudo apt-get install libudev-dev
-
-      - name: Build
-        env:
-          PKG_CONFIG_SYSROOT_DIR: /
-        run: |
-          rustup target add ${{ matrix.target[1] }}
-          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target[1] }}
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: rust-${{ matrix.target[1] }}
-          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
-
-      - if: startsWith(github.ref, 'refs/tags/v')
-        name: Zip library
-        run: |
-          cd x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/
-          zip -r ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip ${{ matrix.target[2] }}.${{ matrix.target[3] }}
-
-      - if: startsWith(github.ref, 'refs/tags/v')
-        name: Upload to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: x-IMU3-API/Rust/target/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
-          asset_name: ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
-          asset_content_type: application/octet-stream
+#  rust:
+#    runs-on: ${{ matrix.target[0] }}
+#    needs: create-release
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        target:
+#          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a  ]
+#          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
+#          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
+##          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
+##          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
+##          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
+#
+##          - os: macos-latest
+##            library-file: libximu3.a
+##          - os: windows-latest
+##            library-file: ximu3.lib
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - if: matrix.target[0] == 'ubuntu-latest'
+#        name: Setup Linux
+#        run: sudo apt-get install libudev-dev
+#
+#      - name: Build
+#        env:
+#          PKG_CONFIG_SYSROOT_DIR: /
+#        run: |
+#          rustup target add ${{ matrix.target[1] }}
+#          cargo build --release --manifest-path=x-IMU3-API/Rust/Cargo.toml --target ${{ matrix.target[1] }}
+#
+#      - uses: actions/upload-artifact@v3
+#        with:
+#          name: rust-${{ matrix.target[1] }}
+#          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
+#
+#      - if: startsWith(github.ref, 'refs/tags/v')
+#        name: Zip library
+#        run: |
+#          cd x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/
+#          zip -r ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip ${{ matrix.target[2] }}.${{ matrix.target[3] }}
+#
+#      - if: startsWith(github.ref, 'refs/tags/v')
+#        name: Upload to release
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ needs.create-release.outputs.upload_url }}
+#          asset_path: x-IMU3-API/Rust/target/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+#          asset_name: ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+#          asset_content_type: application/octet-stream
 
   python:
     runs-on: ${{ matrix.target[0] }}
-    needs: rust
+#    needs: rust
 
     strategy:
       fail-fast: false
@@ -99,10 +99,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/download-artifact@v3
-        with:
-          name: rust-${{ matrix.target[1] }}
-          path: x-IMU3-API/Rust/target/release
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: rust-${{ matrix.target[1] }}
+#          path: x-IMU3-API/Rust/target/release
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -129,9 +129,10 @@ jobs:
         env:
           CIBW_ARCHS: all
           CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
-          CIBW_MANYLINUX_I686_IMAGE: manylinux1
-          CIBW_BEFORE_BUILD: apt-get install libudev-dev && pip install certifi numpy==1.19.2 # copied from matplotlib
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
+          CIBW_BEFORE_BUILD: apt-get update && apt-get install libudev-dev && pip install certifi numpy==1.19.2 # copied from matplotlib
 
       - if: matrix.python-version != 'cp38-*'
         name: Build wheels (python version != 3.8)
@@ -139,9 +140,10 @@ jobs:
         env:
           CIBW_ARCHS: all
           CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-          CIBW_BEFORE_BUILD: apt-get install libudev-dev && pip install certifi oldest-supported-numpy # copied from matplotlib
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
+          CIBW_BEFORE_BUILD: apt-get update && apt-get install libudev-dev && pip install certifi oldest-supported-numpy # copied from matplotlib
 #
 #  cmake:
 #    runs-on: ${{ matrix.os }}
