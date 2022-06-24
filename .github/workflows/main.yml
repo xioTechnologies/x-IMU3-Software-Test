@@ -9,7 +9,7 @@ on:
 
 jobs:
   create-release:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest # TODO: compare to windows-latest
     outputs:
       upload_url: ${{ steps.create-release.outputs.upload_url }}
 
@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
+        target: # [ os, rust-target, library-file-name, library-file-extension ]
         - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a  ]
         - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
         - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - if: matrix.target[0] == 'ubuntu-latest'
-        name: Setup ubuntu
+        name: Install ubuntu dependency
         run: sudo apt-get install libudev-dev
 
       - name: Build
@@ -86,7 +86,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
+        target: # [ os, rust-target, cibuildwheel-platform ]
         - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
         - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
         - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
@@ -147,11 +147,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-        - [ ubuntu-latest, x86_64-unknown-linux-gnu, "x-IMU3-GUI", '' ]
-        - [ macos-latest, x86_64-apple-darwin, "x-IMU3-GUI-Apple-Intel.zip", x86_64  ]
-        - [ macos-latest, aarch64-apple-darwin, "x-IMU3-GUI-Apple-Silicon.zip", arm64 ]
-        - [ windows-latest, x86_64-pc-windows-msvc, "x-IMU3-GUI.exe", '' ]
+        target: # [ os, rust-target, cmake-osx-architecture, gui-extension  ]
+        - [ ubuntu-latest, x86_64-unknown-linux-gnu, "", "" ]
+        - [ macos-latest, x86_64-apple-darwin, x86_64, "-Intel.zip" ]
+        - [ macos-latest, aarch64-apple-darwin, arm64, "-Apple-Intel.zip" ]
+        - [ windows-latest, x86_64-pc-windows-msvc, "", ".exe" ]
 
     steps:
       - uses: actions/checkout@v2
@@ -179,14 +179,14 @@ jobs:
         run: |
           mkdir cmake-build-release
           cd cmake-build-release
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target[3] }}
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target[2] }}
           cmake --build . --target C-Examples Cpp-Examples x-IMU3-GUI --config Release
 
       - if: startsWith(github.ref, 'refs/tags/v') && matrix.target[0] == 'macos-latest'
         name: Zip GUI (macOS)
         run: |
           cd cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/
-          zip -r ${{ matrix.target[2] }} "x-IMU3-GUI.app"
+          zip -r "x-IMU3 GUI${{ matrix.target[3] }}" "x-IMU3 GUI.app"
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Upload GUI
@@ -195,6 +195,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/${{ matrix.target[2] }}
-          asset_name: ${{ matrix.target[2] }}
+          asset_path: cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI${{ matrix.target[3] }}
+          asset_name: x-IMU3-GUI${{ matrix.target[3] }}
           asset_content_type: application/octet-stream
