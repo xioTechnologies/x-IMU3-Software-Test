@@ -1,6 +1,6 @@
 # x-IMU3 Software
 
-This is main software repository for the [x-IMU3](https://x-io.co.uk/x-imu3/). The repository includes the x-IMU3 GUI and APIs with examples for C, C++, C#, Python, and Rust. The x-IMU3 GUI is written in C++ using [JUCE](https://juce.com/). The core API is written in Rust with a generated C interface layer. APIs in all other languages are wrappers for the C interface layer.
+This is main software repository for the [x-IMU3](https://x-io.co.uk/x-imu3/). The repository includes the x-IMU3-GUI and APIs with examples for C, C++, C#, Python, and Rust. The x-IMU3-GUI is written in C++ using [JUCE](https://juce.com/). The core API is written in Rust with a generated C interface layer. APIs in all other languages are wrappers for the C interface layer.
 
 ## Development Setup
 
