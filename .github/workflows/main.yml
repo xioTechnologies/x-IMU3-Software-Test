@@ -130,14 +130,14 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
           CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
-          CIBW_BEFORE_BUILD: pip install certifi oldest-supported-numpy # copied from matplotlib
+          CIBW_BEFORE_BUILD: pip install oldest-supported-numpy
           CIBW_BEFORE_BUILD_LINUX: apt-get update && apt-get install libudev-dev
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Publish Python package
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: pypi-AgENdGVzdC5weXBpLm9yZwIkNGFlNTE4ZTItOGJmMi00NzM4LWJmMjctZDU0OTZjMDU1YmEyAAI6eyJwZXJtaXNzaW9ucyI6IHsicHJvamVjdHMiOiBbImltdWZ1c2lvbiJdfSwgInZlcnNpb24iOiAxfQAABiD2Cejouxj1vclq0p7QO6_H_j6lWv-Cs6WoY0CaZTPDvA
+          TWINE_PASSWORD: pypi-AgENdGVzdC5weXBpLm9yZwIkNzFlNzc2NTUtYjJkZi00YWM3LWIzZGItMDMwM2ViZDFlMzNiAAIleyJwZXJtaXNzaW9ucyI6ICJ1c2VyIiwgInZlcnNpb24iOiAxfQAABiCAolo6SrX1B30HxW2QqaOmRQbiGPfS8IrxQyUhLcJxdA
         run: python -m twine upload --verbose --repository testpypi wheelhouse/*
 
   gui:
