@@ -142,7 +142,7 @@ jobs:
 
   gui:
     runs-on: ${{ matrix.target[0] }}
-    needs: rust
+    needs: [create-release, rust]
 
     strategy:
       fail-fast: false
