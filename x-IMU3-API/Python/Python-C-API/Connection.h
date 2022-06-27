@@ -147,7 +147,7 @@ static PyObject* connection_send_commands(Connection* self, PyObject* args)
         commands_char_ptr_array[index] = (char*) PyUnicode_AsUTF8(command);
     }
 
-    return char_arrays_to_list_and_free(XIMU3_connection_send_commands(self->connection, commands_char_ptr_array, length, (uint32_t) retries,(uint32_t) timeout));
+    return char_arrays_to_list_and_free(XIMU3_connection_send_commands(self->connection, commands_char_ptr_array, length, (uint32_t) retries, (uint32_t) timeout));
 }
 
 static PyObject* connection_send_commands_async(Connection* self, PyObject* args)
