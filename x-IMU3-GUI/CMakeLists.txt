@@ -78,7 +78,7 @@ juce_add_gui_app(x-IMU3-GUI
         ICON_SMALL "Images/xio_icon.png"
         # DOCUMENT_EXTENSIONS ...           # Specify file extensions that should be associated with this app
         # COMPANY_NAME ...                  # Specify the name of the app's author
-        PRODUCT_NAME "x-IMU3-GUI")     # The name of the final executable, which can differ from the target name
+        PRODUCT_NAME "x-IMU3 GUI")     # The name of the final executable, which can differ from the target name
 
 # `juce_generate_juce_header` will create a JuceHeader.h for a given target, which will be generated
 # into your build tree. This should be included with `#include <JuceHeader.h>`. The include path for
