@@ -12,7 +12,7 @@ if len(sys.argv) == 1:  # if this script was called without arguments
     sys.argv.append("install")
     sys.argv.append("--user")
 
-if platform.system() == "Darwin":  # if macOS
+if platform.system() == "Darwin":
     os.environ["LDFLAGS"] = "-framework cocoa -framework IOKit"
     libraries = ["ximu3"]
 elif platform.system() == "Linux":

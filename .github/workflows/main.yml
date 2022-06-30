@@ -34,11 +34,11 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, library-file-name, library-file-extension ]
+          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
+          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
           - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a ]
           - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
-          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
-          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
           - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib ]
 
     steps:
@@ -55,7 +55,7 @@ jobs:
         run: |
           rustup target add ${{ matrix.target[1] }}
           cargo build --release --target ${{ matrix.target[1] }}
-          cargo publish --dry-run
+          cargo publish --no-verify --dry-run
 
       - uses: actions/upload-artifact@v3
         name: Upload to artifacts
@@ -96,11 +96,11 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, cibuildwheel-platform ]
+          - [ macos-latest, x86_64-apple-darwin, macosx_x86_64 ]
+          - [ macos-latest, aarch64-apple-darwin, macosx_arm64 ]
           - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
           - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
-          - [ macos-latest, x86_64-apple-darwin, macosx_x86_64 ]
-          - [ macos-latest, aarch64-apple-darwin, macosx_arm64 ]
           - [ windows-latest, x86_64-pc-windows-msvc, win_amd64 ]
 
         python-version: [ "cp38-", "cp39-", "cp310-" ]
@@ -151,9 +151,9 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, cmake-osx-architecture, gui-extension  ]
-          - [ ubuntu-latest, x86_64-unknown-linux-gnu, "", "" ]
           - [ macos-latest, x86_64-apple-darwin, x86_64, "-Intel.zip" ]
           - [ macos-latest, aarch64-apple-darwin, arm64, "-Apple-Silicon.zip" ]
+          - [ ubuntu-latest, x86_64-unknown-linux-gnu, "", "" ]
           - [ windows-latest, x86_64-pc-windows-msvc, "", ".exe" ]
 
     steps:
