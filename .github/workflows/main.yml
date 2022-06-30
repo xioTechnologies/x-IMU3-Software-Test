@@ -39,6 +39,7 @@ jobs:
           - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a ]
           - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
+          - [ windows-latest, x86_64-pc-windows-gnu, ximu3, lib ]
           - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib ]
 
     steps:
