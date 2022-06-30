@@ -10,7 +10,7 @@ public:
     {
         setColour(juce::TextEditor::backgroundColourId, UIColours::textEditor);
         setColour(juce::TextEditor::textColourId, UIColours::background);
-        setFont(UIFonts::getDefaultFont());
+        setFont(UIFonts::defaultFont);
         setSelectAllWhenFocused(true);
         setEscapeAndReturnKeysConsumed(false);
     }

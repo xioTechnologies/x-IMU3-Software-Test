@@ -13,7 +13,6 @@ namespace UIColours
     static const juce::Colour highlight = juce::Colour::fromRGB(0, 145, 255);
     static const juce::Colour hyperlink = juce::Colour::fromRGB(29, 228, 230);
     static const juce::Colour warning = juce::Colour::fromRGB(247, 181, 0);
-    static const juce::Colour grey = juce::Colour::fromRGB(120, 120, 120);
     static const juce::Colour graphRed = juce::Colour::fromRGB(224, 32, 32);
     static const juce::Colour graphBlue = juce::Colour::fromRGB(50, 197, 255);
     static const juce::Colour graphGreen = juce::Colour::fromRGB(109, 212, 0);
@@ -43,9 +42,8 @@ namespace UIFonts
 {
     namespace Typefaces
     {
-        juce::Typeface::Ptr getMontserratMedium();
-
-        juce::Typeface::Ptr getRobotoMonoRegular();
+        static const juce::Typeface::Ptr montserratMedium = juce::Typeface::createSystemTypefaceFor(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize);
+        static const juce::Typeface::Ptr robotoMonoRegular = juce::Typeface::createSystemTypefaceFor(BinaryData::RobotoMonoRegular_ttf, BinaryData::RobotoMonoRegular_ttfSize);
     }
 
 #if JUCE_WINDOWS
@@ -54,11 +52,9 @@ namespace UIFonts
     static constexpr auto montserratAdjustment = 0.0f;
 #endif
 
-    const juce::Font& getDefaultFont();
-
-    const juce::Font& getSmallFont();
-
-    const juce::Font& getTerminalFeedFont();
+    static const juce::Font defaultFont = juce::Font(Typefaces::montserratMedium).withHeight(15.0f + montserratAdjustment);
+    static const juce::Font smallFont = juce::Font(Typefaces::montserratMedium).withHeight(13.0f + montserratAdjustment);
+    static const juce::Font terminalFeedFont = juce::Font(Typefaces::robotoMonoRegular).withHeight(15.0f);
 }
 
 class CustomLookAndFeel : public juce::LookAndFeel_V4

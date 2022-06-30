@@ -1,44 +1,14 @@
 #include "CustomLookAndFeel.h"
 
-juce::Typeface::Ptr UIFonts::Typefaces::getMontserratMedium()
-{
-    static const auto ptr = juce::Typeface::createSystemTypefaceFor(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize);
-    return ptr;
-}
-
-juce::Typeface::Ptr UIFonts::Typefaces::getRobotoMonoRegular()
-{
-    static const auto ptr = juce::Typeface::createSystemTypefaceFor(BinaryData::RobotoMonoRegular_ttf, BinaryData::RobotoMonoRegular_ttfSize);
-    return ptr;
-}
-
-const juce::Font& UIFonts::getDefaultFont()
-{
-    static const auto font = juce::Font(Typefaces::getMontserratMedium()).withHeight(15.0f + montserratAdjustment);
-    return font;
-}
-
-const juce::Font& UIFonts::getSmallFont()
-{
-    static const auto font = juce::Font(Typefaces::getMontserratMedium()).withHeight(13.0f + montserratAdjustment);
-    return font;
-}
-
-const juce::Font& UIFonts::getTerminalFeedFont()
-{
-    static const auto font = juce::Font(Typefaces::getRobotoMonoRegular()).withHeight(15.0f);
-    return font;
-}
-
 CustomLookAndFeel::CustomLookAndFeel()
 {
-    setDefaultSansSerifTypeface(UIFonts::Typefaces::getMontserratMedium()); // progress bar only
+    setDefaultSansSerifTypeface(UIFonts::Typefaces::montserratMedium); // progress bar only
 
     setColour(juce::CaretComponent::caretColourId, UIColours::background);
     setColour(juce::ComboBox::backgroundColourId, UIColours::textEditor);
     setColour(juce::ComboBox::textColourId, UIColours::background);
-    setColour(juce::ComboBox::arrowColourId, UIColours::grey);
-    setColour(juce::GroupComponent::outlineColourId, UIColours::grey);
+    setColour(juce::ComboBox::arrowColourId, juce::Colours::grey);
+    setColour(juce::GroupComponent::outlineColourId, juce::Colours::grey);
     setColour(juce::GroupComponent::textColourId, juce::Colours::white);
     setColour(juce::Label::textColourId, juce::Colours::white);
     setColour(juce::Label::textWhenEditingColourId, UIColours::menuStrip);
@@ -48,7 +18,7 @@ CustomLookAndFeel::CustomLookAndFeel()
     setColour(juce::ListBox::backgroundColourId, {});
     setColour(juce::PopupMenu::highlightedBackgroundColourId, UIColours::highlight);
     setColour(juce::PopupMenu::backgroundColourId, UIColours::background);
-    setColour(juce::PopupMenu::headerTextColourId, UIColours::grey);
+    setColour(juce::PopupMenu::headerTextColourId, juce::Colours::grey);
     setColour(juce::PopupMenu::textColourId, juce::Colours::white);
     setColour(juce::ResizableWindow::backgroundColourId, UIColours::menuStrip);
     setColour(juce::ScrollBar::thumbColourId, UIColours::menuStrip);
@@ -66,7 +36,7 @@ CustomLookAndFeel::CustomLookAndFeel()
     setColour(juce::ToggleButton::tickDisabledColourId, juce::Colours::white);
     setColour(juce::ToggleButton::tickColourId, UIColours::menuStrip);
     setColour(juce::TooltipWindow::textColourId, juce::Colours::white);
-    setColour(juce::TooltipWindow::outlineColourId, UIColours::grey);
+    setColour(juce::TooltipWindow::outlineColourId, juce::Colours::grey);
     setColour(juce::TooltipWindow::backgroundColourId, UIColours::background);
 }
 
@@ -148,7 +118,7 @@ void CustomLookAndFeel::drawButtonBackground(juce::Graphics& g,
 
 juce::Font CustomLookAndFeel::getTextButtonFont(juce::TextButton&, int)
 {
-    return UIFonts::getDefaultFont();
+    return UIFonts::defaultFont;
 }
 
 void CustomLookAndFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button, bool, bool)
@@ -342,7 +312,7 @@ void CustomLookAndFeel::drawPopupMenuSectionHeader(juce::Graphics& g, const juce
 
 juce::Font CustomLookAndFeel::getPopupMenuFont()
 {
-    return UIFonts::getDefaultFont();
+    return UIFonts::defaultFont;
 }
 
 void CustomLookAndFeel::getIdealPopupMenuItemSize(const juce::String& text, const bool isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight)
@@ -386,7 +356,7 @@ void CustomLookAndFeel::drawComboBox(juce::Graphics& g, int width, int height, b
 
 juce::Font CustomLookAndFeel::getComboBoxFont(juce::ComboBox&)
 {
-    return UIFonts::getDefaultFont();
+    return UIFonts::defaultFont;
 }
 
 void CustomLookAndFeel::drawDocumentWindowTitleBar(juce::DocumentWindow& window, juce::Graphics& g,
@@ -402,7 +372,7 @@ void CustomLookAndFeel::drawDocumentWindowTitleBar(juce::DocumentWindow& window,
         g.drawImage(*icon, bounds.removeFromLeft(h).withSizeKeepingCentre(22, 22).toFloat(), juce::RectanglePlacement::centred);
     }
 
-    const auto font = UIFonts::getDefaultFont();
+    const auto font = UIFonts::defaultFont;
     g.setFont(font);
     g.setColour(juce::Colours::white);
     g.drawText(window.getName(), bounds, juce::Justification::left, true);
@@ -443,7 +413,7 @@ void CustomLookAndFeel::drawGroupComponentOutline(juce::Graphics& g, int width, 
     auto cs = 5.0f;
 
     // Adjustment
-    const auto font = UIFonts::getDefaultFont();
+    const auto font = UIFonts::defaultFont;
 
     juce::Path p;
     auto x = indent;
@@ -516,7 +486,7 @@ juce::TextLayout CustomLookAndFeel::layoutTooltipText(const juce::String& text, 
 
     juce::AttributedString s;
     s.setJustification(juce::Justification::centred);
-    s.append(text, UIFonts::getDefaultFont(), colour);
+    s.append(text, UIFonts::defaultFont, colour);
 
     juce::TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, (float) maxToolTipWidth);
