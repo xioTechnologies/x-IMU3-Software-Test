@@ -16,7 +16,7 @@ if platform.system() == "Darwin":
     os.environ["LDFLAGS"] = "-framework cocoa -framework IOKit"
     libraries = ["ximu3"]
 elif platform.system() == "Linux":
-    libraries = ["ximu3", "udev" ]
+    libraries = ["ximu3"]
 else:
     libraries = ["ximu3", "ws2_32", "userenv", "setupapi", "advapi32"]
 
