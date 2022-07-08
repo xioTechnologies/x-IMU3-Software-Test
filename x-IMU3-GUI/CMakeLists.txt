@@ -145,6 +145,16 @@ juce_add_binary_data(x-IMU3-GUI-AppData SOURCES
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
+if (APPLE)
+    if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL arm64)
+        set(BOOTLOADER_LIBRARY libds30_loader_macos_arm64.a)
+    else()
+        set(BOOTLOADER_LIBRARY libds30_loader_macos_x64.a)
+    endif()
+elseif (WIN32)
+    set(BOOTLOADER_LIBRARY ds30_Loader_Win_x64.lib)
+endif()
+
 target_link_libraries(x-IMU3-GUI
         PRIVATE
         x-IMU3-GUI-AppData
@@ -154,7 +164,8 @@ target_link_libraries(x-IMU3-GUI
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
-        juce::juce_recommended_warning_flags)
+        juce::juce_recommended_warning_flags
+        "${PROJECT_SOURCE_DIR}/ds30-Custom-Loader/native_api/lib/${BOOTLOADER_LIBRARY}")
 
 target_include_directories(x-IMU3-GUI
         PRIVATE
