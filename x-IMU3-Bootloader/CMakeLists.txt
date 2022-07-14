@@ -1,4 +1,4 @@
-add_library(x-IMU3-Bootloader SHARED Ximu3Bootloader.c)
+add_library(x-IMU3-Bootloader STATIC Ximu3Bootloader.c)
 
 if (APPLE)
     target_link_libraries(x-IMU3-Bootloader PRIVATE "-framework Cocoa" "-framework IOKit")
