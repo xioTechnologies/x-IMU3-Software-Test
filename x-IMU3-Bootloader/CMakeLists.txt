@@ -12,6 +12,4 @@ elseif (WIN32)
     set(BOOTLOADER_LIBRARY ds30_Loader_Win_x64.lib)
 endif()
 
-message("PROJECT_SOURCE_DIR:" "${PROJECT_SOURCE_DIR}")
-
 target_link_libraries(x-IMU3-Bootloader PRIVATE "${PROJECT_SOURCE_DIR}/x-IMU3-Bootloader/${BOOTLOADER_LIBRARY}")
