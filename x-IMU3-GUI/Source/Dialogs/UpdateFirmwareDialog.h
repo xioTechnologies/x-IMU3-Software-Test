@@ -17,7 +17,7 @@ public:
 
     std::unique_ptr<ximu3::ConnectionInfo> getConnectionInfo() const;
 
-    juce::String getHexFile() const;
+    juce::String getFileName() const;
 
 private:
     std::vector<ximu3::XIMU3_DiscoveredSerialDevice> devices;
@@ -75,9 +75,9 @@ private:
     SimpleLabel deviceLabel { "Device:" };
     CustomComboBox deviceValue;
 
-    SimpleLabel hexFileLabel { "Hex File:" };
-    CustomTextEditor hexFileValue;
-    IconButton hexFileButton { IconButton::Style::menuStrip, BinaryData::open_svg, 0.8f, "Select Hex File" };
+    SimpleLabel fileNameLabel { "File Name:" };
+    CustomTextEditor fileNameValue;
+    IconButton fileNameButton { IconButton::Style::menuStrip, BinaryData::open_svg, 0.8f, "Select Firmware File" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UpdateFirmwareDialog)
 };

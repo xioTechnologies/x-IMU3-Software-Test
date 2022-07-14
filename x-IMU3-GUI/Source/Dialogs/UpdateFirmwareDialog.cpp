@@ -7,26 +7,26 @@ UpdateFirmwareDialog::UpdateFirmwareDialog() : Dialog(BinaryData::tools_svg, "Up
 {
     addAndMakeVisible(deviceLabel);
     addAndMakeVisible(deviceValue);
-    addAndMakeVisible(hexFileLabel);
-    addAndMakeVisible(hexFileValue);
-    addAndMakeVisible(hexFileButton);
+    addAndMakeVisible(fileNameLabel);
+    addAndMakeVisible(fileNameValue);
+    addAndMakeVisible(fileNameButton);
 
-    const auto hexFile = ApplicationSettings::getDirectory().getChildFile(Firmware::fileName);
-    hexFile.replaceWithData(Firmware::memoryBlock.getData(), Firmware::memoryBlock.getSize());
-    hexFileValue.setText(hexFile.getFullPathName());
+    const auto fileName = ApplicationSettings::getDirectory().getChildFile(Firmware::fileName);
+    fileName.replaceWithData(Firmware::memoryBlock.getData(), Firmware::memoryBlock.getSize());
+    fileNameValue.setText(fileName.getFullPathName());
 
-    hexFileButton.onClick = [&]
+    fileNameButton.onClick = [&]
     {
-        juce::FileChooser fileChooser(hexFileButton.getTooltip(), std::filesystem::exists(hexFileValue.getText().toStdString()) ? hexFileValue.getText() : "", "*.hex");
+        juce::FileChooser fileChooser(fileNameButton.getTooltip(), std::filesystem::exists(fileNameValue.getText().toStdString()) ? fileNameValue.getText() : "", "*.hex");
         if (fileChooser.browseForFileToOpen())
         {
-            hexFileValue.setText(fileChooser.getResult().getFullPathName());
+            fileNameValue.setText(fileChooser.getResult().getFullPathName());
         }
     };
 
-    deviceValue.onChange = hexFileValue.onTextChange = [&]
+    deviceValue.onChange = fileNameValue.onTextChange = [&]
     {
-        setValid(getConnectionInfo() != nullptr && std::filesystem::exists(hexFileValue.getText().toStdString()));
+        setValid(getConnectionInfo() != nullptr && std::filesystem::exists(fileNameValue.getText().toStdString()));
     };
     setValid(false);
 
@@ -45,9 +45,9 @@ void UpdateFirmwareDialog::resized()
     bounds.removeFromTop(Dialog::margin);
 
     auto sourceRow = bounds.removeFromTop(UILayout::textComponentHeight);
-    hexFileLabel.setBounds(sourceRow.removeFromLeft(columnWidth));
-    hexFileButton.setBounds(sourceRow.removeFromRight(50));
-    hexFileValue.setBounds(sourceRow.withTrimmedRight(margin));
+    fileNameLabel.setBounds(sourceRow.removeFromLeft(columnWidth));
+    fileNameButton.setBounds(sourceRow.removeFromRight(50));
+    fileNameValue.setBounds(sourceRow.withTrimmedRight(margin));
 }
 
 std::unique_ptr<ximu3::ConnectionInfo> UpdateFirmwareDialog::getConnectionInfo() const
@@ -72,7 +72,7 @@ std::unique_ptr<ximu3::ConnectionInfo> UpdateFirmwareDialog::getConnectionInfo()
     }
 }
 
-juce::String UpdateFirmwareDialog::getHexFile() const
+juce::String UpdateFirmwareDialog::getFileName() const
 {
-    return hexFileValue.getText();
+    return fileNameValue.getText();
 }

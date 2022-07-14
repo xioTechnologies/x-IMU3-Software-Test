@@ -14,7 +14,7 @@
 #include "Dialogs/SendCommandDialog.h"
 #include "Dialogs/SendingCommandDialog.h"
 #include "Dialogs/UpdateFirmwareDialog.h"
-#include "Dialogs/UpdateFirmwareProcessDialog.h"
+#include "Dialogs/UpdatingFirmwareDialog.h"
 #include "MenuStrip.h"
 #include "RecentConnections.h"
 #include "Widgets/PopupMenuHeader.h"
@@ -533,7 +533,7 @@ juce::PopupMenu MenuStrip::getToolsMenu()
             {
                 if (const auto* const updateFirmwareDialog = dynamic_cast<UpdateFirmwareDialog*>(DialogLauncher::getLaunchedDialog()))
                 {
-                    DialogLauncher::launchDialog(std::make_unique<UpdateFirmwareProcessDialog>(updateFirmwareDialog->getConnectionInfo(), updateFirmwareDialog->getHexFile()));
+                    DialogLauncher::launchDialog(std::make_unique<UpdatingFirmwareDialog>(updateFirmwareDialog->getConnectionInfo(), updateFirmwareDialog->getFileName()));
                 }
             });
         };

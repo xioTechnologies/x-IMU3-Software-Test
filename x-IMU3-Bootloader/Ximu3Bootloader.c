@@ -1,14 +1,14 @@
 #include "ds30_loader.h"
 #include "Ximu3Bootloader.h"
 
-int XIMU3_upload(const char* hexFile, const char* portName)
+int XIMU3_upload_firmware(const char* fileName, const char* portName)
 {
     ds30_init();
 
     ds30_options_t options;
     ds30_set_defaults(&options);
 
-    options.file_name = hexFile;
+    options.file_name = fileName;
     options.port_name = portName;
     options.baud_rate = 115200;
     options.device_name = "PIC32MZ2048EFG124";
