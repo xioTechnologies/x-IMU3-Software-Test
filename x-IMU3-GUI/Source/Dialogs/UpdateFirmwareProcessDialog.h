@@ -20,6 +20,8 @@ private:
     double progressBarValue = 0.0;
     juce::ProgressBar progressBar { progressBarValue };
 
+    void updateFirmware();
+
     void run() override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UpdateFirmwareProcessDialog)
