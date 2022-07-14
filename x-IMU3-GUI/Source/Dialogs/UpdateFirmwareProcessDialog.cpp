@@ -2,40 +2,24 @@
 #include "../Firmware/Firmware.h"
 #include "ErrorDialog.h"
 #include "UpdateFirmwareProcessDialog.h"
+#include "Ximu3Bootloader.h"
 
-extern "C"
+void updateFirmware(ximu3::ConnectionInfo& connectionInfo, const std::string& hexFile, std::function<void(const std::string&)> callback)
 {
-#include "../../ds30-Custom-Loader/native_api/src/ds30_loader.h"
-}
-
-static std::function<void(const std::string&)>* callback;
-
-void ds30_event_handler(const void* const, const ds30_event_t event, const bool, const void* const)
-{
-    if (event == EV_OP_WRITE_PAGE)
-    {
-        (*callback)("Uploading firmware");
-    }
-}
-
-void updateFirmware(ximu3::ConnectionInfo& connectionInfo, const std::string& hexFile, std::function<void(const std::string&)> callback_)
-{
-    callback = &callback_;
-
     // Open connection
-    (*callback)("Opening Connection");
+    callback("Opening Connection");
     auto connection = std::make_unique<ximu3::Connection>(connectionInfo);
     if (connection->open() != ximu3::XIMU3_ResultOk)
     {
-        (*callback)("Open Connection Failed");
+        callback("Open Connection Failed");
         return;
     }
 
     // Send bootloader command
-    (*callback)("Sending Bootloader Command");
+    callback("Sending Bootloader Command");
     if (connection->sendCommands({ "{\"bootloader\":null}" }, 2, 500).empty())
     {
-        (*callback)("Send Bootloader Command Failed");
+        callback("Send Bootloader Command Failed");
         return;
     }
 
@@ -46,31 +30,17 @@ void updateFirmware(ximu3::ConnectionInfo& connectionInfo, const std::string& he
     // Upload
     juce::Thread::sleep(5000);
 
-    ds30_init();
-
     for (const auto& portName : ximu3::SerialDiscovery::getAvailablePorts())
     {
-        (*callback)("Searching " + portName);
-
-        ds30_options_t options;
-        ds30_set_defaults(&options);
-
-        options.file_name = hexFile.data();
-        options.port_name = portName.data();
-        options.baud_rate = 115200;
-        options.device_name = "PIC32MZ2048EFG124";
-        options.comm_type = DS30_UART;
-        options.write_flash = true;
-        options.event_callback = &ds30_event_handler;
-
-        if (ds30_write(&options) == 0)
+        callback("Attempting " + portName);
+        if (XIMU3_upload(hexFile.data(), portName.data()) == 0)
         {
-            (*callback)("Upload completed");
+            callback("Upload completed");
             return;
         }
     }
 
-    (*callback)("Upload failed");
+    callback("Upload failed");
 }
 
 UpdateFirmwareProcessDialog::UpdateFirmwareProcessDialog(std::unique_ptr<ximu3::ConnectionInfo> connectionInfo_, const juce::String& hexFile_)
