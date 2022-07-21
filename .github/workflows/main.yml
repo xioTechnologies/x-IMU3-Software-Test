@@ -168,7 +168,7 @@ jobs:
 
       - name: Run examples
         working-directory: Examples/CSharp/x-IMU3-Examples/
-        run: MSBuild.exe x-IMU3-Examples.sln /property:Configuration=Release
+        run: msbuild x-IMU3-Examples.sln -property:Configuration=Release
 #
 #  gui:
 #    runs-on: ${{ matrix.target[0] }}
