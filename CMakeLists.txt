@@ -28,6 +28,6 @@ if (UNIX AND NOT APPLE)
     target_link_libraries(x-IMU3-GUI PRIVATE pthread dl m)
     target_link_libraries(C-Examples PRIVATE pthread dl m)
     target_link_libraries(Cpp-Examples PRIVATE pthread dl m)
-endif()
+endif ()
 
 target_link_libraries(x-IMU3-GUI PRIVATE x-IMU3-Bootloader)
