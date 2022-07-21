@@ -163,6 +163,9 @@ jobs:
           name: rust-x86_64-pc-windows-msvc
           path: x-IMU3-API/Rust/target/release
 
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+
       - name: Run examples
         working-directory: Examples/CSharp/x-IMU3-Examples/
         run: MSBuild.exe x-IMU3-Examples.sln /property:Configuration=Release
