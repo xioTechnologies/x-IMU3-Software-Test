@@ -1,8 +1,14 @@
+#ifndef __linux__ // until provided bootloader library for Linux
+
 #include "ds30_loader.h"
+
+#endif
+
 #include "Ximu3Bootloader.h"
 
 int XIMU3_upload_firmware(const char* fileName, const char* portName)
 {
+#ifndef __linux__ // until provided bootloader library for Linux
     ds30_init();
 
     ds30_options_t options;
@@ -16,4 +22,7 @@ int XIMU3_upload_firmware(const char* fileName, const char* portName)
     options.write_flash = true;
 
     return ds30_write(&options);
+#else
+    return 1;
+#endif
 }
