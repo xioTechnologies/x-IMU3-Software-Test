@@ -1,13 +1,13 @@
 add_library(x-IMU3-Bootloader STATIC Ximu3Bootloader.c)
 
 if (APPLE)
-    if (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL arm64)
+    if ((CMAKE_OSX_ARCHITECTURES STREQUAL arm64) OR ((CMAKE_OSX_ARCHITECTURES STREQUAL "") AND (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL arm64)))
         set(BOOTLOADER_LIBRARY libds30_loader_macos_arm64.a)
-    else()
+    else ()
         set(BOOTLOADER_LIBRARY libds30_loader_macos_x64.a)
-    endif()
+    endif ()
 elseif (WIN32)
     set(BOOTLOADER_LIBRARY ds30_Loader_Win_x64.lib)
-endif()
+endif ()
 
 target_link_libraries(x-IMU3-Bootloader PRIVATE "${PROJECT_SOURCE_DIR}/x-IMU3-Bootloader/${BOOTLOADER_LIBRARY}")
