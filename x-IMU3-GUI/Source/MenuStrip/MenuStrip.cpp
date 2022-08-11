@@ -1,4 +1,5 @@
 #include "ApplicationSettings.h"
+#include "ConnectionHistory.h"
 #include "CustomLayouts.h"
 #include "CustomLookAndFeel.h"
 #include "DevicePanelContainer.h"
@@ -14,7 +15,6 @@
 #include "Dialogs/SendCommandDialog.h"
 #include "Dialogs/SendingCommandDialog.h"
 #include "MenuStrip.h"
-#include "RecentConnections.h"
 #include "Widgets/PopupMenuHeader.h"
 #include "Windows/WindowIDs.h"
 
@@ -254,7 +254,7 @@ juce::PopupMenu MenuStrip::getManualConnectMenu()
         {
             auto connectionInfo = dialog->getConnectionInfo();
             devicePanelContainer.connectToDevice(*connectionInfo);
-            RecentConnections().update(*connectionInfo);
+            ConnectionHistory().update(*connectionInfo);
         }
     };
     menu.addItem("New USB Connection", [connectCallback]
@@ -278,9 +278,9 @@ juce::PopupMenu MenuStrip::getManualConnectMenu()
         DialogLauncher::launchDialog(std::make_unique<BluetoothConnectionDialog>(), connectCallback);
     });
     menu.addSeparator();
-    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("RECENT CONNECTIONS"), nullptr);
+    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("CONNECTION HISTORY"), nullptr);
 
-    for (auto& connectionInfo : RecentConnections().get())
+    for (auto& connectionInfo : ConnectionHistory().get())
     {
         const auto connectionInfoString = connectionInfo->toString();
         menu.addItem(connectionInfoString, [this, connectionInfo = std::shared_ptr<ximu3::ConnectionInfo>(connectionInfo.release())]
@@ -485,6 +485,13 @@ juce::PopupMenu MenuStrip::getPanelLayoutMenu()
 juce::PopupMenu MenuStrip::getToolsMenu() const
 {
     juce::PopupMenu menu;
+    menu.addItem("Set Date and Time", devicePanelContainer.getDevicePanels().size() > 0, false, [&]
+    {
+        DialogLauncher::launchDialog(std::make_unique<AreYouSureDialog>("Do you want to set the date and time on all devices to match the computer?"), [&]
+        {
+            DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(CommandMessage("time", juce::Time::getCurrentTime().formatted("%Y-%m-%d %H:%M:%S")), devicePanelContainer.getDevicePanels()));
+        });
+    });
     menu.addItem("Convert File (.ximu3)", []
     {
         DialogLauncher::launchDialog(std::make_unique<ConvertFileDialog>(), []
