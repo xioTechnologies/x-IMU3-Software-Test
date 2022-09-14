@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Firmware/Firmware.h"
 #include "Dialogs/DataLoggerSettingsDialog.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Widgets/IconButton.h"
@@ -52,12 +53,12 @@ private:
     };
 
     std::vector<ButtonGroup> buttonGroups {
-            { connectionLabel,  { searchButton,              manualButton,       disconnectButton }},
-            { layoutLabel,      { showHideWindowButton,      windowLayoutButton, devicePanelLayoutButton }},
-            { commandsLabel,    { shutdownButton,            sendCommandButton }},
-            { dataLoggerLabel,  { dataLoggerStartStopButton, dataLoggerTime }},
-            { toolsLabel,       { toolsButton }},
-            { applicationLabel, { mainSettingsButton,        versionButton }}
+            { connectionLabel,  { searchButton,              manualButton,       disconnectButton },        {}, {}},
+            { layoutLabel,      { showHideWindowButton,      windowLayoutButton, devicePanelLayoutButton }, {}, {}},
+            { commandsLabel,    { shutdownButton,            sendCommandButton },                           {}, {}},
+            { dataLoggerLabel,  { dataLoggerStartStopButton, dataLoggerTime },                              {}, {}},
+            { toolsLabel,       { toolsButton },                                                            {}, {}},
+            { applicationLabel, { mainSettingsButton,        versionButton },                               {}, {}}
     };
 
     const std::map<DevicePanelContainer::Layout, juce::String> layoutIcons {
@@ -71,6 +72,8 @@ private:
     std::unique_ptr<ximu3::DataLogger> dataLogger;
     juce::Time dataLoggerStartTime;
 
+    void disconnect(const DevicePanel* const);
+
     juce::PopupMenu getManualConnectMenu();
 
     juce::PopupMenu getDisconnectMenu();
@@ -81,7 +84,7 @@ private:
 
     juce::PopupMenu getPanelLayoutMenu();
 
-    juce::PopupMenu getToolsMenu() const;
+    juce::PopupMenu getToolsMenu();
 
     void setWindowLayout(juce::ValueTree windowLayout_);
 
