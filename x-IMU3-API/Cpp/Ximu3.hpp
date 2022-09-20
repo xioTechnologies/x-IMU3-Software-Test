@@ -2,5 +2,5 @@
 #include "ConnectionInfo.hpp"
 #include "DataLogger.hpp"
 #include "FileConverter.hpp"
-#include "NetworkDiscovery.hpp"
-#include "SerialDiscovery.hpp"
+#include "NetworkAnnouncement.hpp"
+#include "PortScanner.hpp"
