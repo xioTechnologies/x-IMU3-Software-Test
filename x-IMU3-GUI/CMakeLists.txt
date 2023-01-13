@@ -6,7 +6,7 @@ Set(FETCHCONTENT_QUIET FALSE)
 FetchContent_Declare(
         JUCE
         GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-        GIT_TAG 7.0.1
+        GIT_TAG 7.0.3
         GIT_PROGRESS TRUE
 )
 FetchContent_MakeAvailable(JUCE)
@@ -51,7 +51,7 @@ cmake_minimum_required(VERSION 3.15)
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(X_IMU3_GUI VERSION 0.9.0)
+project(X_IMU3_GUI VERSION 1.0.3)
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've

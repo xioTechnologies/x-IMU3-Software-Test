@@ -72,9 +72,9 @@ typedef struct XIMU3_DataLogger XIMU3_DataLogger;
 
 typedef struct XIMU3_FileConverter XIMU3_FileConverter;
 
-typedef struct XIMU3_NetworkDiscovery XIMU3_NetworkDiscovery;
+typedef struct XIMU3_NetworkAnnouncement XIMU3_NetworkAnnouncement;
 
-typedef struct XIMU3_SerialDiscovery XIMU3_SerialDiscovery;
+typedef struct XIMU3_PortScanner XIMU3_PortScanner;
 
 typedef struct XIMU3_CharArrays
 {
@@ -306,7 +306,7 @@ typedef struct XIMU3_FileConverterProgress
 
 typedef void (*XIMU3_CallbackFileConverterProgress)(struct XIMU3_FileConverterProgress data, void *context);
 
-typedef struct XIMU3_DiscoveredNetworkDevice
+typedef struct XIMU3_NetworkAnnouncementMessage
 {
     char device_name[XIMU3_CHAR_ARRAY_SIZE];
     char serial_number[XIMU3_CHAR_ARRAY_SIZE];
@@ -315,18 +315,18 @@ typedef struct XIMU3_DiscoveredNetworkDevice
     enum XIMU3_ChargingStatus status;
     struct XIMU3_TcpConnectionInfo tcp_connection_info;
     struct XIMU3_UdpConnectionInfo udp_connection_info;
-} XIMU3_DiscoveredNetworkDevice;
+} XIMU3_NetworkAnnouncementMessage;
 
-typedef struct XIMU3_DiscoveredNetworkDevices
+typedef struct XIMU3_NetworkAnnouncementMessages
 {
-    struct XIMU3_DiscoveredNetworkDevice *array;
+    struct XIMU3_NetworkAnnouncementMessage *array;
     uint32_t length;
     uint32_t capacity;
-} XIMU3_DiscoveredNetworkDevices;
+} XIMU3_NetworkAnnouncementMessages;
 
-typedef void (*XIMU3_CallbackDiscoveredNetworkDevices)(struct XIMU3_DiscoveredNetworkDevices data, void *context);
+typedef void (*XIMU3_CallbackNetworkAnnouncementMessageC)(struct XIMU3_NetworkAnnouncementMessage data, void *context);
 
-typedef struct XIMU3_DiscoveredSerialDevice
+typedef struct XIMU3_Device
 {
     char device_name[XIMU3_CHAR_ARRAY_SIZE];
     char serial_number[XIMU3_CHAR_ARRAY_SIZE];
@@ -334,16 +334,16 @@ typedef struct XIMU3_DiscoveredSerialDevice
     struct XIMU3_UsbConnectionInfo usb_connection_info;
     struct XIMU3_SerialConnectionInfo serial_connection_info;
     struct XIMU3_BluetoothConnectionInfo bluetooth_connection_info;
-} XIMU3_DiscoveredSerialDevice;
+} XIMU3_Device;
 
-typedef struct XIMU3_DiscoveredSerialDevices
+typedef struct XIMU3_Devices
 {
-    struct XIMU3_DiscoveredSerialDevice *array;
+    struct XIMU3_Device *array;
     uint32_t length;
     uint32_t capacity;
-} XIMU3_DiscoveredSerialDevices;
+} XIMU3_Devices;
 
-typedef void (*XIMU3_CallbackDiscoveredSerialDevices)(struct XIMU3_DiscoveredSerialDevices data, void *context);
+typedef void (*XIMU3_CallbackDevices)(struct XIMU3_Devices data, void *context);
 
 #ifdef __cplusplus
 extern "C" {
@@ -489,37 +489,41 @@ void XIMU3_file_converter_free(struct XIMU3_FileConverter *file_converter);
 
 struct XIMU3_FileConverterProgress XIMU3_file_converter_convert(const char *destination, const char *source);
 
-void XIMU3_discovered_network_devices_free(struct XIMU3_DiscoveredNetworkDevices devices);
+void XIMU3_network_announcement_messages_free(struct XIMU3_NetworkAnnouncementMessages messages);
 
-const char *XIMU3_discovered_network_device_to_string(struct XIMU3_DiscoveredNetworkDevice device);
+const char *XIMU3_network_announcement_message_to_string(struct XIMU3_NetworkAnnouncementMessage message);
 
-struct XIMU3_NetworkDiscovery *XIMU3_network_discovery_new(XIMU3_CallbackDiscoveredNetworkDevices callback, void *context);
+struct XIMU3_NetworkAnnouncement *XIMU3_network_announcement_new(void);
 
-void XIMU3_network_discovery_free(struct XIMU3_NetworkDiscovery *discovery);
+void XIMU3_network_announcement_free(struct XIMU3_NetworkAnnouncement *network_announcement);
 
-struct XIMU3_DiscoveredNetworkDevices XIMU3_network_discovery_get_devices(struct XIMU3_NetworkDiscovery *discovery);
+uint64_t XIMU3_network_announcement_add_callback(struct XIMU3_NetworkAnnouncement *network_announcement, XIMU3_CallbackNetworkAnnouncementMessageC callback, void *context);
 
-struct XIMU3_DiscoveredNetworkDevices XIMU3_network_discovery_scan(uint32_t milliseconds);
+void XIMU3_network_announcement_remove_callback(struct XIMU3_NetworkAnnouncement *network_announcement, uint64_t callback_id);
+
+struct XIMU3_NetworkAnnouncementMessages XIMU3_network_announcement_get_messages(struct XIMU3_NetworkAnnouncement *network_announcement);
+
+struct XIMU3_NetworkAnnouncementMessages XIMU3_network_announcement_get_messages_after_short_delay(struct XIMU3_NetworkAnnouncement *network_announcement);
 
 const char *XIMU3_ping_response_to_string(struct XIMU3_PingResponse ping_response);
 
+void XIMU3_devices_free(struct XIMU3_Devices devices);
+
+const char *XIMU3_device_to_string(struct XIMU3_Device device);
+
+struct XIMU3_PortScanner *XIMU3_port_scanner_new(XIMU3_CallbackDevices callback, void *context);
+
+void XIMU3_port_scanner_free(struct XIMU3_PortScanner *port_scanner);
+
+struct XIMU3_Devices XIMU3_port_scanner_get_devices(struct XIMU3_PortScanner *port_scanner);
+
+struct XIMU3_Devices XIMU3_port_scanner_scan(void);
+
+struct XIMU3_Devices XIMU3_port_scanner_scan_filter(enum XIMU3_ConnectionType connection_type);
+
+struct XIMU3_CharArrays XIMU3_port_scanner_get_port_names(void);
+
 const char *XIMU3_result_to_string(enum XIMU3_Result result);
-
-void XIMU3_discovered_serial_devices_free(struct XIMU3_DiscoveredSerialDevices devices);
-
-const char *XIMU3_discovered_serial_device_to_string(struct XIMU3_DiscoveredSerialDevice device);
-
-struct XIMU3_SerialDiscovery *XIMU3_serial_discovery_new(XIMU3_CallbackDiscoveredSerialDevices callback, void *context);
-
-void XIMU3_serial_discovery_free(struct XIMU3_SerialDiscovery *discovery);
-
-struct XIMU3_DiscoveredSerialDevices XIMU3_serial_discovery_get_devices(struct XIMU3_SerialDiscovery *discovery);
-
-struct XIMU3_DiscoveredSerialDevices XIMU3_serial_discovery_scan(uint32_t milliseconds);
-
-struct XIMU3_DiscoveredSerialDevices XIMU3_serial_discovery_scan_filter(uint32_t milliseconds, enum XIMU3_ConnectionType connection_type);
-
-struct XIMU3_CharArrays XIMU3_serial_discovery_get_available_ports(void);
 
 const char *XIMU3_statistics_to_string(struct XIMU3_Statistics statistics);
 

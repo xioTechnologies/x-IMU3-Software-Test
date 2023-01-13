@@ -52,6 +52,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
                     devicePanelContainer.connectToDevice(*connectionInfo);
                 }
             }
+            return true;
         });
     };
 
@@ -65,6 +66,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
         DialogLauncher::launchDialog(std::make_unique<AreYouSureDialog>("Are you sure you want to shutdown all devices?"), [this]
         {
             DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(CommandMessage("shutdown", {}), devicePanelContainer.getDevicePanels()));
+            return true;
         });
     };
 
@@ -76,6 +78,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
             {
                 DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(dialog->getCommand(), devicePanelContainer.getDevicePanels()));
             }
+            return true;
         });
     };
 
@@ -140,6 +143,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
                     {
                         directory.deleteRecursively();
                         startDataLogger();
+                        return true;
                     });
                 }
                 else
@@ -147,6 +151,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
                     startDataLogger();
                 }
             }
+            return true;
         });
     };
 
@@ -182,6 +187,55 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
         }
     };
     devicePanelContainer.onDevicePanelsSizeChanged(0, 0);
+
+    static constexpr int buttonHeight = 24;
+    static constexpr int buttonMargin = 3;
+
+    flexBox.flexDirection = juce::FlexBox::Direction::row;
+    flexBox.alignContent = juce::FlexBox::AlignContent::stretch;
+    flexBox.alignItems = juce::FlexBox::AlignItems::stretch;
+
+    for (auto& buttonGroup : buttonGroups)
+    {
+        auto& groupBox = buttonGroup.groupBox;
+        auto& buttonBox = buttonGroup.buttonBox;
+
+        groupBox.flexDirection = juce::FlexBox::Direction::column;
+        buttonBox.justifyContent = juce::FlexBox::JustifyContent::center;
+
+        groupBox.items.add(juce::FlexItem(buttonBox)
+                                   .withHeight(buttonHeight)
+                                   .withFlex(0.5));
+        groupBox.items.add(juce::FlexItem(buttonGroup.label)
+                                   .withFlex(10));
+
+        flexBox.items.add(juce::FlexItem(groupBox)
+                                  .withMargin(10)
+                                  .withFlex(1, 0));
+
+        for (auto& button : buttonGroup.buttons)
+        {
+            const auto buttonWidth = [&]
+            {
+                if (&button.get() == &dataLoggerTime)
+                {
+                    return 112;
+                }
+                if (&button.get() == &versionButton)
+                {
+                    return versionButton.getBestWidthForHeight(buttonHeight);
+                }
+                return 45;
+            }();
+
+            buttonBox.items.add(juce::FlexItem(button)
+                                        .withWidth(buttonWidth)
+                                        .withHeight(buttonHeight)
+                                        .withMargin(buttonMargin));
+
+            flexBox.items.getReference(flexBox.items.size() - 1).width += juce::roundToInt(buttonWidth) + buttonMargin;
+        }
+    }
 }
 
 void MenuStrip::paint(juce::Graphics& g)
@@ -191,58 +245,6 @@ void MenuStrip::paint(juce::Graphics& g)
 
 void MenuStrip::resized()
 {
-    static constexpr int buttonHeight = 24;
-    static constexpr int buttonWidth = 45;
-    static constexpr int buttonMargin = 3;
-    static constexpr int buttonGroupMargin = 10;
-
-    juce::FlexBox flexBox;
-    flexBox.flexDirection = juce::FlexBox::Direction::row;
-    flexBox.alignContent = juce::FlexBox::AlignContent::stretch;
-    flexBox.alignItems = juce::FlexBox::AlignItems::stretch;
-
-    for (auto& buttonGroup : buttonGroups)
-    {
-        int groupWidth = 0;
-
-        auto& groupBox = buttonGroup.groupBox;
-        auto& buttonBox = buttonGroup.buttonBox;
-
-        groupBox = {};
-        buttonBox = {};
-
-        buttonBox.flexDirection = juce::FlexBox::Direction::row;
-        buttonBox.alignContent = juce::FlexBox::AlignContent::stretch;
-        buttonBox.alignItems = juce::FlexBox::AlignItems::stretch;
-        buttonBox.justifyContent = juce::FlexBox::JustifyContent::center;
-
-        groupBox.flexDirection = juce::FlexBox::Direction::column;
-        groupBox.alignContent = juce::FlexBox::AlignContent::stretch;
-        groupBox.alignItems = juce::FlexBox::AlignItems::stretch;
-
-        for (auto& button : buttonGroup.buttons)
-        {
-            const auto width = buttonWidth * (&button.get() == &dataLoggerTime ? 2.489f : 1.0f);
-            buttonBox.items.add(juce::FlexItem(button)
-                                        .withHeight(buttonHeight)
-                                        .withFlex(0, 0, width)
-                                        .withMargin(buttonMargin));
-
-            groupWidth += juce::roundToInt(width) + buttonMargin;
-        }
-
-        groupBox.items.add(juce::FlexItem(buttonBox)
-                                   .withHeight(buttonHeight)
-                                   .withFlex(0.5));
-        groupBox.items.add(juce::FlexItem(buttonGroup.label)
-                                   .withFlex(10));
-
-        flexBox.items.add(juce::FlexItem(groupBox)
-                                  .withMargin(buttonGroupMargin)
-                                  .withWidth((float) groupWidth)
-                                  .withFlex(1, 0));
-    }
-
     flexBox.performLayout(getLocalBounds().toFloat());
 }
 
@@ -273,6 +275,7 @@ juce::PopupMenu MenuStrip::getManualConnectMenu()
             devicePanelContainer.connectToDevice(*connectionInfo);
             ConnectionHistory().update(*connectionInfo);
         }
+        return true;
     };
     menu.addItem("New USB Connection", [connectCallback]
     {
@@ -450,6 +453,7 @@ juce::PopupMenu MenuStrip::getWindowLayoutMenu()
                 const auto save = [this, layoutName]
                 {
                     CustomLayouts().save(layoutName, windowLayout);
+                    return true;
                 };
 
                 if (CustomLayouts().exists(layoutName))
@@ -461,6 +465,7 @@ juce::PopupMenu MenuStrip::getWindowLayoutMenu()
                     save();
                 }
             }
+            return true;
         });
     });
 
@@ -503,6 +508,7 @@ juce::PopupMenu MenuStrip::getToolsMenu()
         DialogLauncher::launchDialog(std::make_unique<AreYouSureDialog>("Do you want to set the date and time on all devices to match the computer?"), [&]
         {
             DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(CommandMessage("time", juce::Time::getCurrentTime().formatted("%Y-%m-%d %H:%M:%S")), devicePanelContainer.getDevicePanels()));
+            return true;
         });
     });
     menu.addItem("Convert File (.ximu3)", []
@@ -523,6 +529,7 @@ juce::PopupMenu MenuStrip::getToolsMenu()
                     {
                         directory.deleteRecursively();
                         startFileConverter();
+                        return true;
                     });
                 }
                 else
@@ -530,6 +537,7 @@ juce::PopupMenu MenuStrip::getToolsMenu()
                     startFileConverter();
                 }
             }
+            return true;
         });
     });
     menu.addItem("Update Firmware", [&]
@@ -542,6 +550,7 @@ juce::PopupMenu MenuStrip::getToolsMenu()
                 {
                     DialogLauncher::launchDialog(std::make_unique<UpdatingFirmwareDialog>(updateFirmwareDialog->getConnectionInfo(), updateFirmwareDialog->getFileName()));
                 }
+                return true;
             });
         };
 
@@ -551,6 +560,7 @@ juce::PopupMenu MenuStrip::getToolsMenu()
             {
                 disconnect(nullptr);
                 launchUpdateFirmwareDialog();
+                return true;
             });
             return;
         }

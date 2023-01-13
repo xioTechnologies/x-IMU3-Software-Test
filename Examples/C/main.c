@@ -11,15 +11,15 @@ void DataLogger();
 
 void FileConverter();
 
-void GetAvailablePorts();
+void GetPortNames();
 
-void NetworkDiscovery();
+void NetworkAnnouncement();
 
 void OpenAndPing();
 
-void SerialConnection();
+void PortScanner();
 
-void SerialDiscovery();
+void SerialConnection();
 
 void TcpConnection();
 
@@ -34,11 +34,11 @@ int main(int argc, const char* argv[])
     printf("B. Commands.c\n");
     printf("C. DataLogger.c\n");
     printf("D. FileConverter.c\n");
-    printf("E. GetAvailablePorts.c\n");
-    printf("F. NetworkDiscovery.c\n");
+    printf("E. GetPortNames.c\n");
+    printf("F. NetworkAnnouncement.c\n");
     printf("G. OpenAndPing.c\n");
-    printf("H. SerialConnection.c\n");
-    printf("I. SerialDiscovery.c\n");
+    printf("H. PortScanner.c\n");
+    printf("I. SerialConnection.c\n");
     printf("J. TcpConnection.c\n");
     printf("K. UdpConnection.c\n");
     printf("L. UsbConnection.c\n");
@@ -57,19 +57,19 @@ int main(int argc, const char* argv[])
             FileConverter();
             break;
         case 'E':
-            GetAvailablePorts();
+            GetPortNames();
             break;
         case 'F':
-            NetworkDiscovery();
+            NetworkAnnouncement();
             break;
         case 'G':
             OpenAndPing();
             break;
         case 'H':
-            SerialConnection();
+            PortScanner();
             break;
         case 'I':
-            SerialDiscovery();
+            SerialConnection();
             break;
         case 'J':
             TcpConnection();

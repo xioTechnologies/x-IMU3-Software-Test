@@ -16,9 +16,9 @@ namespace ximu3
 
         friend class FileConverter;
 
-        friend class NetworkDiscovery;
+        friend class NetworkAnnouncement;
 
-        friend class SerialDiscovery;
+        friend class PortScanner;
 
         template<typename... T, typename Callable>
         static auto wrapCallable(Callable const&) -> void (*)(T..., void*)

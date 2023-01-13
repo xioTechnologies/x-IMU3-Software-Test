@@ -42,8 +42,8 @@ prefix = "XIMU3_"
 "UdpConnectionInfoC" = "UdpConnectionInfo"
 "BluetoothConnectionInfoC" = "BluetoothConnectionInfo"
 "FileConnectionInfoC" = "FileConnectionInfo"
-"DiscoveredNetworkDeviceC" = "DiscoveredNetworkDevice"
-"DiscoveredSerialDeviceC" = "DiscoveredSerialDevice"
+"NetworkAnnouncementMessageC" = "NetworkAnnouncementMessage"
+"DeviceC" = "Device"
 "PingResponseC" = "PingResponse"
 
 [export.mangle]
