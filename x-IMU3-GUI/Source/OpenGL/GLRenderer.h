@@ -37,6 +37,8 @@ private:
     juce::Matrix3D<GLfloat> viewMatrix;
     juce::Matrix3D<GLfloat> projectionMatrix;
 
+    static constexpr size_t imageCacheMaxBytes = 64 * 1024 * 1024; // just over 64 MB of memory
+
     void newOpenGLContextCreated() override;
 
     void renderOpenGL() override;

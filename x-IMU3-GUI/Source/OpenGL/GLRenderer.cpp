@@ -7,6 +7,8 @@ GLRenderer::GLRenderer(juce::Component& attachTo)
     context.setRenderer(this);
     context.setContinuousRepainting(true);
     context.attachTo(attachTo);
+
+    context.setImageCacheSize (imageCacheMaxBytes);
 }
 
 GLRenderer::~GLRenderer()

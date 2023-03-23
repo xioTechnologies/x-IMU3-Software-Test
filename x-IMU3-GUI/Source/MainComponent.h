@@ -13,6 +13,8 @@ class MainComponent : public juce::Component
 public:
     MainComponent()
     {
+        setBufferedToImage(true);
+
         addAndMakeVisible(menuStrip);
         addAndMakeVisible(devicePanelViewport);
 
