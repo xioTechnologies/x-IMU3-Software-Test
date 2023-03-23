@@ -5,7 +5,8 @@ GLRenderer::GLRenderer(juce::Component& attachTo)
 {
     context.setOpenGLVersionRequired(juce::OpenGLContext::openGL3_2);
     context.setRenderer(this);
-    context.setContinuousRepainting(true);
+    isContinuousRepainting = false;
+    context.setContinuousRepainting(isContinuousRepainting);
     context.attachTo(attachTo);
 }
 
@@ -23,6 +24,12 @@ void GLRenderer::addComponent(OpenGLComponent& component)
 {
     std::lock_guard<std::mutex> _(componentsLock);
     components.push_back(&component);
+
+    if (!isContinuousRepainting && !components.empty())
+    {
+        isContinuousRepainting = true;
+        context.setContinuousRepainting(isContinuousRepainting);
+    }
 }
 
 void GLRenderer::removeComponent(const OpenGLComponent& component)
@@ -33,8 +40,14 @@ void GLRenderer::removeComponent(const OpenGLComponent& component)
         {
             std::lock_guard<std::mutex> _(componentsLock);
             components.erase(components.begin() + (int) index);
-            return;
+            break;
         }
+    }
+
+    if (isContinuousRepainting && components.empty())
+    {
+        isContinuousRepainting = false;
+        context.setContinuousRepainting(isContinuousRepainting);
     }
 }
 

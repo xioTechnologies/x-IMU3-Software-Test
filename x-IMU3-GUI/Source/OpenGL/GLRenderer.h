@@ -31,6 +31,7 @@ private:
 
     std::mutex componentsLock;
     std::vector<OpenGLComponent*> components;
+    bool isContinuousRepainting = false;
 
     std::unique_ptr<GLResources> resources;
 
