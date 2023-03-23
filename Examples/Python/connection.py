@@ -1,4 +1,5 @@
 import helpers
+import time
 import ximu3
 
 
@@ -19,7 +20,7 @@ def string_format(string):
 
 
 def decode_error_callback(decode_error):
-    print(decode_error)
+    print(ximu3.decode_error_to_string(decode_error))
 
 
 def statistics_callback(statistics):
@@ -175,13 +176,13 @@ def run(connection_info):
 
     print("Connecting to " + connection.get_info().to_string())
 
-    if connection.open() != "Ok":
+    if connection.open() != ximu3.RESULT_OK:
         raise Exception("Unable to open connection")
 
     print("Connection successful")
 
     connection.send_commands(['{"strobe":null}'], 2, 500)  # send command to strobe LED
 
-    helpers.wait(-1)
+    time.sleep(60)
 
     connection.close()

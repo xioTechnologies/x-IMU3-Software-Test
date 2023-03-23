@@ -1,4 +1,5 @@
 import helpers
+import time
 import ximu3
 
 # Create connection info
@@ -10,25 +11,26 @@ connection = ximu3.Connection(connection_info)
 
 def print_ping_response(ping_response):
     print(ping_response.interface + ", " +
-          ping_response.device_name + " - " +
+          ping_response.device_name + ", " +
           ping_response.serial_number)
     # print(ping_response.to_string()) # alternative to above
 
 
 def callback(result):
-    if result != "Ok":
+    if result == ximu3.RESULT_OK:
+        print_ping_response(connection.ping())
+    else:
         print("Unable to open connection")
-        return
-
-    print_ping_response(connection.ping())
 
 
 if helpers.yes_or_no("Use async implementation?"):
     connection.open_async(callback)
-    helpers.wait(3)
+    time.sleep(3)
 else:
-    connection.open()
-    print_ping_response(connection.ping())
+    if connection.open() == ximu3.RESULT_OK:
+        print_ping_response(connection.ping())
+    else:
+        print("Unable to open connection")
 
 # Close connection
 connection.close()

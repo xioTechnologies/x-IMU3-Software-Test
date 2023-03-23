@@ -1,8 +1,10 @@
 #include "../../../x-IMU3-API/Cpp/Ximu3.hpp"
 #include "../Helpers.hpp"
+#include <chrono>
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <thread>
 
 class OpenAndPing
 {
@@ -17,7 +19,7 @@ public:
         if (helpers::yesOrNo("Use async implementation?") == true) // TODO: == true ? (applies to C# and others?)
         {
             connection->openAsync(callback);
-            helpers::wait(3);
+            std::this_thread::sleep_for(std::chrono::seconds(3));
         }
         else
         {
@@ -53,7 +55,7 @@ private:
             std::cout << "Ping failed" << std::endl;
             return;
         }
-        std::cout << pingResponse.interface << ", " << pingResponse.device_name << " - " << pingResponse.serial_number << std::endl;
+        std::cout << pingResponse.interface << ", " << pingResponse.device_name << ", " << pingResponse.serial_number << std::endl;
         // std::cout << ximu3::XIMU3_ping_response_to_string(pingResponse) << std::endl; // alternative to above
     }
 };

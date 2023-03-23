@@ -18,7 +18,7 @@ SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const 
     table.getHeader().setStretchToFitActive(true);
     table.setHeaderHeight(0);
     table.getViewport()->setScrollBarsShown(true, false);
-    table.setColour(juce::TableListBox::backgroundColourId, UIColours::background);
+    table.setColour(juce::TableListBox::backgroundColourId, UIColours::backgroundDark);
     table.updateContent();
     table.setWantsKeyboardFocus(false);
 
@@ -118,12 +118,22 @@ int SendingCommandDialog::getNumRows()
 
 void SendingCommandDialog::paintRowBackground(juce::Graphics& g, int rowNumber, int height, int, bool)
 {
+    if (rowNumber >= (int) rows.size())
+    {
+        return; // index may exceed size on Windows if display scaling >100%
+    }
+
     g.setColour(rows[(size_t) rowNumber].devicePanel.getColourTag());
     g.fillRect(0, 0, DevicePanelHeader::colourTagWidth, height);
 }
 
 juce::Component* SendingCommandDialog::refreshComponentForCell(int rowNumber, int columnID, bool, juce::Component* existingComponentToUpdate)
 {
+    if (rowNumber >= (int) rows.size())
+    {
+        return existingComponentToUpdate; // index may exceed size on Windows if display scaling >100%
+    }
+
     delete existingComponentToUpdate;
 
     switch ((ColumnIDs) columnID)
@@ -141,13 +151,13 @@ juce::Component* SendingCommandDialog::refreshComponentForCell(int rowNumber, in
             switch (rows[(size_t) rowNumber].state)
             {
                 case Row::State::inProgress:
-                    return new Icon(BinaryData::progress_svg, 0.6f, "In Progress");
+                    return new Icon(BinaryData::progress_svg, "In Progress", 0.6f);
 
                 case Row::State::failed:
-                    return new Icon(BinaryData::warning_orange_svg, 0.6f, "Failed");
+                    return new Icon(BinaryData::warning_orange_svg, "Failed", 0.6f);
 
                 case Row::State::complete:
-                    return new Icon(BinaryData::tick_green_svg, 0.6f, "Complete");
+                    return new Icon(BinaryData::tick_green_svg, "Complete", 0.6f);
 
                 default:
                     return nullptr;

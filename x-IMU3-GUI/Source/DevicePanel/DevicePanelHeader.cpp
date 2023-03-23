@@ -25,7 +25,7 @@ DevicePanelHeader::DevicePanelHeader(DevicePanel& devicePanel_, DevicePanelConta
         if (juce::String(message.serial_number) == serialNumber)
         {
             updateRssi(message.rssi);
-            updateBattery(message.battery, message.status);
+            updateBattery(message.battery, message.charging_status);
         }
     });
 
@@ -67,7 +67,7 @@ DevicePanelHeader::~DevicePanelHeader()
 
 void DevicePanelHeader::paint(juce::Graphics& g)
 {
-    g.fillAll(UIColours::menuStrip);
+    g.fillAll(UIColours::backgroundLightest);
     g.setColour(devicePanel.getColourTag());
     g.fillRect(getLocalBounds().removeFromLeft(colourTagWidth));
 }
@@ -122,9 +122,9 @@ void DevicePanelHeader::mouseUp(const juce::MouseEvent& mouseEvent)
         }
     }
 
-    if (mouseEvent.mouseWasClicked())
+    if (mouseEvent.mouseWasClicked() && devicePanelContainer.getLayout() == DevicePanelContainer::Layout::accordion)
     {
-        devicePanelContainer.toggleAccordionState(&devicePanel);
+        devicePanelContainer.setExpandedDevicePanel((devicePanelContainer.getExpandedDevicePanel() == &devicePanel) ? nullptr : &devicePanel);
     }
 }
 
@@ -190,11 +190,6 @@ juce::PopupMenu DevicePanelHeader::getMenu() const
 {
     juce::PopupMenu menu;
 
-    menu.addItem("Disconnect", [this]
-    {
-        devicePanelContainer.removePanel(devicePanel);
-    });
-
     menu.addItem("Send Command", [this]
     {
         DialogLauncher::launchDialog(std::make_unique<SendCommandDialog>("Send Command to " + deviceDescriptor.getText()), [this]
@@ -215,6 +210,11 @@ juce::PopupMenu DevicePanelHeader::getMenu() const
     menu.addItem("LED Colour", [this]
     {
         DialogLauncher::launchDialog(std::make_unique<LedColourDialog>(devicePanel));
+    });
+
+    menu.addItem("Disconnect", [this]
+    {
+        devicePanelContainer.removePanel(devicePanel);
     });
 
     return menu;

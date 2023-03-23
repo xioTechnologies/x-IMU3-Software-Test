@@ -11,7 +11,7 @@ namespace Ximu3Examples
             if (Helpers.YesOrNo("Use async implementation?") == true)
             {
                 networkAnnouncement.NetworkAnnouncementEvent += NetworkAnnouncementEvent;
-                Helpers.Wait(-1);
+                System.Threading.Thread.Sleep(60000);
             }
             else
             {
@@ -29,13 +29,15 @@ namespace Ximu3Examples
 
         private void PrintMessage(Ximu3.NetworkAnnouncementMessage message)
         {
-            Console.WriteLine(message.DeviceName + " - " +
-                message.SerialNumber + ", RSSI: " +
-                message.Rssi + "%, Battery: " +
+            Console.WriteLine(message.DeviceName + ", " +
+                message.SerialNumber + ", " +
+                message.IPAddress + ", " +
+                message.TcpPort + ", " +
+                message.UdpSend + ", " +
+                message.UdpReceive + ", " +
+                message.Rssi + "%, " +
                 message.Battery + "%, " +
-                message.Status + ", " +
-                message.TcpConnectionInfo + ", " +
-                message.UdpConnectionInfo);
+                message.ChargingStatus);
             // Console.WriteLine(message); // alternative to above
         }
     }

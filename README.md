@@ -1,5 +1,5 @@
 [![Tags](https://img.shields.io/github/v/tag/xioTechnologies/x-IMU3-Software.svg)](https://github.com/xioTechnologies/x-IMU3-Software/tags/)
-[![Build](https://img.shields.io/github/workflow/status/xioTechnologies/x-IMU3-Software/CI.svg)](https://github.com/xioTechnologies/x-IMU3-Software/actions/workflows/main.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/xioTechnologies/x-IMU3-Software/main.yml?branch=main)](https://github.com/xioTechnologies/x-IMU3-Software/actions/workflows/main.yml)
 [![Pypi](https://img.shields.io/pypi/v/ximu3.svg)](https://pypi.org/project/ximu3/)
 [![Python](https://img.shields.io/pypi/pyversions/ximu3.svg)](https://pypi.org/project/ximu3/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -17,8 +17,6 @@ This is main software repository for the [x-IMU3](https://x-io.co.uk/x-imu3/). T
 3. Install [Clion](https://www.jetbrains.com/clion/), including Rust plugin
 4. Configure Clion toolchain (Windows)
     - Settings > Build, Execution, Deployment > Toolchains > Add > Visual Studio, Architecture: x86_amd64
-
-The Run/Debug Configuration may indicate "Error: No Rust toolchain specified" after cloning the repo for the first time. If this happens then open Settings/Preferences from the File menu, navigate to Rust under Languages & Frameworks and click OK.
 
 ## Branch Protection
 

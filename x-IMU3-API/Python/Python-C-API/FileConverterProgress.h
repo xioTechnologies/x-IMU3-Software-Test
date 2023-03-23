@@ -17,7 +17,7 @@ static void file_converter_progress_free(FileConverterProgress* self)
 
 static PyObject* file_converter_progress_get_status(FileConverterProgress* self)
 {
-    return Py_BuildValue("s", XIMU3_file_converter_status_to_string(self->progress.status));
+    return Py_BuildValue("i", self->progress.status);
 }
 
 static PyObject* file_converter_progress_get_percentage(FileConverterProgress* self)
@@ -70,29 +70,17 @@ static PyObject* file_converter_progress_from(const XIMU3_FileConverterProgress*
     return (PyObject*) self;
 }
 
-typedef struct
-{
-    PyObject* callable;
-    XIMU3_FileConverterProgress data;
-} FileConverterProgressPendingCallArg;
-
-static int file_converter_progress_pending_call_func(void* arg)
-{
-    PyObject* const object = file_converter_progress_from(&((FileConverterProgressPendingCallArg*) arg)->data);
-    PyObject* const tuple = Py_BuildValue("(O)", object);
-    Py_DECREF(PyObject_CallObject(((FileConverterProgressPendingCallArg*) arg)->callable, tuple));
-    Py_DECREF(tuple);
-    Py_DECREF(object);
-    free(arg);
-    return 0;
-}
-
 static void file_converter_progress_callback(XIMU3_FileConverterProgress data, void* context)
 {
-    FileConverterProgressPendingCallArg* const arg = malloc(sizeof(FileConverterProgressPendingCallArg));
-    arg->callable = (PyObject*) context;
-    arg->data = data;
-    Py_AddPendingCall(&file_converter_progress_pending_call_func, arg);
+    const PyGILState_STATE state = PyGILState_Ensure();
+
+    PyObject* const object = file_converter_progress_from(&data);
+    PyObject* const tuple = Py_BuildValue("(O)", object);
+    Py_DECREF(PyObject_CallObject((PyObject*) context, tuple));
+    Py_DECREF(tuple);
+    Py_DECREF(object);
+
+    PyGILState_Release(state);
 }
 
 #endif

@@ -9,7 +9,7 @@ namespace Ximu3Examples
             if (Helpers.YesOrNo("Use async implementation?") == true)
             {
                 Ximu3.PortScanner portScanner = new Ximu3.PortScanner(PortScannerEvent);
-                Helpers.Wait(-1);
+                System.Threading.Thread.Sleep(60000);
                 portScanner.Dispose();
             }
             else
@@ -30,7 +30,7 @@ namespace Ximu3Examples
         {
             foreach (Ximu3.Device device in devices)
             {
-                Console.WriteLine(device.DeviceName + " - " + device.SerialNumber + ", " + device.ConnectionInfo);
+                Console.WriteLine(device.DeviceName + ", " + device.SerialNumber + ", " + device.ConnectionInfo);
                 // Console.WriteLine(device); // alternative to above
             }
         }

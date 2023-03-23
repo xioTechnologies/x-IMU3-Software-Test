@@ -14,7 +14,7 @@ namespace Ximu3Examples
             if (Helpers.YesOrNo("Use async implementation?"))
             {
                 connection.OpenAsync(OpenEvent);
-                Helpers.Wait(3);
+                System.Threading.Thread.Sleep(3000);
             }
             else
             {
@@ -51,7 +51,7 @@ namespace Ximu3Examples
                 Console.WriteLine("Ping failed");
                 return;
             }
-            Console.WriteLine(pingResponse.Interface + ", " + pingResponse.DeviceName + " - " + pingResponse.SerialNumber);
+            Console.WriteLine(pingResponse.Interface + ", " + pingResponse.DeviceName + ", " + pingResponse.SerialNumber);
             // Console.WriteLine(pingResponse); // alternative to above
         }
     }

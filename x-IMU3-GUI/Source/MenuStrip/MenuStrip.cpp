@@ -100,7 +100,13 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
             {
                 dataLoggerSettings = dialog->getSettings();
 
-                const auto startDataLogger = [&]
+                auto name = dataLoggerSettings.name;
+                if (dataLoggerSettings.appendDateAndTime)
+                {
+                    name += juce::Time::getCurrentTime().formatted(" %Y-%m-%d %H-%M-%S");
+                }
+
+                const auto startDataLogger = [&, name]
                 {
                     std::vector<ximu3::Connection*> connections;
                     for (auto* const devicePanel : devicePanelContainer.getDevicePanels())
@@ -111,13 +117,13 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
                     bool failed = false;
 
                     dataLogger = std::make_unique<ximu3::DataLogger>(dataLoggerSettings.directory.toStdString(),
-                                                                     dataLoggerSettings.name.toStdString(),
+                                                                     name.toStdString(),
                                                                      connections,
-                                                                     [&](ximu3::XIMU3_Result result)
+                                                                     [&, name](ximu3::XIMU3_Result result)
                                                                      {
                                                                          if (result == ximu3::XIMU3_ResultOk)
                                                                          {
-                                                                             juce::File(dataLoggerSettings.directory).getChildFile(dataLoggerSettings.name).revealToUser();
+                                                                             juce::File(dataLoggerSettings.directory).getChildFile(name).revealToUser();
                                                                          }
                                                                          else
                                                                          {
@@ -136,10 +142,10 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
                     dataLoggerStartStopButton.setToggleState(true, juce::dontSendNotification);
                 };
 
-                const auto directory = juce::File(dataLoggerSettings.directory).getChildFile(dataLoggerSettings.name);
+                const auto directory = juce::File(dataLoggerSettings.directory).getChildFile(name);
                 if (directory.exists())
                 {
-                    DialogLauncher::launchDialog(std::make_unique<DoYouWantToReplaceItDialog>(dataLoggerSettings.name), [directory, startDataLogger]
+                    DialogLauncher::launchDialog(std::make_unique<DoYouWantToReplaceItDialog>(name), [directory, startDataLogger]
                     {
                         directory.deleteRecursively();
                         startDataLogger();
@@ -164,32 +170,42 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
     {
         DialogLauncher::launchDialog(std::make_unique<AboutDialog>());
     };
+    versionButton.setColour(juce::TextButton::buttonColourId, {});
+    versionButton.setColour(juce::TextButton::buttonOnColourId, {});
 
-    devicePanelContainer.onDevicePanelsSizeChanged = [&](const int oldSize, const int newSize)
+    devicePanelContainer.onDevicePanelsSizeChanged = [&]
     {
-        devicePanelLayoutButton.setEnabled(newSize > 1);
-
-        for (auto& component : std::vector<std::reference_wrapper<juce::Component>>({ disconnectButton, showHideWindowButton, windowLayoutButton,
+        for (auto& component : std::vector<std::reference_wrapper<juce::Component>>({ disconnectButton, showHideWindowButton, windowLayoutButton, devicePanelLayoutButton,
                                                                                       shutdownButton, sendCommandButton, dataLoggerStartStopButton, dataLoggerTime, }))
         {
-            component.get().setEnabled(newSize > 0);
+            component.get().setEnabled(devicePanelContainer.getDevicePanels().size() > 0);
         }
 
-        if (newSize > 1 && oldSize <= 1)
+        if (devicePanelContainer.getDevicePanels().size() <= 1)
         {
-            devicePanelContainer.setLayout(DevicePanelContainer::Layout::accordion);
-            devicePanelLayoutButton.setIcon(layoutIcons.at(DevicePanelContainer::Layout::accordion), {});
+            devicePanelContainer.setLayout(DevicePanelContainer::Layout::single);
+            devicePanelLayoutButton.setIcon(layoutIcons.at(DevicePanelContainer::Layout::single), {});
         }
-        else if (newSize <= 1)
+        else
         {
-            devicePanelContainer.setLayout(DevicePanelContainer::Layout::rows);
-            devicePanelLayoutButton.setIcon(layoutIcons.at(DevicePanelContainer::Layout::rows), {});
+            if (preferredMultipleDevicePanelLayout.has_value() == false)
+            {
+                preferredMultipleDevicePanelLayout = DevicePanelContainer::Layout::grid;
+
+                windowLayout.removeAllChildren(nullptr);
+                windowLayout.appendChild({ WindowIDs::Row, {},
+                                           {
+                                                   { WindowIDs::ThreeDView, {{ WindowIDs::size, 1 }}},
+                                           }}, nullptr);
+            }
+
+            devicePanelContainer.setLayout(*preferredMultipleDevicePanelLayout);
+            devicePanelLayoutButton.setIcon(layoutIcons.at(*preferredMultipleDevicePanelLayout), {});
         }
     };
-    devicePanelContainer.onDevicePanelsSizeChanged(0, 0);
+    devicePanelContainer.onDevicePanelsSizeChanged();
 
-    static constexpr int buttonHeight = 24;
-    static constexpr int buttonMargin = 3;
+    static constexpr int buttonHeight = 22;
 
     flexBox.flexDirection = juce::FlexBox::Direction::row;
     flexBox.alignContent = juce::FlexBox::AlignContent::stretch;
@@ -205,13 +221,13 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
 
         groupBox.items.add(juce::FlexItem(buttonBox)
                                    .withHeight(buttonHeight)
-                                   .withFlex(0.5));
+                                   .withFlex(0.0f));
         groupBox.items.add(juce::FlexItem(buttonGroup.label)
-                                   .withFlex(10));
+                                   .withFlex(0.5f));
 
         flexBox.items.add(juce::FlexItem(groupBox)
-                                  .withMargin(10)
-                                  .withFlex(1, 0));
+                                  .withMargin(8)
+                                  .withFlex(1.0f, 0));
 
         for (auto& button : buttonGroup.buttons)
         {
@@ -225,22 +241,21 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
                 {
                     return versionButton.getBestWidthForHeight(buttonHeight);
                 }
-                return 45;
+                return 35;
             }();
 
             buttonBox.items.add(juce::FlexItem(button)
-                                        .withWidth(buttonWidth)
-                                        .withHeight(buttonHeight)
-                                        .withMargin(buttonMargin));
+                                        .withWidth((float) buttonWidth)
+                                        .withHeight(buttonHeight));
 
-            flexBox.items.getReference(flexBox.items.size() - 1).width += juce::roundToInt(buttonWidth) + buttonMargin;
+            flexBox.items.getReference(flexBox.items.size() - 1).width += buttonWidth;
         }
     }
 }
 
 void MenuStrip::paint(juce::Graphics& g)
 {
-    g.fillAll(UIColours::menuStrip);
+    g.fillAll(UIColours::backgroundLightest);
 }
 
 void MenuStrip::resized()
@@ -401,16 +416,16 @@ juce::PopupMenu MenuStrip::getWindowLayoutMenu()
 {
     juce::PopupMenu menu;
 
-    menu.addItem("Default", [this]
+    menu.addItem("Default", devicePanelContainer.getDevicePanels().size() == 1, false, [this]
     {
         setWindowLayout({});
+        preferredMultipleDevicePanelLayout = {};
     });
-    menu.addSeparator();
-    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("SINGLE WINDOW"), nullptr);
 
-    const auto addWindowItem = [this](const auto& id, auto& popupMenu)
+    juce::PopupMenu singleWindowMenu;
+    const auto addSingleWindowItem = [&](const auto& id)
     {
-        popupMenu.addItem(getWindowTitle(id), [this, id = id]
+        singleWindowMenu.addItem(getWindowTitle(id), [this, id = id]
         {
             windowLayout.removeAllChildren(nullptr);
             juce::ValueTree row(WindowIDs::Row);
@@ -420,25 +435,26 @@ juce::PopupMenu MenuStrip::getWindowLayoutMenu()
             windowLayout.appendChild(row, nullptr);
         });
     };
-    addWindowItem(WindowIDs::DeviceSettings, menu);
-    addWindowItem(WindowIDs::ThreeDView, menu);
-    addWindowItem(WindowIDs::SerialAccessoryTerminal, menu);
-    juce::PopupMenu graphs;
-    addWindowItem(WindowIDs::Gyroscope, graphs);
-    addWindowItem(WindowIDs::Accelerometer, graphs);
-    addWindowItem(WindowIDs::Magnetometer, graphs);
-    addWindowItem(WindowIDs::EulerAngles, graphs);
-    addWindowItem(WindowIDs::LinearAcceleration, graphs);
-    addWindowItem(WindowIDs::EarthAcceleration, graphs);
-    addWindowItem(WindowIDs::HighGAccelerometer, graphs);
-    addWindowItem(WindowIDs::Temperature, graphs);
-    addWindowItem(WindowIDs::BatteryPercentage, graphs);
-    addWindowItem(WindowIDs::BatteryVoltage, graphs);
-    addWindowItem(WindowIDs::RssiPercentage, graphs);
-    addWindowItem(WindowIDs::RssiPower, graphs);
-    addWindowItem(WindowIDs::ReceivedMessageRate, graphs);
-    addWindowItem(WindowIDs::ReceivedDataRate, graphs);
-    menu.addSubMenu("Graph", graphs);
+    addSingleWindowItem(WindowIDs::DeviceSettings);
+    addSingleWindowItem(WindowIDs::ThreeDView);
+    addSingleWindowItem(WindowIDs::SerialAccessoryTerminal);
+    singleWindowMenu.addSeparator();
+    singleWindowMenu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("GRAPHS"), nullptr);
+    addSingleWindowItem(WindowIDs::Gyroscope);
+    addSingleWindowItem(WindowIDs::Accelerometer);
+    addSingleWindowItem(WindowIDs::Magnetometer);
+    addSingleWindowItem(WindowIDs::EulerAngles);
+    addSingleWindowItem(WindowIDs::LinearAcceleration);
+    addSingleWindowItem(WindowIDs::EarthAcceleration);
+    addSingleWindowItem(WindowIDs::HighGAccelerometer);
+    addSingleWindowItem(WindowIDs::Temperature);
+    addSingleWindowItem(WindowIDs::BatteryPercentage);
+    addSingleWindowItem(WindowIDs::BatteryVoltage);
+    addSingleWindowItem(WindowIDs::RssiPercentage);
+    addSingleWindowItem(WindowIDs::RssiPower);
+    addSingleWindowItem(WindowIDs::ReceivedMessageRate);
+    addSingleWindowItem(WindowIDs::ReceivedDataRate);
+    menu.addSubMenu("Single Window", singleWindowMenu);
 
     menu.addSeparator();
     menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("CUSTOM LAYOUTS"), nullptr);
@@ -484,18 +500,24 @@ juce::PopupMenu MenuStrip::getPanelLayoutMenu()
 {
     juce::PopupMenu menu;
 
-    const auto addItem = [&](auto type, const auto& title)
+    const auto addItem = [&](const auto layout, const auto& title, const auto enabled)
     {
-        menu.addItem(title, true, devicePanelContainer.getLayout() == type, [&, type]
+        menu.addItem(title, enabled, devicePanelContainer.getLayout() == layout, [&, layout]
         {
-            devicePanelContainer.setLayout(type);
-            devicePanelLayoutButton.setIcon(layoutIcons.at(type), {});
+            devicePanelContainer.setLayout(layout);
+            devicePanelLayoutButton.setIcon(layoutIcons.at(layout), {});
+
+            if (layout != DevicePanelContainer::Layout::single)
+            {
+                preferredMultipleDevicePanelLayout = layout;
+            }
         });
     };
-    addItem(DevicePanelContainer::Layout::rows, "Rows");
-    addItem(DevicePanelContainer::Layout::columns, "Columns");
-    addItem(DevicePanelContainer::Layout::grid, "Grid");
-    addItem(DevicePanelContainer::Layout::accordion, "Accordion");
+    addItem(DevicePanelContainer::Layout::single, "Single", devicePanelContainer.getDevicePanels().size() == 1);
+    addItem(DevicePanelContainer::Layout::rows, "Rows", devicePanelContainer.getDevicePanels().size() > 1);
+    addItem(DevicePanelContainer::Layout::columns, "Columns", devicePanelContainer.getDevicePanels().size() > 1);
+    addItem(DevicePanelContainer::Layout::grid, "Grid", devicePanelContainer.getDevicePanels().size() > 1);
+    addItem(DevicePanelContainer::Layout::accordion, "Accordion", devicePanelContainer.getDevicePanels().size() > 1);
 
     return menu;
 }

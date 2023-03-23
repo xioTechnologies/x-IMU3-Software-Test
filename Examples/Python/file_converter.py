@@ -1,9 +1,10 @@
 import helpers
+import time
 import ximu3
 
 
 def print_progress(progress):
-    print(progress.status + ", " +
+    print(ximu3.file_converter_status_to_string(progress.status) + ", " +
           "{:.1f}".format(progress.percentage) + "%, " +
           str(progress.bytes_processed) + " of " +
           str(progress.file_size) + " bytes")
@@ -19,6 +20,6 @@ source = "C:/file.ximu3"
 
 if helpers.yes_or_no("Use async implementation?"):
     _ = ximu3.FileConverter(destination, source, callback)
-    helpers.wait(-1)
+    time.sleep(60)
 else:
     print_progress(ximu3.FileConverter.convert(destination, source))

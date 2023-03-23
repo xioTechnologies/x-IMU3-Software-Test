@@ -6,7 +6,7 @@ Set(FETCHCONTENT_QUIET FALSE)
 FetchContent_Declare(
         JUCE
         GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-        GIT_TAG 7.0.3
+        GIT_TAG 7.0.5
         GIT_PROGRESS TRUE
 )
 FetchContent_MakeAvailable(JUCE)
@@ -136,6 +136,7 @@ FILE(GLOB_RECURSE OPEN_GL_FILES "Source/OpenGL/Assets/*.*")
 juce_add_binary_data(x-IMU3-GUI-AppData SOURCES
         "Source/DeviceSettings/DeviceSettingsEnums.xml"
         "Source/DeviceSettings/DeviceSettings.xml"
+        "Source/Dialogs/CommandKeys.xml"
         ${FONT_FILES}
         ${IMAGE_FILES}
         ${FIRMWARE_FILE}

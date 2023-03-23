@@ -26,7 +26,7 @@ ConnectionsTable::ConnectionsTable()
     table.getHeader().setStretchToFitActive(true);
     table.setHeaderHeight(0);
     table.getViewport()->setScrollBarsShown(true, false);
-    table.setColour(juce::TableListBox::backgroundColourId, UIColours::background);
+    table.setColour(juce::TableListBox::backgroundColourId, UIColours::backgroundDarkest);
     table.setWantsKeyboardFocus(false);
 }
 
@@ -41,24 +41,26 @@ void ConnectionsTable::resized()
     table.setBounds(bounds);
 }
 
-void ConnectionsTable::setRows(const std::vector<Row>& rows_)
+void ConnectionsTable::setRows(std::vector<Row> rows_)
 {
-    static const auto contains = [](const auto& vector, const auto& value)
+    static const auto find = [](auto& vector, const auto& value)
     {
-        return std::find(vector.begin(), vector.end(), value) != vector.end();
+        auto it = std::find(vector.begin(), vector.end(), value);
+        return it != vector.end() ? &*it : nullptr;
     };
 
     for (auto& previousRow : std::vector<Row>(std::move(rows)))
     {
-        if (contains(rows_, previousRow))
+        if (auto* const newRow = find(rows_, previousRow))
         {
-            rows.push_back(std::move(previousRow));
+            newRow->selected = previousRow.selected;
+            rows.push_back(*newRow);
         }
     }
 
     for (auto& row : rows_)
     {
-        if (contains(rows, row) == false)
+        if (find(rows, row) == nullptr)
         {
             rows.push_back(std::move(row));
         }
@@ -84,6 +86,11 @@ int ConnectionsTable::getNumRows()
 
 juce::Component* ConnectionsTable::refreshComponentForCell(int rowNumber, int columnID, bool, juce::Component* existingComponentToUpdate)
 {
+    if (rowNumber >= (int) rows.size())
+    {
+        return existingComponentToUpdate; // index may exceed size on Windows if display scaling >100%
+    }
+
     switch ((ColumnIDs) columnID)
     {
         case ColumnIDs::selected:

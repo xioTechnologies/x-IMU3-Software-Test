@@ -9,7 +9,7 @@ pub fn run() {
             print_devices(devices);
         }));
 
-        helpers::wait(-1);
+        std::thread::sleep(std::time::Duration::from_secs(60));
     } else {
         let devices = PortScanner::scan();
 
@@ -21,7 +21,7 @@ pub fn run() {
 
 fn print_devices(devices: Vec<Device>) {
     for device in devices {
-        println!("{} - {}, {}", device.device_name, device.serial_number, device.connection_info);
+        println!("{}, {}, {}", device.device_name, device.serial_number, device.connection_info);
         // println!("{}", device); // alternative to above
     }
 }

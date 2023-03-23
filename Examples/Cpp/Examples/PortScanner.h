@@ -1,6 +1,8 @@
 #include "../../../x-IMU3-API/Cpp/Ximu3.hpp"
 #include "../Helpers.hpp"
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 class PortScanner
 {
@@ -10,7 +12,7 @@ public:
         if (helpers::yesOrNo("Use async implementation?") == true)
         {
             ximu3::PortScanner portScanner(callback);
-            helpers::wait(-1);
+            std::this_thread::sleep_for(std::chrono::seconds(60));
         }
         else
         {
@@ -47,7 +49,7 @@ private:
                     connectionInfo = "";
                     break;
             }
-            std::cout << device.device_name << " - " << device.serial_number << ", " << connectionInfo << std::endl;
+            std::cout << device.device_name << ", " << device.serial_number << ", " << connectionInfo << std::endl;
             // std::cout << XIMU3_device_to_string(*device) << std::endl; // alternative to above
         }
     }

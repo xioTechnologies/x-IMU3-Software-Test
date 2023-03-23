@@ -1,10 +1,11 @@
 import helpers
+import time
 import ximu3
 
 # Find USB device
 print("Searching for connections")
 
-devices = ximu3.PortScanner.scan_filter("USB")
+devices = ximu3.PortScanner.scan_filter(ximu3.CONNECTION_TYPE_USB)
 
 if not devices:
     raise Exception("No USB connections available")
@@ -14,7 +15,7 @@ print("Found " + devices[0].device_name + " - " + devices[0].serial_number)
 # Open connection
 connection = ximu3.Connection(devices[0].connection_info)
 
-if connection.open() != "Ok":
+if connection.open() != ximu3.RESULT_OK:
     raise Exception("Unable to open connection")
 
 print("Connection successful")
@@ -42,7 +43,7 @@ def callback(responses):
 # Send commands
 if helpers.yes_or_no("Use async implementation?"):
     connection.send_commands_async(commands, 2, 500, callback)
-    helpers.wait(3)
+    time.sleep(3)
 else:
     print_responses(connection.send_commands(commands, 2, 500))
 

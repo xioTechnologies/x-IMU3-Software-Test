@@ -3,7 +3,7 @@
 #include "SearchForConnectionsDialog.h"
 
 SearchForConnectionsDialog::SearchForConnectionsDialog(std::vector<std::unique_ptr<ximu3::ConnectionInfo>> existingConnections_)
-        : Dialog(BinaryData::search_svg, "", "Connect", "Cancel", &filterButton, 50, true),
+        : Dialog(BinaryData::search_svg, "", "Connect", "Cancel", &filterButton, iconButtonWidth, true),
           existingConnections(std::move(existingConnections_))
 {
     addAndMakeVisible(table);
@@ -94,11 +94,11 @@ void SearchForConnectionsDialog::timerCallback()
     {
         if (ApplicationSettings::getSingleton().searchUdp)
         {
-            addConnection(message.device_name, message.serial_number, std::make_shared<ximu3::UdpConnectionInfo>(message.udp_connection_info), ximu3::XIMU3_ConnectionTypeUdp);
+            addConnection(message.device_name, message.serial_number, std::make_shared<ximu3::UdpConnectionInfo>(ximu3::XIMU3_network_announcement_message_to_udp_connection_info(message)), ximu3::XIMU3_ConnectionTypeUdp);
         }
         if (ApplicationSettings::getSingleton().searchTcp)
         {
-            addConnection(message.device_name, message.serial_number, std::make_shared<ximu3::TcpConnectionInfo>(message.tcp_connection_info), ximu3::XIMU3_ConnectionTypeTcp);
+            addConnection(message.device_name, message.serial_number, std::make_shared<ximu3::TcpConnectionInfo>(ximu3::XIMU3_network_announcement_message_to_tcp_connection_info(message)), ximu3::XIMU3_ConnectionTypeTcp);
         }
     }
 
