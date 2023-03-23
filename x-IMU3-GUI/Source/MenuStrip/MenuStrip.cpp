@@ -23,6 +23,7 @@
 MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devicePanelContainer_) : windowLayout(windowLayout_),
                                                                                                     devicePanelContainer(devicePanelContainer_)
 {
+    setOpaque (true); // JUCE paint optimization
     setWindowLayout({});
 
     for (auto& buttonGroup : buttonGroups)

@@ -19,9 +19,15 @@ public:
         devicePanelViewport.setViewedComponent(&devicePanelContainer, false);
         devicePanelViewport.setScrollBarsShown(true, false);
 
+        setOpaque(true); // JUCE paint optimization
         setSize(1280, 768);
 
         tooltipWindow.setOpaque(false);
+    }
+
+    void paint(juce::Graphics & g) override
+    {
+        g.fillAll(UIColours::backgroundDark);
     }
 
     void resized() override

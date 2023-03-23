@@ -8,6 +8,12 @@ DevicePanelContainer::DevicePanelContainer(juce::ValueTree& windowLayout_, GLRen
           glRenderer(glRenderer_)
 {
     addChildComponent(&accordionResizeBar);
+    setOpaque(true);
+}
+
+void DevicePanelContainer::paint(juce::Graphics& g)
+{
+    g.fillAll(UIColours::backgroundDark);
 }
 
 void DevicePanelContainer::resized()

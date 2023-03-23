@@ -11,6 +11,8 @@ class DevicePanelContainer : public juce::Component
 public:
     DevicePanelContainer(juce::ValueTree& windowLayout_, GLRenderer& glRenderer_);
 
+    void paint(juce::Graphics & g) override;
+
     void resized() override;
 
     void connectToDevice(const ximu3::ConnectionInfo& connectionInfo);
