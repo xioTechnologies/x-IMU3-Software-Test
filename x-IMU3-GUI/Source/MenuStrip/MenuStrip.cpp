@@ -175,7 +175,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
 
     devicePanelContainer.onDevicePanelsSizeChanged = [&]
     {
-        for (auto& component : std::vector<std::reference_wrapper<juce::Component>>({ disconnectButton, showHideWindowButton, windowLayoutButton, devicePanelLayoutButton,
+        for (auto& component : std::vector<std::reference_wrapper<juce::Component>>({ disconnectButton, windowsButton, windowLayoutButton, devicePanelLayoutButton,
                                                                                       shutdownButton, sendCommandButton, dataLoggerStartStopButton, dataLoggerTime, }))
         {
             component.get().setEnabled(devicePanelContainer.getDevicePanels().size() > 0);
@@ -365,12 +365,12 @@ juce::PopupMenu MenuStrip::getWindowMenu() const
 
     const auto addWindowItem = [&](const auto& id)
     {
-        const auto toggled = Window::findWindow(windowLayout, id).isValid();
+        const auto toggled = findWindow(windowLayout, id).isValid();
         menu.addItem(getWindowTitle(id), true, toggled, [this, id = id, toggled]
         {
             if (toggled)
             {
-                for (auto child = Window::findWindow(windowLayout, id); child.isValid() && child.getNumChildren() == 0;)
+                for (auto child = findWindow(windowLayout, id); child.isValid() && child.getNumChildren() == 0;)
                 {
                     auto parent = child.getParent();
                     parent.removeChild(child, nullptr);

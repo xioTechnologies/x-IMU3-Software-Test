@@ -20,8 +20,6 @@ public:
     void resized() override;
 
 private:
-    static constexpr int widgetMargin = 2;
-
     SerialAccessoryTerminal serialAccessoryTerminal;
     CustomComboBox sendValue;
     IconButton sendButton { BinaryData::send_svg, "Send", nullptr, false, BinaryData::send_warning_svg, "Send (Failed)" };
@@ -32,7 +30,11 @@ private:
     std::function<void(ximu3::XIMU3_SerialAccessoryMessage)> callback;
     uint64_t callbackID;
 
+    static juce::String removeEscapeCharacters(const juce::String& input);
+
     void loadSendHistory();
+
+    juce::PopupMenu getMenu();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SerialAccessoryTerminalWindow)
 };

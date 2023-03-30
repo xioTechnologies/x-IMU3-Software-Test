@@ -1,4 +1,4 @@
-#include "../Helpers.h"
+#include "../Convert.h"
 #include "SerialAccessoryTerminal.h"
 
 SerialAccessoryTerminal::SerialAccessoryTerminal()
@@ -15,30 +15,6 @@ void SerialAccessoryTerminal::paint(juce::Graphics& g)
     {
         const auto y = juce::jmap((float) lineIndex, (float) scrollbar.getCurrentRangeStart(), (float) scrollbar.getCurrentRangeStart() + (float) numberOfLinesOnScreen, 0.0f, (float) getHeight());
         wrappedMessages[(size_t) lineIndex].draw(g, { 0.0f, (float) y, (float) getWidth(), (float) juce::roundToInt(font.getHeight()) });
-    }
-}
-
-void SerialAccessoryTerminal::mouseDown(const juce::MouseEvent& mouseEvent)
-{
-    if (mouseEvent.mods.isPopupMenu())
-    {
-        juce::PopupMenu menu;
-        menu.addItem("Copy To Clipboard", [this]
-        {
-            juce::String text;
-            for (const auto& message : messages)
-            {
-                text += message.getText() + "\n";
-            }
-            juce::SystemClipboard::copyTextToClipboard(text);
-        });
-        menu.addItem("Clear All", [this]
-        {
-            messages.clear();
-            wrappedMessages.clear();
-            updateScrollbarRange();
-        });
-        menu.showAt({ mouseEvent.getMouseDownScreenX(), mouseEvent.getMouseDownScreenY() - 10, 10, 10 });
     }
 }
 
@@ -76,9 +52,9 @@ void SerialAccessoryTerminal::add(const uint64_t timestamp, const juce::String& 
     }
     else
     {
-        message.append(Helpers::formatTimestamp(timestamp) + " ", juce::Colours::grey);
+        message.append(juce::String(1E-6f * (float) timestamp, 3) + " ", juce::Colours::grey);
     }
-    for (const auto& string : Helpers::addEscapeCharacters(text))
+    for (const auto& string : addEscapeCharacters(text))
     {
         message.append(string, string.startsWith("\\") ? juce::Colours::grey : juce::Colours::white);
     }
@@ -95,6 +71,68 @@ void SerialAccessoryTerminal::add(const uint64_t timestamp, const juce::String& 
     }
 
     updateScrollbarRange();
+}
+
+void SerialAccessoryTerminal::copyToClipboard() const
+{
+    juce::String text;
+    for (const auto& message : messages)
+    {
+        text += message.getText() + "\n";
+    }
+    juce::SystemClipboard::copyTextToClipboard(text);
+}
+
+void SerialAccessoryTerminal::clearAll()
+{
+    messages.clear();
+    wrappedMessages.clear();
+    updateScrollbarRange();
+}
+
+std::vector<juce::String> SerialAccessoryTerminal::addEscapeCharacters(const juce::String& input)
+{
+    std::vector<juce::String> output(1);
+
+    for (const auto character : input)
+    {
+        if (juce::CharacterFunctions::isPrintable(character))
+        {
+            if (output.back()[0] == '\\')
+            {
+                output.push_back({});
+            }
+
+            output.back() += character;
+            continue;
+        }
+
+        if (output.back().isNotEmpty())
+        {
+            output.push_back({});
+        }
+
+        switch (character)
+        {
+            case '\\':
+                output.back() += "\\\\";
+                break;
+
+            case '\n':
+                output.back() += "\\n";
+                break;
+
+            case '\r':
+                output.back() += "\\r";
+                break;
+
+            default:
+                output.back() += "\\x" + juce::String::toHexString(character).paddedLeft('0', 2);
+                break;
+        }
+    }
+
+    return output;
 }
 
 void SerialAccessoryTerminal::updateScrollbarRange()

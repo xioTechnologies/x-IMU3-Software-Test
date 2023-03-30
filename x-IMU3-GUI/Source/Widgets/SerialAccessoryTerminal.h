@@ -13,13 +13,15 @@ public:
 
     void paint(juce::Graphics& g) override;
 
-    void mouseDown(const juce::MouseEvent& mouseEvent) override;
-
     void mouseWheelMove(const juce::MouseEvent& mouseEvent, const juce::MouseWheelDetails& wheel) override;
 
     void resized() override;
 
     void add(const uint64_t timestamp, const juce::String& text);
+
+    void copyToClipboard() const;
+
+    void clearAll();
 
 private:
     const juce::Font font = UIFonts::getTerminalFeedFont();
@@ -29,6 +31,8 @@ private:
     std::vector<juce::AttributedString> messages, wrappedMessages;
     float numberOfLinesOnScreen = 0.0f;
     int numberOfCharactersPerLine = 0;
+
+    static std::vector<juce::String> addEscapeCharacters(const juce::String& input);
 
     void updateScrollbarRange();
 
