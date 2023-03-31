@@ -61,6 +61,8 @@ void Model::render(const GLResources& resources, bool isTextured)
         resources.threeDViewShaderWithMaterial.materialShininess.set(material.shininess);*/
 
         buffer->render(Buffer::triangles);
+
+        // TODO: Unbind VAO (and/or any modified or bound resources e.g. VBOs, EBO) here . . .
     }
 }
 

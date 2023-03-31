@@ -21,20 +21,46 @@ juce::OpenGLContext& GLRenderer::getContext()
 
 void GLRenderer::addComponent(OpenGLComponent& component)
 {
-    std::lock_guard<std::mutex> _(componentsLock);
-    components.push_back(&component);
+    std::lock_guard<std::mutex> _(sharedGLDataLock);
+    OpenGLComponent* const componentPtr = &component;
+    components.push_back(componentPtr);
+
+    // Initialize the Component's OpenGL data on the OpenGL thread
+    toExecuteOnGLThread.push_back([this, componentPtr](juce::OpenGLContext&)
+                                  {
+                                      // If component is still in the list, initialize its OpenGL data
+                                      if (componentPtr && std::find(components.begin(), components.end(), componentPtr) != components.end())
+                                      {
+                                          componentPtr->initGLData();
+                                      }
+                                  });
 }
 
-void GLRenderer::removeComponent(const OpenGLComponent& component)
+void GLRenderer::removeComponent(OpenGLComponent& component)
 {
-    for (size_t index = 0; index < components.size(); index++)
+    std::lock_guard<std::mutex> _(sharedGLDataLock);
+    OpenGLComponent* const componentPtr = &component;
+    auto componentItr = std::find(components.begin(), components.end(), componentPtr);
+
+    // If the component still exists in the list
+    if (componentItr != components.end())
     {
-        if (components[index] == &component)
-        {
-            std::lock_guard<std::mutex> _(componentsLock);
-            components.erase(components.begin() + (int) index);
-            return;
-        }
+        components.erase(componentItr);
+
+        // Deallocate the Component's OpenGL data on the OpenGL thread
+        // TODO: This lambda causes a BAD_ACCESS when removing a graph OpenGL component.
+        // The component is destroyed before the function can be called.
+        // One solution is pass the OpenGLComponent to this function as a
+        // shared_ptr so it will live until this lambda is called.
+        // TODO: Reimplement with shared_ptr, etc.
+        /*
+        toExecuteOnGLThread.push_back([componentPtr](juce::OpenGLContext &){
+            if (componentPtr)
+            {
+                componentPtr->deinitGLData();
+            }
+        });
+         */
     }
 }
 
@@ -103,10 +129,19 @@ void GLRenderer::newOpenGLContextCreated()
 
 void GLRenderer::renderOpenGL()
 {
-    //Only clear the screen once before multiple target render calls
+    std::lock_guard<std::mutex> _(sharedGLDataLock);
+
+    // Execute pending actions on the OpenGL thread
+    for (const auto& func : toExecuteOnGLThread)
+    {
+        func(context);
+    }
+    toExecuteOnGLThread.clear();
+
+    // Clear the entire OpenGL screen with the background color
     juce::OpenGLHelpers::clear(UIColours::backgroundDark);
 
-    std::lock_guard<std::mutex> _(componentsLock);
+    // Render components
     for (auto& component : components)
     {
         component->render();
@@ -115,6 +150,17 @@ void GLRenderer::renderOpenGL()
 
 void GLRenderer::openGLContextClosing()
 {
+    {
+        std::lock_guard<std::mutex> _(sharedGLDataLock);
+
+        // Deallocate OpenGL data of all active components
+        for (auto& component : components)
+        {
+            component->deinitGLData();
+        }
+        components.clear();
+    }
+
     //All texture, shader, model and buffer resources are freed here
     resources.reset();
 }

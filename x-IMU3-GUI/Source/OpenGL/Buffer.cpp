@@ -1,7 +1,10 @@
 #include "Buffer.h"
 
+using namespace ::juce::gl;
+
 Buffer::Buffer(juce::OpenGLContext& context) : glContext(context)
 {
+    vao = 0;
     ebo = 0;
     hasEbo = false;
     totalVertices = 0;
@@ -13,21 +16,24 @@ Buffer::Buffer(juce::OpenGLContext& context) : glContext(context)
 
 Buffer::~Buffer()
 {
+    glDeleteVertexArrays(1, &vao);
+
     if (hasEbo)
     {
-        glContext.extensions.glDeleteBuffers(1, &ebo);
+        glDeleteBuffers(1, &ebo);
     }
 
-    glContext.extensions.glDeleteBuffers(totalBuffers, vbos);
+    glDeleteBuffers(totalBuffers, vbos);
 }
 
 void Buffer::create(GLuint totalVertices_, bool hasEbo_)
 {
-    glContext.extensions.glGenBuffers(totalBuffers, vbos);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(totalBuffers, vbos);
 
     if (hasEbo_)
     {
-        glContext.extensions.glGenBuffers(1, &ebo);
+        glGenBuffers(1, &ebo);
     }
 
     totalVertices = totalVertices_;
@@ -36,50 +42,76 @@ void Buffer::create(GLuint totalVertices_, bool hasEbo_)
 
 void Buffer::fillVbo(Buffer::VboType vboType, const GLfloat* data, GLsizeiptr bufferSize, FillType fillType)
 {
-    glContext.extensions.glBindBuffer(juce::gl::GL_ARRAY_BUFFER, vbos[vboType]);
-    glContext.extensions.glBufferData(juce::gl::GL_ARRAY_BUFFER, bufferSize, data, (GLenum) fillType);
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbos[vboType]);
+    glBufferData(GL_ARRAY_BUFFER, bufferSize, data, (GLenum) fillType);
+
+    glBindVertexArray(0); // unbind VAO
 }
 
 void Buffer::fillEbo(const GLuint* data, GLsizeiptr bufferSize, FillType fillType)
 {
-    glContext.extensions.glBindBuffer(juce::gl::GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glContext.extensions.glBufferData(juce::gl::GL_ELEMENT_ARRAY_BUFFER, bufferSize, data, (GLenum) fillType);
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize, data, (GLenum) fillType);
+
+    glBindVertexArray(0); // unbind VAO
 }
 
 void Buffer::appendVbo(Buffer::VboType vboType, const GLfloat* data, GLsizeiptr size, GLuint offset)
 {
-    glContext.extensions.glBindBuffer(juce::gl::GL_ARRAY_BUFFER, vbos[vboType]);
-    glContext.extensions.glBufferSubData(juce::gl::GL_ARRAY_BUFFER, offset, size, data);
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbos[vboType]);
+    glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+
+    glBindVertexArray(0); // unbind VAO
 }
 
 void Buffer::appendEbo(const GLuint* data, GLsizeiptr size, GLuint offset)
 {
-    glContext.extensions.glBindBuffer(juce::gl::GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glContext.extensions.glBufferSubData(juce::gl::GL_ELEMENT_ARRAY_BUFFER, offset, size, data);
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, data);
+
+    glBindVertexArray(0); // unbind VAO
 }
 
 void Buffer::linkVbo(GLuint attributeID, Buffer::VboType vboType, Buffer::ComponentType componentType, Buffer::DataType dataType)
 {
-    glContext.extensions.glBindBuffer(juce::gl::GL_ARRAY_BUFFER, vbos[vboType]);
-    glContext.extensions.glVertexAttribPointer(attributeID, componentType, dataType, juce::gl::GL_FALSE, 0, nullptr);
-    glContext.extensions.glEnableVertexAttribArray(attributeID);
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbos[vboType]);
+    glVertexAttribPointer(attributeID, componentType, dataType, GL_FALSE, 0, nullptr);
+    glEnableVertexAttribArray(attributeID);
+
+    glBindVertexArray(0); // unbind VAO
 }
 
 void Buffer::disableAttribute(GLuint attributeID)
 {
-    glContext.extensions.glDisableVertexAttribArray(attributeID);
+    glBindVertexArray(vao);
+
+    glDisableVertexAttribArray(attributeID);
+
+    glBindVertexArray(0); // unbind VAO
 }
 
 void Buffer::render(Buffer::DrawType drawType, const int numberOfVertices)
 {
+    glBindVertexArray(vao);
+
     if (hasEbo)
     {
-        glContext.extensions.glBindBuffer(juce::gl::GL_ELEMENT_ARRAY_BUFFER, ebo);
-        juce::gl::glDrawElements(drawType, numberOfVertices == -1 ? (GLsizei) totalVertices : numberOfVertices, juce::gl::GL_UNSIGNED_INT, nullptr);
+        glDrawElements(drawType, numberOfVertices == -1 ? (GLsizei) totalVertices : (GLsizei) numberOfVertices, GL_UNSIGNED_INT, nullptr);
     }
-
     else
     {
-        juce::gl::glDrawArrays(drawType, 0, numberOfVertices == -1 ? (GLsizei) totalVertices : numberOfVertices);
+        glDrawArrays(drawType, 0, numberOfVertices == -1 ? (GLsizei) totalVertices : (GLsizei) numberOfVertices);
     }
+
+    glBindVertexArray(0); // unbind VAO
 }

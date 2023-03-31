@@ -3,6 +3,7 @@
 #include "GLRenderer.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "OpenGLComponent.h"
+#include "WorldGrid3D.h"
 
 class ThreeDView : public OpenGLComponent
 {
@@ -39,6 +40,10 @@ public:
 
     ~ThreeDView() override;
 
+    void initGLData() override;
+
+    void deinitGLData() override;
+
     void render() override;
 
     void update(const float x, const float y, const float z, const float w);
@@ -53,6 +58,8 @@ private:
     GLRenderer& renderer;
     std::atomic<float> quaternionX { 0.0f }, quaternionY { 0.0f }, quaternionZ { 0.0f }, quaternionW { 1.0f };
     Settings settings;
+
+    std::unique_ptr<WorldGrid3D> worldGrid;
 
     juce::Matrix3D<GLfloat> rotation(const float roll, const float pitch, const float yaw);
 

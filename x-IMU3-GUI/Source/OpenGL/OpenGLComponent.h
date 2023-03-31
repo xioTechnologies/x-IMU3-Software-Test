@@ -14,6 +14,16 @@ public:
 
     void parentHierarchyChanged() override;
 
+    // Initialize OpenGL data needed for a specific GL render program
+    virtual void initGLData()
+    {
+    }
+
+    // Deallocate OpenGL data needed for a specific GL render program
+    virtual void deinitGLData()
+    {
+    }
+
     virtual void render() = 0;
 
 protected:

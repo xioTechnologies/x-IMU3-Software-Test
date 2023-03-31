@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+#include <algorithm>
 #include "GLResources.h"
 #include "OpenGLComponent.h"
 
@@ -14,7 +16,7 @@ public:
 
     void addComponent(OpenGLComponent& component);
 
-    void removeComponent(const OpenGLComponent& component);
+    void removeComponent(OpenGLComponent& component);
 
     GLResources& getResources();
 
@@ -29,13 +31,24 @@ public:
 private:
     juce::OpenGLContext context;
 
-    std::mutex componentsLock;
+    /** Used to synchronize access to data shared between the JUCE Message thread
+     *  and the OpenGL thread such as the components list, and the toExecuteOnGLThread
+     *  list.
+     */
+    std::mutex sharedGLDataLock;
+
     std::vector<OpenGLComponent*> components;
 
     std::unique_ptr<GLResources> resources;
 
+    // TODO: I don't think we need these in a rendering base class like this. Only necessary
+    // per each GL rendering program like the ThreeDView or a 2D graph, etc.
     juce::Matrix3D<GLfloat> viewMatrix;
     juce::Matrix3D<GLfloat> projectionMatrix;
+
+    /** List of functions to execute on the GL thread.
+     */
+    std::vector<std::function<void(juce::OpenGLContext&)>> toExecuteOnGLThread;
 
     void newOpenGLContextCreated() override;
 

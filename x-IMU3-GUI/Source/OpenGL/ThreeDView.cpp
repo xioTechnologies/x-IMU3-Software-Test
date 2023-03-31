@@ -18,6 +18,7 @@ ThreeDView::Settings& ThreeDView::Settings::operator=(const ThreeDView::Settings
 ThreeDView::ThreeDView(GLRenderer& renderer_) : OpenGLComponent(renderer_.getContext()),
                                                 renderer(renderer_)
 {
+    worldGrid = std::make_unique<WorldGrid3D>(&renderer.getContext());
     renderer.addComponent(*this);
 }
 
@@ -26,14 +27,25 @@ ThreeDView::~ThreeDView()
     renderer.removeComponent(*this);
 }
 
+void ThreeDView::initGLData()
+{
+    worldGrid->initGLData();
+}
+
+void ThreeDView::deinitGLData()
+{
+    worldGrid->deinitGLData();
+
+}
+
 void ThreeDView::render()
 {
+    using namespace ::juce::gl;
+
     const auto bounds = toOpenGLBounds(getBoundsInMainWindow());
     auto& resources = renderer.getResources();
 
-    resources.threeDViewShader.use();
-    renderer.refreshScreen(juce::Colours::black, bounds);
-    resources.threeDViewShader.projectionMatrix.setMatrix4(renderer.getProjectionMatrix(bounds).mat, 1, false);
+    renderer.refreshScreen(UIColours::backgroundDark, bounds);
 
     const auto worldRotation = rotation(settings.elevation, settings.azimuth, 0.0f) * rotation(90.0f, 0.0f, 0.0f);
     const auto worldTransformation = translation(0.0f, 0.0f, settings.zoom) * worldRotation;
@@ -52,11 +64,21 @@ void ThreeDView::render()
             break;
     }
 
+    // Prevent world grid from hiding elements behind it
+    glDisable(GL_DEPTH_TEST);
+
+    // World Grid
+    worldGrid->projectionMatrix = renderer.getProjectionMatrix(bounds);
+    worldGrid->modelMatrix = worldTransformation * translation(0.0f, 0.0f, -0.5f) * scale(40.0) * axesConventionRotation;
+    worldGrid->render();
+
     const auto lightAmbient = juce::Vector3D<GLfloat>(1.0f, 1.0f, 1.0f);
     const auto lightDiffuse = juce::Vector3D<GLfloat>(1.0f, 1.0f, 1.0f);
     const auto lightSpecular = juce::Vector3D<GLfloat>(1.0f, 1.0f, 1.0f);
     const auto lightPosition = juce::Vector3D<GLfloat>(3.0f, 3.0f, 0.0f);
 
+    resources.threeDViewShader.use();
+    resources.threeDViewShader.projectionMatrix.setMatrix4(renderer.getProjectionMatrix(bounds).mat, 1, false);
     resources.threeDViewShader.lightIntensity.set(0.5f);
     resources.threeDViewShader.lightColour.set(1.0f, 1.0f, 1.0f, 1.0f);
     resources.threeDViewShader.lightPosition.set(lightPosition.x, lightPosition.y, lightPosition.z);
@@ -85,6 +107,9 @@ void ThreeDView::render()
         return newMatrix;
     };
 
+    // Allow model and stage to layer behind/in-front of each other
+    glEnable(GL_DEPTH_TEST);
+
     if (settings.isModelEnabled)
     {
         resources.threeDViewShader.emissivity.set(0.8f);
@@ -104,6 +129,13 @@ void ThreeDView::render()
         }
     }
 
+    // TODO: Something in isModelEnabled and isStageEnabled blocks (I bet Model.h calls)
+    // sets the OpenGL state to a bad state where the positions of the vertices of the
+    // WorldGrid3D get moved to a wrong location with glitchy positioning right after
+    // the first frame gets rendered properly. Maybe something to do with the GL
+    // blending since the stage is partially transparent? But I am surpised it looks to
+    // affect geometry of the WorldGrid3D.
+
     // TODO:   if ((resources.board.getIsLoaded() == false) || (resources.housing.getIsLoaded() == false) || (resources.custom.getIsLoaded() == false)) { }
 
     if (settings.isStageEnabled)
@@ -118,11 +150,12 @@ void ThreeDView::render()
         resources.threeDViewShader.isTextured.set(false);
     }
 
+    // Prevent axes and text from hiding objects and show them on top
+    glDisable(GL_DEPTH_TEST);
+
     if (settings.isAxesEnabled)
     {
         resources.threeDViewShader.emissivity.set(0.3f);
-
-        renderer.turnDepthTestOff(); // axes brought to front
 
         auto renderAxes = [&](const auto& matrix)
         {
@@ -182,6 +215,19 @@ void ThreeDView::render()
         renderText(resources.get3DViewAxisText(), "Y", UIColours::graphGreen, calcMatrix(matrixB, juce::Vector3D<float>(0.0f, 1.0f, 0.0f)));
         renderText(resources.get3DViewAxisText(), "Z", UIColours::graphBlue, calcMatrix(matrixB, juce::Vector3D<float>(0.0f, 0.0f, 1.0f)));
     }
+
+    // NOTE: These functions should always be called at the end of ThreeDView::render().
+    // If they are not called by the end of the render function, the GL state is left
+    // in a halfway state that makes JUCE component drawing glitch out. These functions
+    // should not only be called in the if-statement below.
+    // Originally these functions were not called here, so that, if isAxesEnabled was
+    // false then JUCE OpenGL rendering breaks.
+    // We should design an architecture such that there is a place for a OpenGLComponent
+    // to reset its state at the end of rendering so it does not affect subsequent
+    // OpenGL rendering.
+    // TODO: Refactor, just write like glDisable(GL_DEPTH_TEST); and glDisable(GL_CULL_FACE);
+    renderer.turnDepthTestOff(); // axes brought to front
+    renderer.turnCullingOff(); // render text only after culling off
 }
 
 void ThreeDView::update(const float x, const float y, const float z, const float w)
