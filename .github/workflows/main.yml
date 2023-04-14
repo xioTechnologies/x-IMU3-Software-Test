@@ -20,7 +20,7 @@ jobs:
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create ${{ github.ref }}
+        run: gh release create ${{ github.ref_name }}
 
 #      - if: startsWith(github.ref, 'refs/tags/v')
 #        name: Create release
