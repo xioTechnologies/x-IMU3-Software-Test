@@ -70,7 +70,7 @@ jobs:
         name: Upload to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.ref_name }} x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+        run: gh release upload ${{ github.ref_name }} "x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip"
 
 #  rust-publish:
 #    runs-on: ubuntu-latest
@@ -176,10 +176,10 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, cmake-osx-architecture, gui-extension  ]
-          - [ macos-latest, x86_64-apple-darwin, x86_64, "-Intel.dmg" ]
-          - [ macos-latest, aarch64-apple-darwin, arm64, "-Apple-Silicon.dmg" ]
+#          - [ macos-latest, x86_64-apple-darwin, x86_64, "-Intel.dmg" ]
+#          - [ macos-latest, aarch64-apple-darwin, arm64, "-Apple-Silicon.dmg" ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, "", "" ]
-          - [ windows-latest, x86_64-pc-windows-msvc, "", "-Setup.exe" ]
+#          - [ windows-latest, x86_64-pc-windows-msvc, "", "-Setup.exe" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -251,5 +251,4 @@ jobs:
         name: Upload to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.ref_name }} cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI${{ matrix.target[3] }}
-        
+        run: gh release upload ${{ github.ref_name }} "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI${{ matrix.target[3] }}"
