@@ -19,7 +19,7 @@ jobs:
         id: create-release
         uses: softprops/action-gh-release@v1
         with:
-          files: version.py
+          files: test.txt
 
 #
 #  rust:
