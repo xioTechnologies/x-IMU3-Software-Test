@@ -18,6 +18,8 @@ jobs:
         name: Create release
         id: create-release
         uses: softprops/action-gh-release@v1
+        with:
+          files: version.py
 
 #
 #  rust:
