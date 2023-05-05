@@ -131,11 +131,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Download from artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: rust-${{ matrix.target[1] }}
-          path: x-IMU3-API/Rust/target/release
+#      - name: Download from artifacts
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: rust-${{ matrix.target[1] }}
+#          path: x-IMU3-API/Rust/target/release
 
       - name: Install Python dependencies
         run: |
