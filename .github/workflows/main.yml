@@ -8,68 +8,68 @@ on:
     branches: [ main ]
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-
-    steps:
-      - if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/checkout@v3
-
-      - if: startsWith(github.ref, 'refs/tags/v')
-        name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create ${{ github.ref_name }}
-
-  rust:
-    runs-on: ${{ matrix.target[0] }}
-    needs: create-release
-
-    strategy:
-      fail-fast: false
-      matrix:
-        target: # [ os, rust-target, library-file-name, library-file-extension ]
-#          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
-#          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
-#          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a ]
-#          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
-          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
-#          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a ]
-#          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib ]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - if: matrix.target[0] == 'ubuntu-latest'
-        name: Install ubuntu dependency
-        run: sudo apt-get install -y libudev-dev
-
-      - name: Build
-        working-directory: x-IMU3-API/Rust/
-        env:
-          PKG_CONFIG_SYSROOT_DIR: /
-        run: |
-          rustup target add ${{ matrix.target[1] }}
-          cargo build --release --target ${{ matrix.target[1] }}
-
-      - uses: actions/upload-artifact@v3
-        name: Upload to artifacts
-        with:
-          name: rust-${{ matrix.target[1] }}
-          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
-
-      - if: startsWith(github.ref, 'refs/tags/v')
-        name: Zip
-        uses: vimtor/action-zip@v1.1
-        with:
-          files: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
-          dest: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
-
-      - if: startsWith(github.ref, 'refs/tags/v')
-        name: Upload to release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.ref_name }} "x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip"
+#  create-release:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - if: startsWith(github.ref, 'refs/tags/v')
+#        uses: actions/checkout@v3
+#
+#      - if: startsWith(github.ref, 'refs/tags/v')
+#        name: Create release
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: gh release create ${{ github.ref_name }}
+#
+#  rust:
+#    runs-on: ${{ matrix.target[0] }}
+#    needs: create-release
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        target: # [ os, rust-target, library-file-name, library-file-extension ]
+##          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
+##          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
+##          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a ]
+##          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
+#          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
+##          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a ]
+##          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib ]
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - if: matrix.target[0] == 'ubuntu-latest'
+#        name: Install ubuntu dependency
+#        run: sudo apt-get install -y libudev-dev
+#
+#      - name: Build
+#        working-directory: x-IMU3-API/Rust/
+#        env:
+#          PKG_CONFIG_SYSROOT_DIR: /
+#        run: |
+#          rustup target add ${{ matrix.target[1] }}
+#          cargo build --release --target ${{ matrix.target[1] }}
+#
+#      - uses: actions/upload-artifact@v3
+#        name: Upload to artifacts
+#        with:
+#          name: rust-${{ matrix.target[1] }}
+#          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
+#
+#      - if: startsWith(github.ref, 'refs/tags/v')
+#        name: Zip
+#        uses: vimtor/action-zip@v1.1
+#        with:
+#          files: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
+#          dest: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+#
+#      - if: startsWith(github.ref, 'refs/tags/v')
+#        name: Upload to release
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: gh release upload ${{ github.ref_name }} "x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip"
 
 #  rust-publish:
 #    runs-on: ubuntu-latest
@@ -113,7 +113,7 @@ jobs:
 
   python:
     runs-on: ${{ matrix.target[0] }}
-    needs: rust
+#    needs: rust
 
     strategy:
       fail-fast: false
@@ -126,7 +126,7 @@ jobs:
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
 #          - [ windows-latest, x86_64-pc-windows-msvc, win_amd64 ]
 
-        python-version: [ "cp38-", "cp39-", "cp310-", "cp311-" ]
+        python-version: [ "cp311-" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -153,16 +153,16 @@ jobs:
         uses: pypa/cibuildwheel@v2.12.3
         env:
           CIBW_ARCHS: all
-          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
-          CIBW_BEFORE_BUILD: pip install numpy
-          CIBW_BEFORE_BUILD_LINUX: pip install numpy && yum check-update && yum install libudev-dev
+          CIBW_BUILD: cp311-manylinux_x86_64
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+          CIBW_BEFORE_BUILD: apt-get update && apt-get install -y libudev-dev
 
-      - if: startsWith(github.ref, 'refs/tags/v')
-        name: Publish Python package
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
-        run: python -m twine upload --verbose --repository testpypi wheelhouse/*
+#      - if: startsWith(github.ref, 'refs/tags/v')
+#        name: Publish Python package
+#        env:
+#          TWINE_USERNAME: __token__
+#          TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
+#        run: python -m twine upload --verbose --repository testpypi wheelhouse/*
 
 #  gui:
 #    runs-on: ${{ matrix.target[0] }}
