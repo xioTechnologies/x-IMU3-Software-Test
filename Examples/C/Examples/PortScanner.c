@@ -8,7 +8,7 @@ static void PrintDevices(const XIMU3_Devices devices);
 
 void PortScanner()
 {
-    if (YesOrNo("Use async implementation?") == true)
+    if (AskQuestion("Use async implementation?"))
     {
         XIMU3_PortScanner* const portScanner = XIMU3_port_scanner_new(Callback, NULL);
         Wait(60);
@@ -36,6 +36,7 @@ static void PrintDevices(const XIMU3_Devices devices)
     {
         const XIMU3_Device* const device = &devices.array[index];
         const char* connectionInfo;
+
         switch (device->connection_type)
         {
             case XIMU3_ConnectionTypeUsb:
@@ -51,6 +52,7 @@ static void PrintDevices(const XIMU3_Devices devices)
                 connectionInfo = "";
                 break;
         }
+
         printf("%s, %s, %s\n",
                device->device_name,
                device->serial_number,

@@ -26,11 +26,10 @@ impl SerialConnection {
 
 impl GenericConnection for SerialConnection {
     fn open(&mut self) -> std::io::Result<()> {
-        let builder = serialport::new(&self.connection_info.port_name, self.connection_info.baud_rate)
+        let mut serial_port = serialport::new(&self.connection_info.port_name, self.connection_info.baud_rate)
             .flow_control(if self.connection_info.rts_cts_enabled { FlowControl::Hardware } else { FlowControl::None })
-            .timeout(Duration::from_millis(1));
-
-        let mut serial_port = builder.open()?;
+            .timeout(Duration::from_millis(1))
+            .open()?;
 
         let decoder = self.decoder.clone();
 
@@ -45,7 +44,7 @@ impl GenericConnection for SerialConnection {
 
             while let Err(_) = close_receiver.try_recv() {
                 if let Ok(number_of_bytes) = serial_port.read(buffer.as_mut_slice()) {
-                    decoder.lock().unwrap().process_received_data(&buffer.as_mut_slice()[..number_of_bytes]);
+                    decoder.lock().unwrap().process_bytes(&buffer.as_mut_slice()[..number_of_bytes]);
                 }
                 while let Some(terminated_json) = write_receiver.try_recv().iter().next() {
                     serial_port.write(terminated_json.as_bytes()).ok();
@@ -56,21 +55,21 @@ impl GenericConnection for SerialConnection {
         Ok(())
     }
 
-    fn close(&mut self) {
+    fn close(&self) {
         if let Some(close_sender) = &self.close_sender {
             close_sender.send(()).ok();
         }
     }
 
-    fn get_info(&mut self) -> ConnectionInfo {
+    fn get_info(&self) -> ConnectionInfo {
         ConnectionInfo::SerialConnectionInfo(self.connection_info.clone())
     }
 
-    fn get_decoder(&mut self) -> Arc<Mutex<Decoder>> {
+    fn get_decoder(&self) -> Arc<Mutex<Decoder>> {
         self.decoder.clone()
     }
 
-    fn get_write_sender(&mut self) -> Option<Sender<String>> {
+    fn get_write_sender(&self) -> Option<Sender<String>> {
         self.write_sender.clone()
     }
 }

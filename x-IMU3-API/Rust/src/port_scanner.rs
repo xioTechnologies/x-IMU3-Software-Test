@@ -73,7 +73,7 @@ impl PortScanner {
                     if *dropped {
                         return;
                     }
-                    if let Ok(()) = receiver.try_recv() {
+                    if let Ok(_) = receiver.try_recv() {
                         let devices = devices.lock().unwrap().clone();
                         closure(devices); // argument must not include lock() because this could cause deadlock
                     }
@@ -93,9 +93,9 @@ impl PortScanner {
             rts_cts_enabled: false,
         };
 
-        let mut connection = Connection::new(&ConnectionInfo::SerialConnectionInfo(connection_info.clone()));
+        let connection = Connection::new(&ConnectionInfo::SerialConnectionInfo(connection_info.clone()));
 
-        if let Ok(()) = connection.open() {
+        if let Ok(_) = connection.open() {
             if let Ok(ping_response) = connection.ping() {
                 let device = Device {
                     device_name: ping_response.device_name,
@@ -115,7 +115,7 @@ impl PortScanner {
         }
     }
 
-    pub fn get_devices(&mut self) -> Vec<Device> {
+    pub fn get_devices(&self) -> Vec<Device> {
         (*self.devices.lock().unwrap()).clone()
     }
 

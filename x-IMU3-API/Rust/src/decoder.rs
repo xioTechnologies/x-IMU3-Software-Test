@@ -23,10 +23,10 @@ impl Decoder {
         }
     }
 
-    pub fn process_received_data(&mut self, data: &[u8]) {
-        self.statistics.data_total += data.len() as u64;
+    pub fn process_bytes(&mut self, bytes: &[u8]) {
+        self.statistics.data_total += bytes.len() as u64;
 
-        for byte in data {
+        for byte in bytes {
             self.buffer[self.buffer_index] = *byte;
 
             self.buffer_index += 1;
@@ -39,7 +39,7 @@ impl Decoder {
 
             if *byte == '\n' as u8 {
                 match self.process_message() {
-                    Ok(()) => self.statistics.message_total += 1,
+                    Ok(_) => self.statistics.message_total += 1,
                     Err(decode_error) => {
                         self.statistics.error_total += 1;
                         self.dispatcher.sender.send(DispatcherData::DecodeError(decode_error)).ok();
@@ -58,7 +58,7 @@ impl Decoder {
         }
     }
 
-    fn process_command_message(&mut self) -> Result<(), DecodeError> {
+    fn process_command_message(&self) -> Result<(), DecodeError> {
         let command = CommandMessage::parse_bytes(&self.buffer[..self.buffer_index])?;
         self.dispatcher.sender.send(DispatcherData::Command(command)).ok();
         Ok(())

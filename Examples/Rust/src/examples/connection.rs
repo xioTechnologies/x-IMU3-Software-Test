@@ -8,12 +8,12 @@ use crate::helpers;
 pub fn run(connection_info: ConnectionInfo) {
 
     // Create connection
-    let mut connection = Connection::new(&connection_info);
+    let connection = Connection::new(&connection_info);
 
     connection.add_decode_error_closure(Box::new(decode_error_closure));
     connection.add_statistics_closure(Box::new(statistics_closure));
 
-    if helpers::yes_or_no("Print data messages?") {
+    if helpers::ask_question("Print data messages?") {
         connection.add_inertial_closure(Box::new(inertial_closure));
         connection.add_magnetometer_closure(Box::new(magnetometer_closure));
         connection.add_quaternion_closure(Box::new(quaternion_closure));

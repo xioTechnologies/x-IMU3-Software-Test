@@ -7,7 +7,7 @@ static void PrintPingResponse(const XIMU3_PingResponse pingResponse);
 
 static void Callback(const XIMU3_Result result, void* context);
 
-void OpenAndPing()
+void Ping()
 {
     // Create connection info
     const XIMU3_UsbConnectionInfo connectionInfo = (XIMU3_UsbConnectionInfo) {
@@ -16,7 +16,8 @@ void OpenAndPing()
 
     // Open and ping
     XIMU3_Connection* const connection = XIMU3_connection_new_usb(connectionInfo);
-    if (YesOrNo("Use async implementation?") == true)
+
+    if (AskQuestion("Use async implementation?"))
     {
         XIMU3_connection_open_async(connection, Callback, connection);
         Wait(3);

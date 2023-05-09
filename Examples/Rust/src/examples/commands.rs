@@ -20,7 +20,7 @@ pub fn run() {
     println!("Found {} - {}", device.device_name, device.serial_number);
 
     // Open connection
-    let mut connection = Connection::new(&device.connection_info);
+    let connection = Connection::new(&device.connection_info);
 
     if connection.open().is_err() {
         println!("Unable to open connection");
@@ -38,7 +38,7 @@ pub fn run() {
         "{\"invalidSettingKey\":null}"];/* this command is deliberately invalid to demonstrate a failed command */
 
     // Send commands
-    if helpers::yes_or_no("Use async implementation?") {
+    if helpers::ask_question("Use async implementation?") {
         connection.send_commands_async(commands, 2, 500, Box::new(|responses| {
             print_responses(responses);
         }));

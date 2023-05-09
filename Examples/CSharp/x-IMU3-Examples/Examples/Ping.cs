@@ -2,16 +2,16 @@ using System;
 
 namespace Ximu3Examples
 {
-    class OpenAndPing
+    class Ping
     {
-        public OpenAndPing()
+        public Ping()
         {
             // Create connection info
             Ximu3.UsbConnectionInfo connectionInfo = new Ximu3.UsbConnectionInfo("COM1");
 
             // Open and ping
             Ximu3.Connection connection = new Ximu3.Connection(connectionInfo);
-            if (Helpers.YesOrNo("Use async implementation?"))
+            if (Helpers.AskQuestion("Use async implementation?"))
             {
                 connection.OpenAsync(OpenEvent);
                 System.Threading.Thread.Sleep(3000);

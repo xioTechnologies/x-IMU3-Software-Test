@@ -6,17 +6,17 @@
 #include <memory>
 #include <thread>
 
-class OpenAndPing
+class Ping
 {
 public:
-    OpenAndPing()
+    Ping()
     {
         // Create connection info
         const ximu3::UsbConnectionInfo connectionInfo("COM1");
 
         // Open and ping
         connection = std::make_unique<ximu3::Connection>(connectionInfo);
-        if (helpers::yesOrNo("Use async implementation?") == true) // TODO: == true ? (applies to C# and others?)
+        if (helpers::askQuestion("Use async implementation?"))
         {
             connection->openAsync(callback);
             std::this_thread::sleep_for(std::chrono::seconds(3));
