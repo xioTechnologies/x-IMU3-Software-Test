@@ -1,14 +1,10 @@
 #pragma once
 
+#include "glm/common.hpp"
+#include "glm/gtx/component_wise.hpp"
+#include "glm/vec2.hpp"
+#include "glm/vec3.hpp"
 #include <unordered_map>
-
-struct MeshColour
-{
-    GLfloat r = 0.0f;
-    GLfloat g = 0.0f;
-    GLfloat b = 0.0f;
-    GLfloat a = 0.0f;
-};
 
 class WavefrontObjFile // From JUCE example
 {
@@ -29,23 +25,18 @@ public:
     }
 
     //==============================================================================
-    typedef juce::uint32 Index;
-
-    struct Vertex
-    {
-        float x, y, z;
-    };
-    struct TextureCoord
-    {
-        float x, y;
-    };
+    typedef GLuint Index;
 
     struct Mesh
     {
-        juce::Array<Vertex> vertices, normals;
-        juce::Array<TextureCoord> textureCoords;
+        juce::Array<glm::vec3> positions, normals;
+        juce::Array<glm::vec2> textureCoords;
+
+        // Contains data from positions, normals, and texture coordinates interleaved for all vertices for easy use in OpenGL buffers
+        std::vector<GLfloat> vertices;
+
+        // Indexes of vertices ordered for OpenGL rendering by triangles
         juce::Array<Index> indices;
-        juce::Array<MeshColour> colours;
     };
 
     struct Material
@@ -56,10 +47,10 @@ public:
 
         juce::String name;
 
-        Vertex ambient { 0.25f, 0.25f, 0.25f };
-        Vertex diffuse { 0.4f, 0.4f, 0.4f };
-        Vertex specular { 0.774597f, 0.774597f, 0.774597f };
-        Vertex transmittance, emission;
+        glm::vec3 ambient { 0.25f, 0.25f, 0.25f };
+        glm::vec3 diffuse { 0.4f, 0.4f, 0.4f };
+        glm::vec3 specular { 0.774597f, 0.774597f, 0.774597f };
+        glm::vec3 transmittance, emission;
 
         float shininess = 0.6f * 128.0f;
         float refractiveIndex = 0.0f;
@@ -119,16 +110,16 @@ private:
                 return it->second;
             }
 
-            auto index = (Index) newMesh.vertices.size();
+            auto index = (Index) newMesh.positions.size();
 
             if (i.vertexIndex < 0)
             {
-                i.vertexIndex = srcMesh.vertices.size() + i.vertexIndex + 1;
+                i.vertexIndex = srcMesh.positions.size() + i.vertexIndex + 1;
             }
 
-            if (juce::isPositiveAndBelow(i.vertexIndex, srcMesh.vertices.size()))
+            if (juce::isPositiveAndBelow(i.vertexIndex, srcMesh.positions.size()))
             {
-                newMesh.vertices.add(srcMesh.vertices.getReference(i.vertexIndex));
+                newMesh.positions.add(srcMesh.positions.getReference(i.vertexIndex));
             }
 
             if (i.normalIndex < 0)
@@ -162,18 +153,18 @@ private:
         return (float) juce::CharacterFunctions::readDoubleValue(t);
     }
 
-    static Vertex parseVertex(juce::String::CharPointerType t)
+    static glm::vec3 parseVertex(juce::String::CharPointerType t)
     {
-        Vertex v;
+        glm::vec3 v;
         v.x = parseFloat(t);
         v.y = parseFloat(t);
         v.z = parseFloat(t);
         return v;
     }
 
-    static TextureCoord parseTextureCoord(juce::String::CharPointerType t)
+    static glm::vec2 parseTextureCoord(juce::String::CharPointerType t)
     {
-        TextureCoord tc;
+        glm::vec2 tc;
         tc.x = parseFloat(t);
         tc.y = parseFloat(t);
         return tc;
@@ -271,7 +262,7 @@ private:
             return nullptr;
         }
 
-        std::unique_ptr<Shape> shape(new Shape());
+        auto shape = std::make_unique<Shape>();
         shape->name = name;
         shape->material = material;
 
@@ -280,7 +271,7 @@ private:
         for (auto& f : faceGroup)
             f.addIndices(shape->mesh, srcMesh, indexMap);
 
-        if (shape->mesh.indices.isEmpty() || shape->mesh.vertices.isEmpty())
+        if (shape->mesh.indices.isEmpty() || shape->mesh.positions.isEmpty())
         {
             return nullptr;
         }
@@ -293,7 +284,8 @@ private:
         Mesh mesh;
         juce::Array<Face> faceGroup;
 
-        juce::Array<Material> knownMaterials;
+        // Material names mapped to material objects
+        std::unordered_map<std::string, Material> knownMaterials;
         Material lastMaterial;
         juce::String lastName;
 
@@ -303,7 +295,7 @@ private:
 
             if (matchToken(l, "v"))
             {
-                mesh.vertices.add(parseVertex(l));
+                mesh.positions.add(parseVertex(l));
                 continue;
             }
             if (matchToken(l, "vn"))
@@ -324,15 +316,19 @@ private:
 
             if (matchToken(l, "usemtl"))
             {
-                auto name = juce::String(l).trim();
-
-                for (auto i = knownMaterials.size(); --i >= 0;)
+                // Make a new shape from the last material and clear to begin putting a new shape together
+                if (auto* shape = parseFaceGroup(mesh, faceGroup, lastMaterial, lastName))
                 {
-                    if (knownMaterials.getReference(i).name == name)
-                    {
-                        lastMaterial = knownMaterials.getReference(i);
-                        break;
-                    }
+                    shapes.add(shape);
+                }
+                faceGroup.clear();
+
+                // If new material exists, reference it, otherwise keep using last material
+                auto materialName = juce::String(l).trim();
+                auto foundMaterial = knownMaterials.find(materialName.toStdString());
+                if (foundMaterial != knownMaterials.end())
+                {
+                    lastMaterial = foundMaterial->second;
                 }
 
                 continue;
@@ -350,8 +346,8 @@ private:
                 {
                     shapes.add(shape);
                 }
-
                 faceGroup.clear();
+
                 lastName = juce::StringArray::fromTokens(l, " \t", "")[0];
                 continue;
             }
@@ -362,12 +358,14 @@ private:
             shapes.add(shape);
         }
 
-        normalise();
+        normalisePositions();
+
+        interleaveVertexData();
 
         return juce::Result::ok();
     }
 
-    juce::Result parseMaterial(juce::Array<Material>& materials, const juce::String& filename, juce::StringArray lines)
+    juce::Result parseMaterial(std::unordered_map<std::string, Material>& materials, const juce::String& filename, juce::StringArray lines)
     {
         if (lines.isEmpty())
         {
@@ -391,7 +389,7 @@ private:
 
             if (matchToken(l, "newmtl"))
             {
-                materials.add(material);
+                materials.insert({ material.name.toStdString(), material });
                 material.name = juce::String(l).trim();
                 continue;
             }
@@ -461,47 +459,81 @@ private:
             }
         }
 
-        materials.add(material);
+        // NOTE: Seems odd this would be here. . .
+        materials.insert({ material.name.toStdString(), material });
         return juce::Result::ok();
     }
 
-    void normalise()
+    // Normalizes vertex positions such that x,y,z coordinates of each position is in the range of -1.0 to 1.0 (inclusive)
+    void normalisePositions()
     {
-        Vertex minValues { std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
-        Vertex maxValues { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
-
+        GLfloat maxMagnitudeComponent = 0.0f;
         for (const auto& shape : shapes)
         {
-            for (const auto& vertex : shape->mesh.vertices)
+            for (const auto& position : shape->mesh.positions)
             {
-                minValues.x = std::min(minValues.x, vertex.x);
-                minValues.y = std::min(minValues.y, vertex.y);
-                minValues.z = std::min(minValues.z, vertex.z);
-
-                maxValues.x = std::max(maxValues.x, vertex.x);
-                maxValues.y = std::max(maxValues.y, vertex.y);
-                maxValues.z = std::max(maxValues.z, vertex.z);
+                maxMagnitudeComponent = glm::max(glm::compMax(glm::abs(position)), maxMagnitudeComponent);
             }
         }
 
-        const Vertex length { maxValues.x - minValues.x, maxValues.y - minValues.y, maxValues.z - minValues.z };
+        // Prevent divide by 0 error
+        if (maxMagnitudeComponent == 0.0f)
+        {
+            jassertfalse; // You tried importing & normalizing a mesh with no positions other than the origin (0.0, 0.0, 0.0)
+            return;
+        }
 
-        const auto max = std::max(std::max(length.x, length.y), length.z);
-
-        if (max == 0.0f)
+        // Vertex positions are already normalized in this case, do not modify them
+        if (maxMagnitudeComponent == 1.0f)
         {
             return;
         }
 
-        const auto fraction = 1.0f / max;
-
+        // Scale all positions uniformly so largest position becomes the bound of one of the sides of the -1.0 to 1.0 range
         for (auto& shape : shapes)
         {
-            for (auto& vertex : shape->mesh.vertices)
+            for (auto& position : shape->mesh.positions)
             {
-                vertex.x *= fraction;
-                vertex.y *= fraction;
-                vertex.z *= fraction;
+                position /= maxMagnitudeComponent;
+            }
+        }
+    }
+
+    void interleaveVertexData()
+    {
+        // Interleave vertex data for all shapes in Mesh -> vertices
+        for (const auto& shape : shapes)
+        {
+            auto& mesh = shape->mesh;
+            mesh.vertices.clear(); // Pre-clear interleaved vertices so we can fill them
+
+            // All .obj files must have vertex positions
+            if (mesh.positions.size() <= 0)
+            {
+                jassertfalse;
+                return;
+            }
+
+            // Normals and texture coordinates may optionally exist in a .obj file,
+            // but if they are present, there must be the same number of these as positions
+            const bool hasNormals = mesh.normals.size() > 0 && mesh.normals.size() == mesh.positions.size();
+            const bool hasTexureCoords = mesh.textureCoords.size() > 0 && mesh.textureCoords.size() == mesh.positions.size();
+
+            for (int vertexIndex = 0; vertexIndex < mesh.positions.size(); ++vertexIndex)
+            {
+                auto position = mesh.positions[vertexIndex];
+                mesh.vertices.push_back(position.x);
+                mesh.vertices.push_back(position.y);
+                mesh.vertices.push_back(position.z);
+
+                auto normal = hasNormals ? mesh.normals[vertexIndex] : glm::vec3 { 0.0f, 0.0f, 0.0f };
+                mesh.vertices.push_back(normal.x);
+                mesh.vertices.push_back(normal.y);
+                mesh.vertices.push_back(normal.z);
+
+                auto textureCoordinate = hasTexureCoords ? mesh.textureCoords[vertexIndex] : glm::vec2 { 0.0f, 0.0f };
+                mesh.vertices.push_back(textureCoordinate.x);
+                mesh.vertices.push_back(textureCoordinate.y);
             }
         }
     }

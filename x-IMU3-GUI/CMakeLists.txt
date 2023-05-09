@@ -34,6 +34,16 @@ set(FREETYPE_LIBRARIES freetype)
 
 find_package(Freetype REQUIRED CONFIGS "freetype-config-version.cmake" PATHS "${FREETYPE_SRC_DIR}/../freetype-build/" NO_DEFAULT_PATH)
 
+# Fetch GLM
+FetchContent_Declare(
+        glm
+        GIT_REPOSITORY https://github.com/g-truc/glm
+        GIT_TAG 0.9.9.8
+        GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(glm)
+
+
 # Example GUI App CMakeLists.txt
 
 # To get started on a new GUI app, copy this entire folder (containing this file and C++ sources) to
@@ -154,6 +164,7 @@ target_link_libraries(x-IMU3-GUI
         juce::juce_gui_extra
         juce::juce_opengl
         "${FREETYPE_LIBRARIES}"
+        glm::glm
         PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

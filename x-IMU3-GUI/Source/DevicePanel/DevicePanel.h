@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../CommandMessage.h"
-#include "../OpenGL/GLRenderer.h"
+#include "../OpenGL/Base/GLRenderer.h"
 #include <cassert>
 #include "DevicePanelFooter.h"
 #include "DevicePanelHeader.h"
