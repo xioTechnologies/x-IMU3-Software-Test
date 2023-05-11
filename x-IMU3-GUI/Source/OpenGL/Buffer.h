@@ -9,18 +9,21 @@ public:
     enum VboType
     {
         vertexBuffer,
-        colourBuffer,
         textureBuffer,
         normalBuffer,
         totalBuffers
     };
 
+    // TODO: Remove this and just use the OpenGL constants
+    // Additionally, I do not know what is meant by single fill vs multiple fill, maybe this is a misunderstanding? Static draw indicates vertices are set once. Dynamic draw indicates they can be set multiple times. There is also GL_STREAM_DRAW
     enum FillType
     {
         singleFill = juce::gl::GL_STATIC_DRAW,
         multipleFill = juce::gl::GL_DYNAMIC_DRAW
     };
 
+    // TODO: Remove this and just use the OpenGL constants
+    // theres also others like GL_TRIANGLE_STRIP.
     enum DrawType
     {
         points = juce::gl::GL_POINTS,
@@ -29,6 +32,7 @@ public:
         lineStrip = juce::gl::GL_LINE_STRIP,
     };
 
+    // TODO: Remove this and just use the OpenGL constants
     enum DataType
     {
         integer = juce::gl::GL_INT,
@@ -59,6 +63,7 @@ public:
 
     void appendEbo(const GLuint* data, GLsizeiptr size, GLuint offset);
 
+    // TODO: Unimplemented and used by Text
     void linkEbo()
     {
     }
@@ -71,6 +76,8 @@ public:
 
 private:
     juce::OpenGLContext& glContext;
+
+    GLuint vao;
     bool hasEbo;
     GLuint ebo;
     GLuint totalVertices;
