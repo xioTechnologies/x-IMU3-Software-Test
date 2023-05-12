@@ -2,11 +2,11 @@
 AppName=x-IMU3 GUI
 AppPublisher=x-io Technologies
 AppVerName=x-IMU3 GUI
-AppVersion=1.1.1
+AppVersion=1.1.2
 DefaultDirName={autopf64}\x-IMU3 GUI
 DefaultGroupName=x-IMU3 GUI
 DisableProgramGroupPage=yes
-OutputDir=cmake-build-release\x-IMU3-GUI\x-IMU3-GUI_artefacts\Release\
+OutputDir=.
 OutputBaseFilename=x-IMU3-GUI-Setup
 UninstallDisplayIcon={app}\x-IMU3 GUI.exe
 WizardStyle=modern
