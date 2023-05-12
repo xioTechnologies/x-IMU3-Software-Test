@@ -1,6 +1,6 @@
 [package]
 name = "x-imu3-examples"
-version = "0.0.32"
+version = "0.0.33"
 authors = ["x-io Technologies Limited <info@x-io.co.uk>"]
 edition = "2018"
 
