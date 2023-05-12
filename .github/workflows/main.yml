@@ -164,44 +164,47 @@ jobs:
 #          TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
 #        run: python -m twine upload --verbose --repository pypi wheelhouse/*
 #
-#  python-ubuntu-x86_64: # temporary workaround (see above)
-#    runs-on: ubuntu-latest
-#    needs: rust
-#
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
-#
-#    steps:
-#      - uses: actions/checkout@v3
-#
-#      - name: Download from artifacts
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: rust-x86_64-unknown-linux-gnu
-#          path: x-IMU3-API/Rust/target/release
-#
-#      - uses: actions/setup-python@v4
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install Python dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          python -m pip install twine
-#          python -m pip install wheel
-#          python -m pip install numpy && sudo apt-get update && sudo apt-get install -y libudev-dev
-#
-#      - name: Build wheel
-#        run: python setup.py bdist_wheel
-#
-#      - if: startsWith(github.ref, 'refs/tags/v')
-#        name: Publish Python package
-#        env:
-#          TWINE_USERNAME: __token__
-#          TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
-#        run: python -m twine upload --verbose --repository pypi dist/*
+  python-ubuntu-x86_64: # temporary workaround (see above)
+    runs-on: ubuntu-latest
+    needs: rust
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download from artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: rust-x86_64-unknown-linux-gnu
+          path: x-IMU3-API/Rust/target/release
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install auditwheel
+          python -m pip install twine
+          python -m pip install wheel
+          python -m pip install numpy && sudo apt-get update && sudo apt-get install -y libudev-dev
+
+      - name: Build wheel
+        run: |
+          python setup.py bdist_wheel
+          auditwheel repair dist/$(ls dist)
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Publish Python package
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
+        run: python -m twine upload --verbose --repository test-pypi wheelhouse/*
 
   gui:
     runs-on: ${{ matrix.target[0] }}
@@ -211,7 +214,7 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, cmake-osx-architecture, gui-extension  ]
-          - [ macos-latest, x86_64-apple-darwin, x86_64, "-Intel.dmg" ]
+#          - [ macos-latest, x86_64-apple-darwin, x86_64, "-Intel.dmg" ]
           - [ macos-latest, aarch64-apple-darwin, arm64, "-Apple-Silicon.dmg" ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, "", "" ]
           - [ windows-latest, x86_64-pc-windows-msvc, "", "-Setup.exe" ]
