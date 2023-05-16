@@ -1,8 +1,8 @@
 #pragma once
 
 #include <BinaryData.h>
-#include "OpenGL/Base/GLUtil.hpp"
-#include "OpenGL/Base/Shader.h"
+#include "OpenGL/Common/GLUtil.hpp"
+#include "OpenGL/Common/Shader.h"
 
 class UnlitShader : public Shader
 {

@@ -79,23 +79,24 @@ void PlaneModel::render() const
 
 void PlaneModel::makePlaneGeometry(const float extent, std::vector<GLfloat>& verticesOut, std::vector<GLuint>& indicesOut)
 {
-    // Oriented flat on the XZ plane of OpenGL's default coordinate system, where "close" means
-    // +z direction out of the screen and "far" means -z direction into the screen
-    std::vector<glm::vec3> positions = {
-            { extent,  0.0f, -extent }, // far right
-            { extent,  0.0f, extent }, // close right
-            { -extent, 0.0f, extent }, // close left
-            { -extent, 0.0f, -extent }, // far left
+    // Oriented flat on the XZ plane of OpenGL's default coordinate system, where "near" means
+    // +z direction (out of the screen), and "far" means -z direction (into the screen).
+    const auto numberOfVertices = 4;
+    std::array<glm::vec3, numberOfVertices> positions = {
+            glm::vec3(extent, 0.0f, -extent), // far right
+            glm::vec3(extent, 0.0f, extent), // near right
+            glm::vec3(-extent, 0.0f, extent), // near left
+            glm::vec3(-extent, 0.0f, -extent), // far left
     };
 
     // All vertices have the same normal vector pointing up
     glm::vec3 normal = { 0.0f, 1.0f, 0.0f };
 
-    std::vector<glm::vec2> textureCoordinates = {
-            { 1.0f, 1.0f }, // far right
-            { 1.0f, 0.0f }, // close right
-            { 0.0f, 0.0f }, // close left
-            { 0.0f, 1.0f }, // far left
+    std::array<glm::vec2, numberOfVertices> textureCoordinates = {
+            glm::vec2(1.0f, 1.0f), // far right
+            glm::vec2(1.0f, 0.0f), // near right
+            glm::vec2(0.0f, 0.0f), // near left
+            glm::vec2(0.0f, 1.0f), // far left
     };
 
     // All triangles have counter-clockwise winding order, so they are front-facing when viewed from above
@@ -105,13 +106,12 @@ void PlaneModel::makePlaneGeometry(const float extent, std::vector<GLfloat>& ver
     };
 
     // Consolidate data into a GLfloat array for use by OpenGL
-    jassert(positions.size() == textureCoordinates.size());
-    const unsigned long numVertices = positions.size();
+    const auto numVertices = positions.size();
     verticesOut.clear();
-    for (unsigned long i = 0; i < numVertices; ++i)
+    for (size_t index = 0; index < numVertices; index++)
     {
         // Position
-        const auto position = positions[i];
+        const auto position = positions[index];
         verticesOut.push_back(position.x);
         verticesOut.push_back(position.y);
         verticesOut.push_back(position.z);
@@ -122,11 +122,8 @@ void PlaneModel::makePlaneGeometry(const float extent, std::vector<GLfloat>& ver
         verticesOut.push_back(normal.z);
 
         // Texture coordinate
-        if (i < textureCoordinates.size()) // ensure valid access
-        {
-            const auto textureCoordinate = textureCoordinates[i];
-            verticesOut.push_back(textureCoordinate.x);
-            verticesOut.push_back(textureCoordinate.y);
-        }
+        const auto textureCoordinate = textureCoordinates[index];
+        verticesOut.push_back(textureCoordinate.x);
+        verticesOut.push_back(textureCoordinate.y);
     }
 }

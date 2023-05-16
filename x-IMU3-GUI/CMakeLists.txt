@@ -129,7 +129,8 @@ target_compile_definitions(x-IMU3-GUI
         JUCE_APPLICATION_VERSION_STRING="$<TARGET_PROPERTY:x-IMU3-GUI,JUCE_VERSION>"
         JUCE_OPENGL3=1
         JUCE_DISPLAY_SPLASH_SCREEN=0
-        JUCE_MODAL_LOOPS_PERMITTED=1)
+        JUCE_MODAL_LOOPS_PERMITTED=1
+        GLM_FORCE_SILENT_WARNINGS)
 
 # If your target needs extra binary assets, you can add them here. The first argument is the name of
 # a new static library target that will include all the binary resources. There is an optional

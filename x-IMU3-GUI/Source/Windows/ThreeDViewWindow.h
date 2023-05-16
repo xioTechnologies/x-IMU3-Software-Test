@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../DevicePanel/DevicePanel.h"
-#include "../OpenGL/Base/GLRenderer.h"
-#include "../OpenGL/Components/ThreeDView.h"
+#include "../OpenGL/Common/GLRenderer.h"
+#include "../OpenGL/ThreeDView.h"
 #include "../Widgets/PopupMenuHeader.h"
 #include "../Widgets/SimpleLabel.h"
 #include <juce_gui_basics/juce_gui_basics.h>

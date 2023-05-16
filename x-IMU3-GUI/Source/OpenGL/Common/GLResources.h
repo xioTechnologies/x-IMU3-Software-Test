@@ -2,11 +2,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <memory>
-#include "OpenGL/Buffer.h"
-#include "OpenGL/OrbitCamera.h"
-#include "OpenGL/Renderers/Model.h"
-#include "OpenGL/Renderers/PlaneModel.h"
-#include "OpenGL/Renderers/Text.h"
+#include "OpenGL/Common/Text.h"
+#include "OpenGL/Graph/Buffer.h"
 #include "OpenGL/Shaders/GraphDataShader.h"
 #include "OpenGL/Shaders/Grid3DShader.h"
 #include "OpenGL/Shaders/GridLinesShader.h"
@@ -14,6 +11,9 @@
 #include "OpenGL/Shaders/ScreenSpaceLitShader.h"
 #include "OpenGL/Shaders/TextShader.h"
 #include "OpenGL/Shaders/UnlitShader.h"
+#include "OpenGL/ThreeDView/Model.h"
+#include "OpenGL/ThreeDView/OrbitCamera.h"
+#include "OpenGL/ThreeDView/PlaneModel.h"
 
 struct Vec4
 {

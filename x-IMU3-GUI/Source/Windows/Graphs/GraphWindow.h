@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../../DevicePanel/DevicePanel.h"
-#include "../../OpenGL/Base/GLRenderer.h"
-#include "../../OpenGL/Components/Graph.h"
+#include "../../OpenGL/Common/GLRenderer.h"
+#include "../../OpenGL/Graph.h"
 #include "../Window.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 

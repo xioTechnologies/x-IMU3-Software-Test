@@ -1,9 +1,10 @@
 #pragma once
 
+#include "glm/mat4x4.hpp"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <map>
-#include "OpenGL/Base/Shader.h"
-#include "OpenGL/Buffer.h"
+#include "OpenGL/Common/Shader.h"
+#include "OpenGL/Graph/Buffer.h"
 #include <string>
 
 class GLResources;

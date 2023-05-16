@@ -1,5 +1,5 @@
 #include "freetype/freetype.h"
-#include "OpenGL/Base/GLResources.h"
+#include "OpenGL/Common/GLResources.h"
 #include "Text.h"
 
 static FT_Library freetypeLibrary;

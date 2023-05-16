@@ -2,7 +2,7 @@
 
 #include "AxesRange.h"
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "OpenGL/Base/GLResources.h"
+#include "OpenGL/Common/GLResources.h"
 #include <vector>
 
 class GraphDataBuffer

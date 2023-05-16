@@ -1,7 +1,7 @@
-#include "../../Convert.h"
-#include "../../CustomLookAndFeel.h"
+#include "../Convert.h"
+#include "../CustomLookAndFeel.h"
 #include "Graph.h"
-#include "OpenGL/AxesRange.h"
+#include "Graph/AxesRange.h"
 
 Graph::Settings::Settings(const bool horizontalAutoscale, const float horizontalMin, const float horizontalMax,
                           const bool verticalAutoscale, const float verticalMin, const float verticalMax)

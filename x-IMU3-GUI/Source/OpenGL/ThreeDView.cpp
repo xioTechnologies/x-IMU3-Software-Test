@@ -1,4 +1,4 @@
-#include "../../CustomLookAndFeel.h"
+#include "../CustomLookAndFeel.h"
 #include "Convert.h"
 #include "ThreeDView.h"
 
@@ -8,7 +8,7 @@ ThreeDView::Settings& ThreeDView::Settings::operator=(const ThreeDView::Settings
     cameraElevation = other.cameraElevation.load();
     cameraOrbitDistance = other.cameraOrbitDistance.load();
     isModelEnabled = other.isModelEnabled.load();
-    isGridEnabled = other.isGridEnabled.load();
+    isWorldEnabled = other.isWorldEnabled.load();
     isAxesEnabled = other.isAxesEnabled.load();
     model = other.model.load();
     axesConvention = other.axesConvention.load();
@@ -72,7 +72,7 @@ void ThreeDView::render()
         renderIMUModel(resources, projectionMatrix, viewMatrix, deviceRotation, axesConventionRotation, modelScale);
     }
 
-    if (settings.isGridEnabled)
+    if (settings.isWorldEnabled)
     {
         renderWorldGrid(resources, projectionMatrix, viewMatrix, axesConventionRotation, floorHeight);
     }

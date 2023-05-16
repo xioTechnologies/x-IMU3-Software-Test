@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Common/GLRenderer.h"
 #include "glm/gtc/matrix_inverse.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "OpenGL/Base/GLRenderer.h"
-#include "OpenGL/Base/OpenGLComponent.h"
+#include "OpenGLComponent.h"
 
 class ThreeDView : public OpenGLComponent
 {
@@ -33,7 +33,7 @@ public:
         std::atomic<float> cameraOrbitDistance = 2.5f;
 
         std::atomic<bool> isModelEnabled = true;
-        std::atomic<bool> isGridEnabled = true;
+        std::atomic<bool> isWorldEnabled = true;
         std::atomic<bool> isAxesEnabled = true;
         std::atomic<Model> model { Model::housing };
         std::atomic<AxesConvention> axesConvention { AxesConvention::nwu };

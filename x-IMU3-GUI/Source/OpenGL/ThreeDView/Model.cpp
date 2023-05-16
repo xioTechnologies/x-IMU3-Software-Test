@@ -1,5 +1,5 @@
 #include "Model.h"
-#include "OpenGL/Base/GLResources.h"
+#include "OpenGL/Common/GLResources.h"
 
 Model::Model(juce::OpenGLContext& context_) : context(context_)
 {

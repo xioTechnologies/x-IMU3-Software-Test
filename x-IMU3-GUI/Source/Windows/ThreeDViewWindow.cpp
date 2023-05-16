@@ -152,9 +152,9 @@ juce::PopupMenu ThreeDViewWindow::getMenu()
         settings.isModelEnabled = !settings.isModelEnabled;
         threeDView.setSettings(settings);
     });
-    menu.addItem("Grid", true, settings.isGridEnabled, [&]
+    menu.addItem("World", true, settings.isWorldEnabled, [&]
     {
-        settings.isGridEnabled = !settings.isGridEnabled;
+        settings.isWorldEnabled = !settings.isWorldEnabled;
         threeDView.setSettings(settings);
     });
     menu.addItem("Axes", true, settings.isAxesEnabled, [&]

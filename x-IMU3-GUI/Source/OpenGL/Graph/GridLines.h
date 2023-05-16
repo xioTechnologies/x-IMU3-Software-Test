@@ -1,11 +1,11 @@
 #pragma once
 
+#include "../Common/Text.h"
+#include "../Graph/AxesRange.h"
+#include "../Graph/Buffer.h"
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "OpenGL/AxesRange.h"
-#include "OpenGL/Base/GLResources.h"
-#include "OpenGL/Base/Shader.h"
-#include "OpenGL/Buffer.h"
-#include "OpenGL/Renderers/Text.h"
+#include "OpenGL/Common/GLResources.h"
+#include "OpenGL/Common/Shader.h"
 #include <vector>
 
 class GridLines
