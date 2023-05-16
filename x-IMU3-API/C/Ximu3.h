@@ -445,9 +445,11 @@ const char *XIMU3_file_connection_info_to_string(struct XIMU3_FileConnectionInfo
 
 const char *XIMU3_connection_type_to_string(enum XIMU3_ConnectionType connection_type);
 
-struct XIMU3_DataLogger *XIMU3_data_logger_new(const char *directory, const char *name, struct XIMU3_Connection *const *connections, uint32_t length, XIMU3_CallbackResult callback, void *context);
+struct XIMU3_DataLogger *XIMU3_data_logger_new(const char *directory, const char *name, struct XIMU3_Connection *const *connections, uint32_t length);
 
 void XIMU3_data_logger_free(struct XIMU3_DataLogger *data_logger);
+
+enum XIMU3_Result XIMU3_data_logger_get_result(struct XIMU3_DataLogger *data_logger);
 
 enum XIMU3_Result XIMU3_data_logger_log(const char *directory, const char *name, struct XIMU3_Connection *const *connections, uint32_t length, uint32_t seconds);
 
@@ -502,6 +504,8 @@ void XIMU3_network_announcement_messages_free(struct XIMU3_NetworkAnnouncementMe
 struct XIMU3_NetworkAnnouncement *XIMU3_network_announcement_new(void);
 
 void XIMU3_network_announcement_free(struct XIMU3_NetworkAnnouncement *network_announcement);
+
+enum XIMU3_Result XIMU3_network_announcement_get_result(struct XIMU3_NetworkAnnouncement *network_announcement);
 
 uint64_t XIMU3_network_announcement_add_callback(struct XIMU3_NetworkAnnouncement *network_announcement, XIMU3_CallbackNetworkAnnouncementMessageC callback, void *context);
 
