@@ -80,7 +80,7 @@ void ThreeDView::render()
 
     if (settings.isCompassEnabled)
     {
-        renderCompass(resources, projectionMatrix, viewMatrix, axesConventionRotation, floorHeight);
+        renderCompass(resources, projectionMatrix, viewMatrix, floorHeight);
     }
 
     if (settings.isAxesEnabled)
@@ -173,7 +173,7 @@ void ThreeDView::renderWorldGrid(GLResources& resources, const glm::mat4& projec
     glEnable(GL_CULL_FACE); // restore cull state
 }
 
-void ThreeDView::renderCompass(GLResources& resources, const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const glm::mat4& axesConventionRotationGLM, const float floorHeight)
+void ThreeDView::renderCompass(GLResources& resources, const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const float floorHeight)
 {
     using namespace ::juce::gl;
 
@@ -185,14 +185,14 @@ void ThreeDView::renderCompass(GLResources& resources, const glm::mat4& projecti
     const auto compassRotateScale = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
     const auto compassTopModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, floorHeight + compassOffsetFromGrid, 0.0f)) * compassRotateScale;
     const auto compassBottomModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, floorHeight - compassOffsetFromGrid, 0.0f)) * compassRotateScale;
-    auto& unlitShader = resources.unlitShader;
-    unlitShader.use();
-    unlitShader.colour.set(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f)); // tint color to 80% brightness
-    unlitShader.isTextured.set(true);
+    auto& compassShader = resources.compassUnlitShader;
+    compassShader.use();
+    compassShader.tint.set(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f)); // tint color to 80% brightness
+    compassShader.northColour.setRGB(settings.axesConvention.load() == AxesConvention::enu ? UIColours::graphGreen : UIColours::graphRed);
     resources.compassTexture.bind();
-    unlitShader.modelViewProjectionMatrix.set(projectionMatrix * viewMatrix * compassTopModelMatrix); // top compass layer above grid
+    compassShader.modelViewProjectionMatrix.set(projectionMatrix * viewMatrix * compassTopModelMatrix); // top compass layer above grid
     resources.plane.render();
-    unlitShader.modelViewProjectionMatrix.set(projectionMatrix * viewMatrix * compassBottomModelMatrix); // bottom compass layer below grid
+    compassShader.modelViewProjectionMatrix.set(projectionMatrix * viewMatrix * compassBottomModelMatrix); // bottom compass layer below grid
     resources.plane.render();
     resources.compassTexture.unbind();
 

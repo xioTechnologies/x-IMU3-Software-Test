@@ -4,6 +4,7 @@
 #include <memory>
 #include "OpenGL/Common/Text.h"
 #include "OpenGL/Graph/Buffer.h"
+#include "OpenGL/Shaders/CompassUnlit.h"
 #include "OpenGL/Shaders/GraphDataShader.h"
 #include "OpenGL/Shaders/WorldGridShader.h"
 #include "OpenGL/Shaders/GraphGridShader.h"
@@ -60,6 +61,7 @@ public:
     const TextShader textShader { context };
     const LitShader threeDViewShader { context };
     const UnlitShader unlitShader { context };
+    const CompassUnlitShader compassUnlitShader { context };
     const ScreenSpaceLitShader screenSpaceLitShader { context };
 
     // Textures
