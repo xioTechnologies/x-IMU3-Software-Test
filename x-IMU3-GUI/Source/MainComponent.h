@@ -3,6 +3,7 @@
 #include "CustomLookAndFeel.h"
 #include "DevicePanelContainer.h"
 #include "Dialogs/Dialog.h"
+#include "Dialogs/ErrorDialog.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "MenuStrip/MenuStrip.h"
 #include "OpenGL/Common/GLRenderer.h"
@@ -22,6 +23,11 @@ public:
         setSize(1280, 768);
 
         tooltipWindow.setOpaque(false);
+
+        if (networkAnnouncement->getResult() != ximu3::XIMU3_ResultOk)
+        {
+            DialogQueue::getSingleton().pushFront(std::make_unique<ErrorDialog>("Unable to open network announcement socket."));
+        }
     }
 
     void resized() override
@@ -32,8 +38,17 @@ public:
         bounds.removeFromTop(UILayout::panelMargin);
 
         devicePanelViewport.setBounds(bounds);
-        devicePanelContainer.setSize(bounds.getWidth(), (devicePanelContainer.getLayout() == DevicePanelContainer::Layout::accordion) ? devicePanelContainer.getHeight() : bounds.getHeight());
-        devicePanelContainer.resized();
+        devicePanelContainer.updateSize();
+    }
+
+    int getMinimumWidth() const
+    {
+        return menuStrip.getMinimumWidth();
+    }
+
+    int getMinimumHeight() const
+    {
+        return juce::roundToInt(menuStrip.getMinimumWidth() / (1024.0f / 768.0f));
     }
 
 private:

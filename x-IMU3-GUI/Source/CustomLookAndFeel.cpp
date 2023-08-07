@@ -1,6 +1,6 @@
 #include <BinaryData.h>
 #include "CustomLookAndFeel.h"
-#include <juce_gui_extra/juce_gui_extra.h>
+#include "Dialogs/Dialog.h"
 
 juce::Typeface::Ptr UIFonts::Typefaces::getMontserratMedium()
 {
@@ -32,7 +32,6 @@ CustomLookAndFeel::CustomLookAndFeel()
     setDefaultSansSerifTypeface(UIFonts::Typefaces::getMontserratMedium()); // progress bar only
 
     setColour(juce::CaretComponent::caretColourId, UIColours::backgroundDark);
-    setColour(juce::ColourSelector::backgroundColourId, {});
     setColour(juce::ComboBox::backgroundColourId, UIColours::textEditor);
     setColour(juce::ComboBox::textColourId, UIColours::backgroundDark);
     setColour(juce::ComboBox::arrowColourId, juce::Colours::grey);
@@ -42,8 +41,8 @@ CustomLookAndFeel::CustomLookAndFeel()
     setColour(juce::PopupMenu::highlightedBackgroundColourId, UIColours::highlight);
     setColour(juce::PopupMenu::backgroundColourId, UIColours::backgroundDark);
     setColour(juce::PopupMenu::headerTextColourId, juce::Colours::grey);
-    setColour(juce::ProgressBar::backgroundColourId, UIColours::backgroundDark);
-    setColour(juce::ProgressBar::foregroundColourId, UIColours::backgroundDarkest);
+    setColour(juce::ProgressBar::backgroundColourId, UIColours::textEditor);
+    setColour(juce::ProgressBar::foregroundColourId, UIColours::highlight);
     setColour(juce::ResizableWindow::backgroundColourId, UIColours::backgroundLightest);
     setColour(juce::ScrollBar::thumbColourId, UIColours::backgroundLightest);
     setColour(juce::ScrollBar::backgroundColourId, UIColours::backgroundDark);
@@ -359,6 +358,15 @@ void CustomLookAndFeel::drawDocumentWindowTitleBar(juce::DocumentWindow& window,
     g.fillAll(UIColours::backgroundLightest);
 
     juce::Rectangle<int> bounds(w, h);
+
+    if (const auto* const dialogWindow = dynamic_cast<juce::DialogWindow*>(&window))
+    {
+        if (const auto tag = static_cast<Dialog*>(dialogWindow->getContentComponent())->tag)
+        {
+            g.setColour(*tag);
+            g.fillRect(bounds.removeFromLeft(UILayout::tagWidth));
+        }
+    }
 
     if (icon != nullptr)
     {

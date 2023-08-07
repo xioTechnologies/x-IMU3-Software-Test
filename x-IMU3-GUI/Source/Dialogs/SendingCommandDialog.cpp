@@ -10,10 +10,10 @@ SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const 
     addAndMakeVisible(table);
     addAndMakeVisible(closeWhenCompleteButton);
 
-    const int colourTagColumnWidth = DevicePanelHeader::colourTagWidth + 5;
-    table.getHeader().addColumn("", (int) ColumnIDs::colourTag, colourTagColumnWidth, colourTagColumnWidth, colourTagColumnWidth);
+    const int tagColumnWidth = UILayout::tagWidth + 5;
+    table.getHeader().addColumn("", (int) ColumnIDs::tag, tagColumnWidth, tagColumnWidth, tagColumnWidth);
     table.getHeader().addColumn("", (int) ColumnIDs::device, 1);
-    table.getHeader().addColumn("", (int) ColumnIDs::connection, 1);
+    table.getHeader().addColumn("", (int) ColumnIDs::connection, 110);
     table.getHeader().addColumn("", (int) ColumnIDs::complete, 70, 70, 70);
     table.getHeader().setStretchToFitActive(true);
     table.setHeaderHeight(0);
@@ -27,10 +27,10 @@ SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const 
     }
 
     closeWhenCompleteButton.setClickingTogglesState(true);
-    closeWhenCompleteButton.setToggleState(ApplicationSettings::getSingleton().closeSendingCommandDialogWhenComplete, juce::dontSendNotification);
+    closeWhenCompleteButton.setToggleState(ApplicationSettings::getSingleton().commands.closeSendingCommandDialogWhenComplete, juce::dontSendNotification);
     closeWhenCompleteButton.onClick = [&]
     {
-        ApplicationSettings::getSingleton().closeSendingCommandDialogWhenComplete = closeWhenCompleteButton.getToggleState();
+        ApplicationSettings::getSingleton().commands.closeSendingCommandDialogWhenComplete = closeWhenCompleteButton.getToggleState();
     };
 
     okCallback = [&, command]
@@ -75,7 +75,7 @@ SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const 
                 setOkButton(true, "Close");
                 setCancelButton(false);
 
-                if (ApplicationSettings::getSingleton().closeSendingCommandDialogWhenComplete)
+                if (ApplicationSettings::getSingleton().commands.closeSendingCommandDialogWhenComplete)
                 {
                     startTimer(1000);
                 }
@@ -122,8 +122,8 @@ void SendingCommandDialog::paintRowBackground(juce::Graphics& g, int rowNumber, 
         return; // index may exceed size on Windows if display scaling >100%
     }
 
-    g.setColour(rows[(size_t) rowNumber].devicePanel.getColourTag());
-    g.fillRect(0, 0, DevicePanelHeader::colourTagWidth, height);
+    g.setColour(rows[(size_t) rowNumber].devicePanel.getTag());
+    g.fillRect(0, 0, UILayout::tagWidth, height);
 }
 
 juce::Component* SendingCommandDialog::refreshComponentForCell(int rowNumber, int columnID, bool, juce::Component* existingComponentToUpdate)
@@ -137,14 +137,14 @@ juce::Component* SendingCommandDialog::refreshComponentForCell(int rowNumber, in
 
     switch ((ColumnIDs) columnID)
     {
-        case ColumnIDs::colourTag:
+        case ColumnIDs::tag:
             return nullptr;
 
         case ColumnIDs::device:
             return new SimpleLabel(rows[(size_t) rowNumber].devicePanel.getDeviceDescriptor());
 
         case ColumnIDs::connection:
-            return new SimpleLabel(rows[(size_t) rowNumber].devicePanel.getConnection().getInfo()->toString());
+            return new SimpleLabel(rows[(size_t) rowNumber].devicePanel.getConnection()->getInfo()->toString());
 
         case ColumnIDs::complete:
             switch (rows[(size_t) rowNumber].state)
@@ -169,5 +169,5 @@ juce::Component* SendingCommandDialog::refreshComponentForCell(int rowNumber, in
 
 void SendingCommandDialog::timerCallback()
 {
-    DialogLauncher::launchDialog(nullptr);
+    DialogQueue::getSingleton().pop();
 }

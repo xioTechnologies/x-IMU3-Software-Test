@@ -1,5 +1,3 @@
-#include "../Dialogs/LedColourDialog.h"
-#include "../Dialogs/SendCommandDialog.h"
 #include "../Dialogs/SendingCommandDialog.h"
 #include "DevicePanel.h"
 #include "DevicePanelContainer.h"
@@ -8,15 +6,18 @@
 DevicePanelHeader::DevicePanelHeader(DevicePanel& devicePanel_, DevicePanelContainer& devicePanelContainer_)
         : devicePanel(devicePanel_),
           devicePanelContainer(devicePanelContainer_),
-          connectionInfo(devicePanel.getConnection().getInfo()->toString(), UIFonts::getDefaultFont())
+          connectionInfo(devicePanel.getConnection()->getInfo()->toString(), UIFonts::getDefaultFont())
 {
-    addAndMakeVisible(menuButton);
+    addAndMakeVisible(strobeButton);
     addAndMakeVisible(rssiIcon);
     addAndMakeVisible(batteryIcon);
     addAndMakeVisible(deviceDescriptor);
     addAndMakeVisible(connectionInfo);
 
-    setMouseCursor(juce::MouseCursor::DraggingHandCursor);
+    strobeButton.onClick = [&]
+    {
+        DialogQueue::getSingleton().pushFront(std::make_unique<SendingCommandDialog>(CommandMessage("strobe", {}), std::vector<DevicePanel*> { &devicePanel }));
+    };
 
     deviceDescriptor.setText(getDeviceDescriptor());
 
@@ -29,54 +30,69 @@ DevicePanelHeader::DevicePanelHeader(DevicePanel& devicePanel_, DevicePanelConta
         }
     });
 
-    rssiCallbackID = devicePanel.getConnection().addRssiCallback(rssiCallback = [&](auto message)
+    rssiCallbackID = devicePanel.getConnection()->addRssiCallback(rssiCallback = [&](auto message)
     {
         updateRssi((int) message.percentage);
     });
 
-    batteryCallbackID = devicePanel.getConnection().addBatteryCallback(batteryCallback = [&](auto message)
+    batteryCallbackID = devicePanel.getConnection()->addBatteryCallback(batteryCallback = [&](auto message)
     {
         updateBattery((int) message.percentage, (ximu3::XIMU3_ChargingStatus) message.charging_status);
     });
 
-    juce::Thread::launch([&, self = SafePointer<juce::Component>(this)]
+    juce::Thread::launch([&, connection = devicePanel.getConnection(), pingInProgress = pingInProgress]
                          {
-                             const auto response = devicePanel.getConnection().ping();
+                             while (*pingInProgress)
+                             {
+                                 auto response = connection->ping();
 
-                             juce::MessageManager::callAsync([&, self, response]
-                                                             {
-                                                                 if (self == nullptr)
-                                                                 {
-                                                                     return;
-                                                                 }
+                                 if (response.result == ximu3::XIMU3_ResultOk)
+                                 {
+                                     juce::MessageManager::callAsync([&, pingInProgress, response]
+                                                                     {
+                                                                         if (pingInProgress->exchange(false) == false)
+                                                                         {
+                                                                             return;
+                                                                         }
 
-                                                                 deviceName = response.device_name;
-                                                                 serialNumber = response.serial_number;
-                                                                 deviceDescriptor.setText(getDeviceDescriptor());
-                                                                 resized();
-                                                             });
+                                                                         deviceName = response.device_name;
+                                                                         serialNumber = response.serial_number;
+                                                                         deviceDescriptor.setText(getDeviceDescriptor());
+                                                                         resized();
+                                                                     });
+                                     return;
+                                 }
+                             }
                          });
+
+    setMouseCursor(juce::MouseCursor::DraggingHandCursor);
 }
 
 DevicePanelHeader::~DevicePanelHeader()
 {
     networkAnnouncement->removeCallback(networkAnnouncementCallbackID);
-    devicePanel.getConnection().removeCallback(rssiCallbackID);
-    devicePanel.getConnection().removeCallback(batteryCallbackID);
+    devicePanel.getConnection()->removeCallback(rssiCallbackID);
+    devicePanel.getConnection()->removeCallback(batteryCallbackID);
+
+    *pingInProgress = false;
 }
 
 void DevicePanelHeader::paint(juce::Graphics& g)
 {
     g.fillAll(UIColours::backgroundLightest);
-    g.setColour(devicePanel.getColourTag());
-    g.fillRect(getLocalBounds().removeFromLeft(colourTagWidth));
+    g.setColour(devicePanel.getTag());
+    g.fillRect(getLocalBounds().removeFromLeft(UILayout::tagWidth));
 }
 
 void DevicePanelHeader::resized()
 {
+    static constexpr int margin = 7;
+
     auto bounds = getLocalBounds().withSizeKeepingCentre(getWidth() - 2 * margin, 20);
 
-    menuButton.setBounds(bounds.removeFromLeft(bounds.getHeight()));
+    bounds.removeFromLeft(UILayout::tagWidth);
+
+    strobeButton.setBounds(bounds.removeFromLeft(bounds.getHeight()));
     bounds.removeFromLeft(margin);
 
     const auto deviceDescriptorWidth = (int) std::ceil(deviceDescriptor.getTextWidth());
@@ -148,17 +164,11 @@ void DevicePanelHeader::updateDeviceDescriptor(const std::vector<CommandMessage>
 
 juce::String DevicePanelHeader::getDeviceDescriptor() const
 {
-    if (deviceName.isEmpty() && serialNumber.isEmpty())
+    if (*pingInProgress)
     {
         return "Unknown Device";
     }
-
-    if (deviceName.isNotEmpty() && serialNumber.isNotEmpty())
-    {
-        return deviceName + " - " + serialNumber;
-    }
-
-    return deviceName + serialNumber;
+    return deviceName + " - " + serialNumber;
 }
 
 void DevicePanelHeader::updateRssi(const int percentage)
@@ -184,38 +194,4 @@ void DevicePanelHeader::updateBattery(const int percentage, const ximu3::XIMU3_C
                        percentage <= 75 ? BinaryData::battery_75_svg :
                        BinaryData::battery_100_svg,
                        status != ximu3::XIMU3_ChargingStatusNotConnected ? "USB" : juce::String(percentage) + "%");
-}
-
-juce::PopupMenu DevicePanelHeader::getMenu() const
-{
-    juce::PopupMenu menu;
-
-    menu.addItem("Send Command", [this]
-    {
-        DialogLauncher::launchDialog(std::make_unique<SendCommandDialog>("Send Command to " + deviceDescriptor.getText()), [this]
-        {
-            if (auto* dialog = dynamic_cast<SendCommandDialog*>(DialogLauncher::getLaunchedDialog()))
-            {
-                DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(CommandMessage(dialog->getCommand()), std::vector<DevicePanel*> { &devicePanel }));
-            }
-            return true;
-        });
-    });
-
-    menu.addItem("Strobe LED", [this]
-    {
-        DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(CommandMessage("strobe", {}), std::vector<DevicePanel*> { &devicePanel }));
-    });
-
-    menu.addItem("LED Colour", [this]
-    {
-        DialogLauncher::launchDialog(std::make_unique<LedColourDialog>(devicePanel));
-    });
-
-    menu.addItem("Disconnect", [this]
-    {
-        devicePanelContainer.removePanel(devicePanel);
-    });
-
-    return menu;
 }

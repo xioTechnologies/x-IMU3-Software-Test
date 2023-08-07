@@ -21,7 +21,8 @@ UpdatingFirmwareDialog::UpdatingFirmwareDialog(std::unique_ptr<ximu3::Connection
                              {
                                  juce::MessageManager::callAsync([&]
                                                                  {
-                                                                     DialogLauncher::launchDialog(std::make_unique<ErrorDialog>("Firmware update failed."));
+                                                                     DialogQueue::getSingleton().pushFront(std::make_unique<ErrorDialog>("Firmware update failed."));
+                                                                     DialogQueue::getSingleton().pop();
                                                                  });
                              };
 
@@ -45,7 +46,7 @@ UpdatingFirmwareDialog::UpdatingFirmwareDialog(std::unique_ptr<ximu3::Connection
 
                              // Send bootloader command
                              updateProgress("Sending Bootloader Command");
-                             if (connection->sendCommands({ "{\"bootloader\":null}" }, ApplicationSettings::getSingleton().retries, ApplicationSettings::getSingleton().timeout).empty())
+                             if (connection->sendCommands({ "{\"bootloader\":null}" }, ApplicationSettings::getSingleton().commands.retries, ApplicationSettings::getSingleton().commands.timeout).empty())
                              {
                                  showError();
                                  return;
@@ -67,7 +68,7 @@ UpdatingFirmwareDialog::UpdatingFirmwareDialog(std::unique_ptr<ximu3::Connection
                                      updateProgress("Update Complete", true);
                                      juce::Timer::callAfterDelay(1000, [&]
                                      {
-                                         DialogLauncher::launchDialog(nullptr);
+                                         DialogQueue::getSingleton().pop();
                                      });
                                      return;
                                  }

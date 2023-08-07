@@ -12,7 +12,7 @@ class GraphDataBuffer
 public:
     explicit GraphDataBuffer(const size_t numberOfLines);
 
-    AxesRange update(AxesRange axesRange, const bool horizontalAutoscale, const bool verticalAutoscale);
+    AxesRange update(AxesRange axesRange, const bool horizontalAutoscale, const bool verticalAutoscale, const std::array<std::atomic<bool>, 3>& visibleLines);
 
     void write(const uint64_t timestamp, const std::vector<float>& values);
 
@@ -21,8 +21,6 @@ public:
     const std::vector<std::array<juce::Point<GLfloat>, bufferSize>>& getLineBuffers() const;
 
     size_t getNumberAvailable() const;
-
-    uint64_t getMostRecentTimestamp() const;
 
 private:
     struct FifoDatum

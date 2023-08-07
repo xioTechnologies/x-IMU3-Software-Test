@@ -5,7 +5,7 @@ GraphDataBuffer::GraphDataBuffer(const size_t numberOfLines) : lineBuffers(numbe
 {
 }
 
-AxesRange GraphDataBuffer::update(AxesRange axesRange, const bool horizontalAutoscale, const bool verticalAutoscale)
+AxesRange GraphDataBuffer::update(AxesRange axesRange, const bool horizontalAutoscale, const bool verticalAutoscale, const std::array<std::atomic<bool>, 3>& visibleLines)
 {
     if (clearPending.exchange(false) == true)
     {
@@ -54,18 +54,20 @@ AxesRange GraphDataBuffer::update(AxesRange axesRange, const bool horizontalAuto
     auto yMin = std::numeric_limits<float>::max();
     auto yMax = std::numeric_limits<float>::lowest();
 
-    for (size_t index = 0; index < numberAvailable; index++)
+    for (size_t lineIndex = 0; lineIndex < lineBuffers.size(); lineIndex++)
     {
-        const auto relativeTimestamp = -1E-6f * (float) (timestampBuffer[0] - timestampBuffer[index]);
+        auto& lineBuffer = lineBuffers[lineIndex];
 
-        for (auto& lineBuffer : lineBuffers)
+        for (size_t dataIndex = 0; dataIndex < numberAvailable; dataIndex++)
         {
-            lineBuffer[index].x = relativeTimestamp;
+            const auto relativeTimestamp = -1E-6f * (float) (timestampBuffer[0] - timestampBuffer[dataIndex]);
 
-            if (horizontalAutoscale || (relativeTimestamp >= axesRange.xMin && relativeTimestamp <= axesRange.xMax))
+            lineBuffer[dataIndex].x = relativeTimestamp;
+
+            if (visibleLines[lineIndex] && (horizontalAutoscale || (relativeTimestamp >= axesRange.xMin && relativeTimestamp <= axesRange.xMax)))
             {
-                yMin = std::min(yMin, lineBuffer[index].y);
-                yMax = std::max(yMax, lineBuffer[index].y);
+                yMin = std::min(yMin, lineBuffer[dataIndex].y);
+                yMax = std::max(yMax, lineBuffer[dataIndex].y);
             }
         }
     }
@@ -122,9 +124,4 @@ const std::vector<std::array<juce::Point<GLfloat>, GraphDataBuffer::bufferSize>>
 size_t GraphDataBuffer::getNumberAvailable() const
 {
     return numberAvailable;
-}
-
-uint64_t GraphDataBuffer::getMostRecentTimestamp() const
-{
-    return mostRecentTimestamp;
 }

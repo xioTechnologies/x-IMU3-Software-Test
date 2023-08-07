@@ -28,27 +28,27 @@ SerialAccessoryTerminalWindow::SerialAccessoryTerminalWindow(const juce::ValueTr
             sendButton.setToggleState(responses.empty(), juce::dontSendNotification);
         });
 
-        for (const auto send : sendHistory)
+        for (const auto serial : serialHistory)
         {
-            if (send.getProperty("send") == sendValue.getText())
+            if (serial.getProperty("serial") == sendValue.getText())
             {
-                sendHistory.removeChild(send, nullptr);
+                serialHistory.removeChild(serial, nullptr);
                 break;
             }
         }
 
-        while (sendHistory.getNumChildren() > 9)
+        while (serialHistory.getNumChildren() >= 12)
         {
-            sendHistory.removeChild(sendHistory.getChild(sendHistory.getNumChildren() - 1), nullptr);
+            serialHistory.removeChild(serialHistory.getChild(serialHistory.getNumChildren() - 1), nullptr);
         }
 
-        sendHistory.addChild({ "Send", {{ "send", sendValue.getText() }}}, 0, nullptr);
-        file.replaceWithText(sendHistory.toXmlString());
+        serialHistory.addChild({ "Serial", {{ "serial", sendValue.getText() }}}, 0, nullptr);
+        file.replaceWithText(serialHistory.toXmlString());
 
         loadSendHistory();
     };
 
-    callbackID = devicePanel.getConnection().addSerialAccessoryCallback(callback = [&, self = SafePointer<juce::Component>(this)](auto message)
+    callbackID = devicePanel.getConnection()->addSerialAccessoryCallback(callback = [&, self = SafePointer<juce::Component>(this)](auto message)
     {
         juce::MessageManager::callAsync([&, self, message]
                                         {
@@ -64,7 +64,7 @@ SerialAccessoryTerminalWindow::SerialAccessoryTerminalWindow(const juce::ValueTr
 
 SerialAccessoryTerminalWindow::~SerialAccessoryTerminalWindow()
 {
-    devicePanel.getConnection().removeCallback(callbackID);
+    devicePanel.getConnection()->removeCallback(callbackID);
 }
 
 void SerialAccessoryTerminalWindow::paint(juce::Graphics& g)
@@ -146,17 +146,20 @@ juce::String SerialAccessoryTerminalWindow::removeEscapeCharacters(const juce::S
 
 void SerialAccessoryTerminalWindow::loadSendHistory()
 {
-    sendHistory = juce::ValueTree::fromXml(file.loadFileAsString());
-    if (sendHistory.isValid() == false)
+    serialHistory = juce::ValueTree::fromXml(file.loadFileAsString());
+    if (serialHistory.isValid() == false)
     {
-        sendHistory = juce::ValueTree("SendHistory");
+        serialHistory = juce::ValueTree("SerialHistory");
     }
 
     sendValue.clear(juce::dontSendNotification);
-    for (const auto send : sendHistory)
+
+    juce::StringArray items;
+    for (const auto serial : serialHistory)
     {
-        sendValue.addItem(send.getProperty("send"), sendValue.getNumItems() + 1);
+        items.add(serial["serial"]);
     }
+    sendValue.addItemList(items, 1);
 
     sendValue.setText(sendValue.getNumItems() > 0 ? sendValue.getItemText(0) : "Hello World!", juce::dontSendNotification);
 }

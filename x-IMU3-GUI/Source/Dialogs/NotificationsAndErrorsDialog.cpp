@@ -1,9 +1,46 @@
+#include "../DevicePanel/DevicePanel.h"
 #include "../Widgets/Icon.h"
 #include <BinaryData.h>
-#include "NotificationAndErrorMessagesDialog.h"
+#include "NotificationsAndErrorsDialog.h"
 
-NotificationAndErrorMessagesDialog::NotificationAndErrorMessagesDialog(std::vector<Message>& messages_, const std::function<void()>& onClear)
-        : Dialog(BinaryData::speech_white_svg, "Notification and Error Messages", "Close", "", &clearAllButton, 80, true),
+juce::String NotificationsAndErrorsDialog::Message::getIcon() const
+{
+    switch (type)
+    {
+        case Message::Type::notification:
+            return unread ? BinaryData::speech_white_svg : BinaryData::speech_grey_svg;
+        case Message::Type::error:
+            return unread ? BinaryData::warning_orange_svg : BinaryData::warning_grey_svg;
+    }
+    return {}; // avoid compiler warning
+}
+
+juce::String NotificationsAndErrorsDialog::Message::getTooltip() const
+{
+    switch (type)
+    {
+        case Message::Type::notification:
+            return "Notification";
+        case Message::Type::error:
+            return "Error";
+    }
+    return {}; // avoid compiler warning
+}
+
+juce::Colour NotificationsAndErrorsDialog::Message::getColour() const
+{
+    switch (type)
+    {
+        case Message::Type::notification:
+            return juce::Colours::white;
+        case Message::Type::error:
+            return UIColours::warning;
+    }
+    return {}; // avoid compiler warning
+}
+
+NotificationsAndErrorsDialog::NotificationsAndErrorsDialog(std::vector<Message>& messages_, const std::function<void()>& onClear, const DevicePanel& devicePanel)
+        : Dialog(BinaryData::speech_white_svg, "Notifications and Errors from " + devicePanel.getDeviceDescriptor(), "Close", "", &clearAllButton, 80, true, devicePanel.getTag()),
           messages(messages_)
 {
     addAndMakeVisible(clearAllButton);
@@ -29,7 +66,7 @@ NotificationAndErrorMessagesDialog::NotificationAndErrorMessagesDialog(std::vect
     setSize(800, 480);
 }
 
-void NotificationAndErrorMessagesDialog::resized()
+void NotificationsAndErrorsDialog::resized()
 {
     Dialog::resized();
 
@@ -44,17 +81,17 @@ void NotificationAndErrorMessagesDialog::resized()
     table.setBounds(bounds);
 }
 
-void NotificationAndErrorMessagesDialog::messagesChanged()
+void NotificationsAndErrorsDialog::messagesChanged()
 {
     table.updateContent();
 }
 
-int NotificationAndErrorMessagesDialog::getNumRows()
+int NotificationsAndErrorsDialog::getNumRows()
 {
     return (int) messages.size();
 }
 
-juce::Component* NotificationAndErrorMessagesDialog::refreshComponentForCell(int rowNumber, int columnID, bool, juce::Component* existingComponentToUpdate)
+juce::Component* NotificationsAndErrorsDialog::refreshComponentForCell(int rowNumber, int columnID, bool, juce::Component* existingComponentToUpdate)
 {
     if (rowNumber >= (int) messages.size())
     {
@@ -68,17 +105,12 @@ juce::Component* NotificationAndErrorMessagesDialog::refreshComponentForCell(int
     switch ((ColumnID) columnID)
     {
         case ColumnID::type:
-            if (notificationMessage.isError)
-            {
-                return new Icon(notificationMessage.isUnread ? BinaryData::warning_orange_svg : BinaryData::warning_grey_svg, "Error", 0.6f);
-            }
-
-            return new Icon(notificationMessage.isUnread ? BinaryData::speech_white_svg : BinaryData::speech_grey_svg, "Notification", 0.6f);
+            return new Icon(notificationMessage.getIcon(), notificationMessage.getTooltip(), 0.6f);
 
         case ColumnID::timestamp:
         {
             auto* label = new SimpleLabel(juce::String(1E-6f * (float) notificationMessage.timestamp, 3));
-            if (notificationMessage.isUnread == false)
+            if (notificationMessage.unread == false)
             {
                 label->setColour(juce::Label::textColourId, juce::Colours::grey);
             }
@@ -88,7 +120,7 @@ juce::Component* NotificationAndErrorMessagesDialog::refreshComponentForCell(int
         case ColumnID::message:
         {
             auto* label = new SimpleLabel(notificationMessage.message);
-            if (notificationMessage.isUnread == false)
+            if (notificationMessage.unread == false)
             {
                 label->setColour(juce::Label::textColourId, juce::Colours::grey);
             }

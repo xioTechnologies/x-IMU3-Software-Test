@@ -14,7 +14,8 @@ public:
            const juce::String& cancelButtonText = "Cancel",
            juce::Component* const bottomLeftComponent_ = nullptr,
            const int bottomLeftComponentWidth_ = 0,
-           const bool resizable_ = false);
+           const bool resizable_ = false,
+           const std::optional<juce::Colour>& tag_ = {});
 
     ~Dialog() override;
 
@@ -25,6 +26,8 @@ public:
     bool isResizable() const;
 
     const juce::String icon;
+
+    const std::optional<juce::Colour> tag;
 
     std::function<bool()> okCallback;
 
@@ -52,23 +55,24 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Dialog)
 };
 
-class DialogLauncher : public juce::DialogWindow
+class DialogQueue : private juce::DeletedAtShutdown
 {
 public:
-    static void launchDialog(std::unique_ptr<Dialog> content, std::function<bool()> okCallback = nullptr);
+    static DialogQueue& getSingleton()
+    {
+        static auto* singleton = new DialogQueue();
+        return *singleton;
+    }
 
-    static Dialog* getLaunchedDialog();
+    Dialog* getActive();
 
-    void closeButtonPressed() override;
+    void pushFront(std::unique_ptr<Dialog> content, std::function<bool()> okCallback = nullptr);
 
-    bool escapeKeyPressed() override;
+    void pushBack(std::unique_ptr<Dialog> content, std::function<bool()> okCallback = nullptr);
+
+    void pop();
 
 private:
-    static std::unique_ptr<DialogLauncher> launchedDialog;
-
-    DialogLauncher(std::unique_ptr<Dialog> content, std::function<bool()> okCallback);
-
-    void dismiss();
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DialogLauncher)
+    std::unique_ptr<juce::DialogWindow> active;
+    std::list<std::unique_ptr<Dialog>> queue;
 };

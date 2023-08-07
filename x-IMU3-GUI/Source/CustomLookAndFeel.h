@@ -9,14 +9,14 @@ namespace UIColours
     static const juce::Colour backgroundLight = juce::Colour::fromRGB(45, 45, 48);
     static const juce::Colour backgroundLightest = juce::Colour::fromRGB(62, 62, 66);
     static const juce::Colour textEditor = juce::Colour::fromRGB(228, 228, 228);
-    static const juce::Colour highlight = juce::Colour::fromRGB(0, 145, 255);
+    static const juce::Colour highlight = juce::Colour::fromRGB(61, 138, 154);
     static const juce::Colour hyperlink = juce::Colour::fromRGB(29, 228, 230);
     static const juce::Colour warning = juce::Colour::fromRGB(247, 181, 0);
     static const juce::Colour graphRed = juce::Colour::fromRGB(224, 32, 32);
     static const juce::Colour graphBlue = juce::Colour::fromRGB(50, 197, 255);
     static const juce::Colour graphGreen = juce::Colour::fromRGB(109, 212, 0);
 
-    static const std::vector<juce::Colour> panelTags =
+    static const std::vector<juce::Colour> tags =
             {
                     juce::Colour(0xFF000000),
                     juce::Colour(0xFF964B00),
@@ -28,13 +28,24 @@ namespace UIColours
                     juce::Colour(0xFF9400D3),
                     juce::Colour(0xFFA0A0A0),
                     juce::Colour(0xFFFFFFFF),
+                    juce::Colour(0xFF0C2A51),
+                    juce::Colour(0xFF23869A),
+                    juce::Colour(0xFF5AFBF1),
+                    juce::Colour(0xFF41993C),
+                    juce::Colour(0xFFFFE057),
+                    juce::Colour(0xFFEE672B),
+                    juce::Colour(0xFFD1366C),
+                    juce::Colour(0xFFFF9CAA),
+                    juce::Colour(0xFFFFF0C4),
+                    juce::Colour(0xFFD19B1D),
             };
 }
 
 namespace UILayout
 {
-    static int constexpr panelMargin = 3;
-    static int constexpr textComponentHeight = 26;
+    static constexpr int panelMargin = 3;
+    static constexpr int textComponentHeight = 26;
+    static constexpr int tagWidth = 4;
 }
 
 namespace UIFonts

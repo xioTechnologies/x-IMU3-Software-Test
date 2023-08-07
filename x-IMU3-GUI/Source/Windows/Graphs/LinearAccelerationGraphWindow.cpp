@@ -8,9 +8,9 @@ Graph::Settings LinearAccelerationGraphWindow::settings = Graph::Settings(false)
 LinearAccelerationGraphWindow::LinearAccelerationGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_, glRenderer, "Acceleration (g)", {{ "X", UIColours::graphRed },
                                                                                           { "Y", UIColours::graphGreen },
-                                                                                          { "Z", UIColours::graphBlue }}, settings)
+                                                                                          { "Z", UIColours::graphBlue }}, settings, Graph::Settings(false))
 {
-    callbackIDs.push_back(devicePanel.getConnection().addLinearAccelerationCallback(linearAccelerationCallback = [&](auto message)
+    callbackIDs.push_back(devicePanel.getConnection()->addLinearAccelerationCallback(linearAccelerationCallback = [&](auto message)
     {
         update(message.timestamp, { message.x_axis, message.y_axis, message.z_axis });
     }));
@@ -20,6 +20,6 @@ LinearAccelerationGraphWindow::~LinearAccelerationGraphWindow()
 {
     for (const auto callbackID : callbackIDs)
     {
-        devicePanel.getConnection().removeCallback(callbackID);
+        devicePanel.getConnection()->removeCallback(callbackID);
     }
 }

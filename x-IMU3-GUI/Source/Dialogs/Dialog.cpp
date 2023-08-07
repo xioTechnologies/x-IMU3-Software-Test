@@ -1,8 +1,9 @@
 #include "Dialog.h"
 
-Dialog::Dialog(const juce::String& icon_, const juce::String& dialogTitle, const juce::String& okButtonText, const juce::String& cancelButtonText, juce::Component* const bottomLeftComponent_, const int bottomLeftComponentWidth_, const bool resizable_)
+Dialog::Dialog(const juce::String& icon_, const juce::String& dialogTitle, const juce::String& okButtonText, const juce::String& cancelButtonText, juce::Component* const bottomLeftComponent_, const int bottomLeftComponentWidth_, const bool resizable_, const std::optional<juce::Colour>& tag_)
         : juce::Component(dialogTitle),
           icon(icon_),
+          tag(tag_),
           bottomLeftComponent(bottomLeftComponent_),
           bottomLeftComponentWidth(bottomLeftComponentWidth_),
           resizable(resizable_)
@@ -19,7 +20,15 @@ Dialog::Dialog(const juce::String& icon_, const juce::String& dialogTitle, const
     initButton(okButton, okButtonText.isNotEmpty(), okButtonText, true);
     initButton(cancelButton, cancelButtonText.isNotEmpty(), cancelButtonText, false);
 
-    okButton.addShortcut(juce::KeyPress(juce::KeyPress::returnKey)); // Esc is already managed by parent juce::DialogWindow
+    okButton.addShortcut(juce::KeyPress(juce::KeyPress::returnKey));
+    if (cancelButton.isVisible())
+    {
+        cancelButton.addShortcut(juce::KeyPress(juce::KeyPress::escapeKey));
+    }
+    else
+    {
+        okButton.addShortcut(juce::KeyPress(juce::KeyPress::escapeKey));
+    }
 
     okButton.onClick = [this]
     {
@@ -32,13 +41,13 @@ Dialog::Dialog(const juce::String& icon_, const juce::String& dialogTitle, const
 
         if (thisDeletedChecker.shouldBailOut() == false)
         {
-            DialogLauncher::launchDialog(nullptr);
+            DialogQueue::getSingleton().pop();
         }
     };
 
     cancelButton.onClick = []
     {
-        DialogLauncher::launchDialog(nullptr);
+        DialogQueue::getSingleton().pop();
     };
 }
 
@@ -108,77 +117,64 @@ void Dialog::setCancelButton(const bool valid, const juce::String& buttonText)
     }
 }
 
-std::unique_ptr<DialogLauncher> DialogLauncher::launchedDialog = nullptr;
-
-void DialogLauncher::launchDialog(std::unique_ptr<Dialog> content, std::function<bool()> okCallback)
+Dialog* DialogQueue::getActive()
 {
-    launchedDialog.reset();
-
-    if (content != nullptr)
-    {
-        launchedDialog.reset(new DialogLauncher(std::move(content), std::move(okCallback)));
-
-        static const struct CleanupAtShutdown : juce::DeletedAtShutdown
-        {
-            ~CleanupAtShutdown() override
-            {
-                launchedDialog.reset();
-            }
-        } * cleanupAtShutdown = new CleanupAtShutdown();
-        juce::ignoreUnused(cleanupAtShutdown);
-    }
+    return active ? static_cast<Dialog*>(active->getContentComponent()) : nullptr;
 }
 
-Dialog* DialogLauncher::getLaunchedDialog()
-{
-    return launchedDialog ? static_cast<Dialog*>(launchedDialog->getContentComponent()) : nullptr;
-}
-
-void DialogLauncher::closeButtonPressed()
-{
-    dismiss();
-}
-
-bool DialogLauncher::escapeKeyPressed()
-{
-    dismiss();
-    return true;
-}
-
-DialogLauncher::DialogLauncher(std::unique_ptr<Dialog> content, std::function<bool()> okCallback)
-        : juce::DialogWindow(content->getName(), UIColours::backgroundLight, true, true)
+void DialogQueue::pushFront(std::unique_ptr<Dialog> content, std::function<bool()> okCallback)
 {
     if (okCallback != nullptr)
     {
-        content->okCallback = std::move(okCallback);
+        content->okCallback = okCallback;
     }
 
-    setContentOwned(content.get(), true);
-    setTitleBarHeight(Dialog::titleBarHeight);
-    centreAroundComponent(nullptr, getWidth(), getHeight());
-    setVisible(true);
-    setTitleBarButtonsRequired(0, false);
-
-    enterModalState(true);
-
-    content->grabKeyboardFocus();
-
-    if (content->isResizable())
+    queue.push_front(std::move(content));
+    if (active == nullptr)
     {
-        setResizable(true, true);
+        pop();
     }
+}
+
+void DialogQueue::pushBack(std::unique_ptr<Dialog> content, std::function<bool()> okCallback)
+{
+    if (okCallback != nullptr)
+    {
+        content->okCallback = okCallback;
+    }
+
+    queue.push_back(std::move(content));
+    if (active == nullptr)
+    {
+        pop();
+    }
+}
+
+void DialogQueue::pop()
+{
+    active.reset();
+
+    if (queue.empty())
+    {
+        return;
+    }
+
+    active = std::make_unique<juce::DialogWindow>(queue.front()->getName(), UIColours::backgroundLight, true, true);
+    active->setContentOwned(queue.front().get(), true);
+    active->setTitleBarHeight(Dialog::titleBarHeight);
+    active->centreAroundComponent(nullptr, active->getWidth(), active->getHeight());
+    active->setVisible(true);
+    active->setTitleBarButtonsRequired(0, false);
+    active->enterModalState(true);
+    active->setResizable(queue.front()->isResizable(), queue.front()->isResizable());
 
     juce::Image iconImage(juce::Image::ARGB, 2 * 50, 2 * Dialog::titleBarHeight, true);
     juce::Graphics g(iconImage);
     const auto bounds = juce::Rectangle<float>((float) iconImage.getWidth(), (float) iconImage.getHeight()).withCentre(iconImage.getBounds().getCentre().toFloat());
-    juce::Drawable::createFromSVG(*juce::XmlDocument::parse(content->icon))->drawWithin(g, bounds, juce::RectanglePlacement::centred, 1.0f);
-    setIcon(iconImage);
+    juce::Drawable::createFromSVG(*juce::XmlDocument::parse(queue.front()->icon))->drawWithin(g, bounds, juce::RectanglePlacement::centred, 1.0f);
+    active->setIcon(iconImage);
 
-    content.release();
-}
-
-void DialogLauncher::dismiss()
-{
-    exitModalState(0);
-    launchedDialog.reset();
+    queue.front()->grabKeyboardFocus();
+    queue.front().release();
+    queue.erase(queue.begin());
 }

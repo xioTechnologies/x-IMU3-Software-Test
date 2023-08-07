@@ -25,17 +25,17 @@ public:
                 std::shared_ptr<ximu3::Connection> connection_,
                 GLRenderer& glRenderer_,
                 DevicePanelContainer& devicePanelContainer_,
-                const juce::Colour& colourTag_);
+                const juce::Colour& tag_);
 
     ~DevicePanel() override;
 
     void resized() override;
 
-    ximu3::Connection& getConnection();
+    std::shared_ptr<ximu3::Connection> getConnection();
 
     void sendCommands(const std::vector<CommandMessage>& commands, SafePointer <juce::Component> callbackOwner = nullptr, std::function<void(const std::vector<CommandMessage>& responses, const std::vector<CommandMessage>& failedCommands)> callback = nullptr);
 
-    const juce::Colour& getColourTag() const;
+    const juce::Colour& getTag() const;
 
     std::shared_ptr<Window> getOrCreateWindow(const juce::ValueTree& windowTree);
 
@@ -50,10 +50,10 @@ private:
     std::shared_ptr<ximu3::Connection> connection;
     GLRenderer& glRenderer;
     DevicePanelContainer& devicePanelContainer;
-    const juce::Colour colourTag;
+    const juce::Colour tag;
 
     DevicePanelHeader header { *this, devicePanelContainer };
-    DevicePanelFooter footer { *connection };
+    DevicePanelFooter footer { *this };
 
     std::map<juce::Identifier, std::shared_ptr<Window>> windows;
     std::unique_ptr<WindowContainer> windowContainer;

@@ -40,12 +40,12 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
 
         for (auto* const devicePanel : devicePanelContainer.getDevicePanels())
         {
-            existingConnections.push_back(devicePanel->getConnection().getInfo());
+            existingConnections.push_back(devicePanel->getConnection()->getInfo());
         }
 
-        DialogLauncher::launchDialog(std::make_unique<SearchingForConnectionsDialog>(std::move(existingConnections)), [this]
+        DialogQueue::getSingleton().pushFront(std::make_unique<SearchingForConnectionsDialog>(std::move(existingConnections)), [this]
         {
-            if (auto* dialog = dynamic_cast<SearchingForConnectionsDialog*>(DialogLauncher::getLaunchedDialog()))
+            if (auto* dialog = dynamic_cast<SearchingForConnectionsDialog*>(DialogQueue::getSingleton().getActive()))
             {
                 for (const auto& connectionInfo : dialog->getConnectionInfos())
                 {
@@ -56,28 +56,16 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
         });
     };
 
-    if (ApplicationSettings::getSingleton().showSearchForConnectionsOnStartup)
+    if (ApplicationSettings::getSingleton().searchForConnections.showOnStartup)
     {
         searchButton.triggerClick();
     }
 
     shutdownButton.onClick = [this]
     {
-        DialogLauncher::launchDialog(std::make_unique<AreYouSureDialog>("Are you sure you want to shutdown all devices?"), [this]
+        DialogQueue::getSingleton().pushFront(std::make_unique<AreYouSureDialog>("Are you sure you want to shutdown all devices?"), [this]
         {
-            DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(CommandMessage("shutdown", {}), devicePanelContainer.getDevicePanels()));
-            return true;
-        });
-    };
-
-    sendCommandButton.onClick = [this]
-    {
-        DialogLauncher::launchDialog(std::make_unique<SendCommandDialog>("Send Command to All Devices"), [this]
-        {
-            if (auto* dialog = dynamic_cast<SendCommandDialog*>(DialogLauncher::getLaunchedDialog()))
-            {
-                DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(dialog->getCommand(), devicePanelContainer.getDevicePanels()));
-            }
+            DialogQueue::getSingleton().pushFront(std::make_unique<SendingCommandDialog>(CommandMessage("shutdown", {}), devicePanelContainer.getDevicePanels()));
             return true;
         });
     };
@@ -95,9 +83,9 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
             return;
         }
 
-        DialogLauncher::launchDialog(std::make_unique<DataLoggerSettingsDialog>(dataLoggerSettings), [this]
+        DialogQueue::getSingleton().pushFront(std::make_unique<DataLoggerSettingsDialog>(dataLoggerSettings), [this]
         {
-            if (auto* dialog = dynamic_cast<DataLoggerSettingsDialog*>(DialogLauncher::getLaunchedDialog()))
+            if (auto* dialog = dynamic_cast<DataLoggerSettingsDialog*>(DialogQueue::getSingleton().getActive()))
             {
                 dataLoggerSettings = dialog->getSettings();
 
@@ -112,7 +100,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
                     std::vector<ximu3::Connection*> connections;
                     for (auto* const devicePanel : devicePanelContainer.getDevicePanels())
                     {
-                        connections.push_back(&devicePanel->getConnection());
+                        connections.push_back(devicePanel->getConnection().get());
                     }
 
                     dataLogger = std::make_unique<ximu3::DataLogger>(dataLoggerSettings.directory.toStdString(),
@@ -121,7 +109,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
 
                     if (dataLogger->getResult() != ximu3::XIMU3_ResultOk)
                     {
-                        DialogLauncher::launchDialog(std::make_unique<ErrorDialog>("Data logger failed."));
+                        DialogQueue::getSingleton().pushFront(std::make_unique<ErrorDialog>("Data logger failed."));
                         return;
                     }
 
@@ -133,7 +121,7 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
                 const auto directory = juce::File(dataLoggerSettings.directory).getChildFile(dataLoggerName);
                 if (directory.exists())
                 {
-                    DialogLauncher::launchDialog(std::make_unique<DoYouWantToReplaceItDialog>(dataLoggerName), [directory, startDataLogger]
+                    DialogQueue::getSingleton().pushFront(std::make_unique<DoYouWantToReplaceItDialog>(dataLoggerName), [directory, startDataLogger]
                     {
                         directory.deleteRecursively();
                         startDataLogger();
@@ -151,12 +139,12 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
 
     mainSettingsButton.onClick = []
     {
-        DialogLauncher::launchDialog(std::make_unique<ApplicationSettingsDialog>());
+        DialogQueue::getSingleton().pushFront(std::make_unique<ApplicationSettingsDialog>());
     };
 
     versionButton.onClick = []
     {
-        DialogLauncher::launchDialog(std::make_unique<AboutDialog>());
+        DialogQueue::getSingleton().pushFront(std::make_unique<AboutDialog>());
     };
     versionButton.setColour(juce::TextButton::buttonColourId, {});
     versionButton.setColour(juce::TextButton::buttonOnColourId, {});
@@ -224,8 +212,8 @@ void MenuStrip::resized()
                 return 35;
             }();
 
-            button->setSize(buttonWidth, 0);
-            groupMargin -= buttonWidth;
+            button->setSize(buttonWidth, buttonHeight);
+            groupMargin -= button->getWidth();
         }
     }
     groupMargin /= buttonGroups.size();
@@ -236,7 +224,7 @@ void MenuStrip::resized()
     {
         for (auto* const button : buttonGroup.buttons)
         {
-            button->setBounds((int) x, buttonY, button->getWidth(), buttonHeight);
+            button->setBounds((int) x, buttonY, button->getWidth(), button->getHeight());
             x += button->getWidth();
         }
         x += groupMargin;
@@ -245,6 +233,44 @@ void MenuStrip::resized()
         const auto labelWidth = (int) std::ceil(buttonGroup.label.getTextWidth());
         const auto labelHeight = (int) std::ceil(UIFonts::getDefaultFont().getHeight());
         buttonGroup.label.setBounds(juce::Rectangle<int>(labelWidth, labelHeight).withCentre({ labelCentreX, labelCentreY }));
+    }
+}
+
+int MenuStrip::getMinimumWidth() const
+{
+    int width = 0;
+    for (const auto& buttonGroup : buttonGroups)
+    {
+        for (auto* const button : buttonGroup.buttons)
+        {
+            width += button->getWidth();
+        }
+    }
+    return width;
+}
+
+void MenuStrip::addDevices(juce::PopupMenu& menu, std::function<void(DevicePanel&)> action)
+{
+    menu.addSeparator();
+    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("INDIVIDUAL"), nullptr);
+
+    for (auto* const devicePanel : devicePanelContainer.getDevicePanels())
+    {
+        juce::PopupMenu::Item item(devicePanel->getDeviceDescriptor() + "   " + devicePanel->getConnection()->getInfo()->toString());
+
+        item.action = [devicePanel, action]
+        {
+            action(*devicePanel);
+        };
+
+        auto tag = std::make_unique<juce::DrawableRectangle>();
+        int _, height;
+        getLookAndFeel().getIdealPopupMenuItemSize({}, false, {}, _, height);
+        tag->setRectangle(juce::Rectangle<float>(0.0f, 0.0f, (float) UILayout::tagWidth, (float) height));
+        tag->setFill({ devicePanel->getTag() });
+        item.image = std::move(tag);
+
+        menu.addItem(item);
     }
 }
 
@@ -269,7 +295,7 @@ juce::PopupMenu MenuStrip::getManualConnectMenu()
 
     const auto connectCallback = [this]
     {
-        if (auto* dialog = dynamic_cast<NewConnectionDialog*>(DialogLauncher::getLaunchedDialog()))
+        if (auto* dialog = dynamic_cast<NewConnectionDialog*>(DialogQueue::getSingleton().getActive()))
         {
             auto connectionInfo = dialog->getConnectionInfo();
             devicePanelContainer.connectToDevice(*connectionInfo);
@@ -279,23 +305,23 @@ juce::PopupMenu MenuStrip::getManualConnectMenu()
     };
     menu.addItem("New USB Connection", [connectCallback]
     {
-        DialogLauncher::launchDialog(std::make_unique<UsbConnectionDialog>(), connectCallback);
+        DialogQueue::getSingleton().pushFront(std::make_unique<UsbConnectionDialog>(), connectCallback);
     });
     menu.addItem("New Serial Connection", [connectCallback]
     {
-        DialogLauncher::launchDialog(std::make_unique<SerialConnectionDialog>(), connectCallback);
+        DialogQueue::getSingleton().pushFront(std::make_unique<SerialConnectionDialog>(), connectCallback);
     });
     menu.addItem("New TCP Connection", [connectCallback]
     {
-        DialogLauncher::launchDialog(std::make_unique<TcpConnectionDialog>(), connectCallback);
+        DialogQueue::getSingleton().pushFront(std::make_unique<TcpConnectionDialog>(), connectCallback);
     });
     menu.addItem("New UDP Connection", [connectCallback]
     {
-        DialogLauncher::launchDialog(std::make_unique<UdpConnectionDialog>(), connectCallback);
+        DialogQueue::getSingleton().pushFront(std::make_unique<UdpConnectionDialog>(), connectCallback);
     });
     menu.addItem("New Bluetooth Connection", [connectCallback]
     {
-        DialogLauncher::launchDialog(std::make_unique<BluetoothConnectionDialog>(), connectCallback);
+        DialogQueue::getSingleton().pushFront(std::make_unique<BluetoothConnectionDialog>(), connectCallback);
     });
     menu.addSeparator();
     menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("CONNECTION HISTORY"), nullptr);
@@ -320,26 +346,10 @@ juce::PopupMenu MenuStrip::getDisconnectMenu()
     {
         disconnect(nullptr);
     });
-    menu.addSeparator();
-    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("INDIVIDUAL"), nullptr);
-    for (auto* const devicePanel : devicePanelContainer.getDevicePanels())
+    addDevices(menu, [&](auto& devicePanel)
     {
-        juce::PopupMenu::Item item(devicePanel->getDeviceDescriptor() + "   " + devicePanel->getConnection().getInfo()->toString());
-
-        item.action = [this, devicePanel]
-        {
-            disconnect(devicePanel);
-        };
-
-        auto colourTag = std::make_unique<juce::DrawableRectangle>();
-        int _, height;
-        getLookAndFeel().getIdealPopupMenuItemSize({}, false, {}, _, height);
-        colourTag->setRectangle(juce::Rectangle<float>(0.0f, 0.0f, (float) DevicePanelHeader::colourTagWidth, (float) height));
-        colourTag->setFill({ devicePanel->getColourTag() });
-        item.image = std::move(colourTag);
-
-        menu.addItem(item);
-    }
+        disconnect(&devicePanel);
+    });
 
     return menu;
 }
@@ -445,9 +455,9 @@ juce::PopupMenu MenuStrip::getWindowLayoutMenu()
     menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("CUSTOM LAYOUTS"), nullptr);
     menu.addItem("Save As...", [this]
     {
-        DialogLauncher::launchDialog(std::make_unique<SaveWindowLayoutDialog>(), [this]
+        DialogQueue::getSingleton().pushFront(std::make_unique<SaveWindowLayoutDialog>(), [this]
         {
-            if (auto* saveWindowLayoutDialog = dynamic_cast<SaveWindowLayoutDialog*>(DialogLauncher::getLaunchedDialog()))
+            if (auto* saveWindowLayoutDialog = dynamic_cast<SaveWindowLayoutDialog*>(DialogQueue::getSingleton().getActive()))
             {
                 const auto layoutName = saveWindowLayoutDialog->getLayoutName();
 
@@ -459,7 +469,7 @@ juce::PopupMenu MenuStrip::getWindowLayoutMenu()
 
                 if (CustomLayouts().exists(layoutName))
                 {
-                    DialogLauncher::launchDialog(std::make_unique<DoYouWantToReplaceItDialog>(layoutName), save);
+                    DialogQueue::getSingleton().pushFront(std::make_unique<DoYouWantToReplaceItDialog>(layoutName), save);
                 }
                 else
                 {
@@ -507,32 +517,64 @@ juce::PopupMenu MenuStrip::getPanelLayoutMenu()
     return menu;
 }
 
+juce::PopupMenu MenuStrip::getSendCommandMenu()
+{
+    juce::PopupMenu menu;
+
+    const auto toAll = "Send Command to All (" + juce::String(devicePanelContainer.getDevicePanels().size()) + ")";
+    menu.addItem(toAll, [&, toAll]
+    {
+        DialogQueue::getSingleton().pushFront(std::make_unique<SendCommandDialog>(toAll), [this]
+        {
+            if (auto* dialog = dynamic_cast<SendCommandDialog*>(DialogQueue::getSingleton().getActive()))
+            {
+                DialogQueue::getSingleton().pushFront(std::make_unique<SendingCommandDialog>(dialog->getCommand(), devicePanelContainer.getDevicePanels()));
+            }
+            return true;
+        });
+    });
+
+    addDevices(menu, [&](auto& devicePanel)
+    {
+        DialogQueue::getSingleton().pushFront(std::make_unique<SendCommandDialog>("Send Command to " + devicePanel.getDeviceDescriptor(), devicePanel.getTag()), [&, devicePanel = &devicePanel]
+        {
+            if (auto* dialog = dynamic_cast<SendCommandDialog*>(DialogQueue::getSingleton().getActive()))
+            {
+                DialogQueue::getSingleton().pushFront(std::make_unique<SendingCommandDialog>(dialog->getCommand(), std::vector<DevicePanel*>({ devicePanel })));
+            }
+            return true;
+        });
+    });
+
+    return menu;
+}
+
 juce::PopupMenu MenuStrip::getToolsMenu()
 {
     juce::PopupMenu menu;
     menu.addItem("Set Date and Time", devicePanelContainer.getDevicePanels().size() > 0, false, [&]
     {
-        DialogLauncher::launchDialog(std::make_unique<AreYouSureDialog>("Do you want to set the date and time on all devices to match the computer?"), [&]
+        DialogQueue::getSingleton().pushFront(std::make_unique<AreYouSureDialog>("Do you want to set the date and time on all devices to match the computer?"), [&]
         {
-            DialogLauncher::launchDialog(std::make_unique<SendingCommandDialog>(CommandMessage("time", juce::Time::getCurrentTime().formatted("%Y-%m-%d %H:%M:%S")), devicePanelContainer.getDevicePanels()));
+            DialogQueue::getSingleton().pushFront(std::make_unique<SendingCommandDialog>(CommandMessage("time", juce::Time::getCurrentTime().formatted("%Y-%m-%d %H:%M:%S")), devicePanelContainer.getDevicePanels()));
             return true;
         });
     });
     menu.addItem("Convert File (.ximu3)", []
     {
-        DialogLauncher::launchDialog(std::make_unique<ConvertFileDialog>(), []
+        DialogQueue::getSingleton().pushFront(std::make_unique<ConvertFileDialog>(), []
         {
-            if (const auto* const convertFileDialog = dynamic_cast<ConvertFileDialog*>(DialogLauncher::getLaunchedDialog()))
+            if (const auto* const convertFileDialog = dynamic_cast<ConvertFileDialog*>(DialogQueue::getSingleton().getActive()))
             {
                 const auto startFileConverter = [source = convertFileDialog->getSource(), destination = convertFileDialog->getDestination()]
                 {
-                    DialogLauncher::launchDialog(std::make_unique<ConvertingFileDialog>(source, destination));
+                    DialogQueue::getSingleton().pushFront(std::make_unique<ConvertingFileDialog>(source, destination));
                 };
 
                 const auto directory = juce::File(convertFileDialog->getDestination()).getChildFile(juce::File(convertFileDialog->getSource()).getFileNameWithoutExtension());
                 if (directory.exists())
                 {
-                    DialogLauncher::launchDialog(std::make_unique<DoYouWantToReplaceItDialog>(directory.getFileName()), [directory, startFileConverter]
+                    DialogQueue::getSingleton().pushFront(std::make_unique<DoYouWantToReplaceItDialog>(directory.getFileName()), [directory, startFileConverter]
                     {
                         directory.deleteRecursively();
                         startFileConverter();
@@ -551,11 +593,11 @@ juce::PopupMenu MenuStrip::getToolsMenu()
     {
         const auto launchUpdateFirmwareDialog = []
         {
-            DialogLauncher::launchDialog(std::make_unique<UpdateFirmwareDialog>(), []
+            DialogQueue::getSingleton().pushFront(std::make_unique<UpdateFirmwareDialog>(), []
             {
-                if (const auto* const updateFirmwareDialog = dynamic_cast<UpdateFirmwareDialog*>(DialogLauncher::getLaunchedDialog()))
+                if (const auto* const updateFirmwareDialog = dynamic_cast<UpdateFirmwareDialog*>(DialogQueue::getSingleton().getActive()))
                 {
-                    DialogLauncher::launchDialog(std::make_unique<UpdatingFirmwareDialog>(updateFirmwareDialog->getConnectionInfo(), updateFirmwareDialog->getFileName()));
+                    DialogQueue::getSingleton().pushFront(std::make_unique<UpdatingFirmwareDialog>(updateFirmwareDialog->getConnectionInfo(), updateFirmwareDialog->getFileName()));
                 }
                 return true;
             });
@@ -563,7 +605,7 @@ juce::PopupMenu MenuStrip::getToolsMenu()
 
         if (devicePanelContainer.getDevicePanels().size() > 0)
         {
-            DialogLauncher::launchDialog(std::make_unique<AreYouSureDialog>("All connections must be closed before updating the firmware. Do you want to continue?"), [&, launchUpdateFirmwareDialog]
+            DialogQueue::getSingleton().pushFront(std::make_unique<AreYouSureDialog>("All connections must be closed before updating the firmware. Do you want to continue?"), [&, launchUpdateFirmwareDialog]
             {
                 disconnect(nullptr);
                 launchUpdateFirmwareDialog();
@@ -604,14 +646,14 @@ void MenuStrip::setWindowLayout(juce::ValueTree windowLayout_)
 
 void MenuStrip::timerCallback()
 {
-    const auto relativeTime = juce::Time::getCurrentTime() - dataLoggerStartTime;
-    if (dataLoggerSettings.unlimited == false && relativeTime.inSeconds() >= dataLoggerSettings.seconds)
+    const auto timePassed = juce::Time::getCurrentTime() - dataLoggerStartTime;
+    if (dataLoggerSettings.getTime().has_value() && timePassed >= *dataLoggerSettings.getTime())
     {
         dataLoggerStartStopButton.setToggleState(false, juce::sendNotificationSync);
-        dataLoggerTime.setTime(juce::RelativeTime::seconds(dataLoggerSettings.seconds));
+        dataLoggerTime.setTime(*dataLoggerSettings.getTime());
     }
     else
     {
-        dataLoggerTime.setTime(relativeTime);
+        dataLoggerTime.setTime(timePassed);
     }
 }

@@ -61,7 +61,7 @@ cmake_minimum_required(VERSION 3.15)
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(X_IMU3_GUI VERSION 1.1.4)
+project(X_IMU3_GUI VERSION 1.2.3)
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've
@@ -87,8 +87,8 @@ juce_add_gui_app(x-IMU3-GUI
         ICON_BIG "Images/xio_icon.png"
         ICON_SMALL "Images/xio_icon.png"
         # DOCUMENT_EXTENSIONS ...           # Specify file extensions that should be associated with this app
-        # COMPANY_NAME ...                  # Specify the name of the app's author
-        PRODUCT_NAME "x-IMU3 GUI")     # The name of the final executable, which can differ from the target name
+        PRODUCT_NAME "x-IMU3 GUI" # The name of the final executable, which can differ from the target name
+        BUNDLE_ID "uk.co.x-io.x-IMU3-GUI")
 
 # `juce_generate_juce_header` will create a JuceHeader.h for a given target, which will be generated
 # into your build tree. This should be included with `#include <JuceHeader.h>`. The include path for
@@ -130,7 +130,8 @@ target_compile_definitions(x-IMU3-GUI
         JUCE_OPENGL3=1
         JUCE_DISPLAY_SPLASH_SCREEN=0
         JUCE_MODAL_LOOPS_PERMITTED=1
-        GLM_FORCE_SILENT_WARNINGS)
+        GLM_FORCE_SILENT_WARNINGS
+        GLM_FORCE_SIZE_T_LENGTH) # Resolves signed conversion warning on Ubuntu
 
 # If your target needs extra binary assets, you can add them here. The first argument is the name of
 # a new static library target that will include all the binary resources. There is an optional
@@ -162,7 +163,6 @@ juce_add_binary_data(x-IMU3-GUI-AppData SOURCES
 target_link_libraries(x-IMU3-GUI
         PRIVATE
         x-IMU3-GUI-AppData
-        juce::juce_gui_extra
         juce::juce_opengl
         "${FREETYPE_LIBRARIES}"
         glm::glm

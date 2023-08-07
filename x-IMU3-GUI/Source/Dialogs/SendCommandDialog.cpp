@@ -1,7 +1,7 @@
 #include "../Widgets/PopupMenuHeader.h"
 #include "SendCommandDialog.h"
 
-SendCommandDialog::SendCommandDialog(const juce::String& title) : Dialog(BinaryData::json_svg, title, "Send", "Cancel", &historyButton, iconButtonWidth)
+SendCommandDialog::SendCommandDialog(const juce::String& title, const std::optional<juce::Colour>& tag_) : Dialog(BinaryData::json_svg, title, "Send", "Cancel", &historyButton, iconButtonWidth, false, tag_)
 {
     addAndMakeVisible(keyLabel);
     addAndMakeVisible(keyValue);
@@ -97,7 +97,7 @@ CommandMessage SendCommandDialog::getCommand()
         }
     }
 
-    while (commandHistory.getNumChildren() > 9)
+    while (commandHistory.getNumChildren() >= 12)
     {
         commandHistory.removeChild(commandHistory.getChild(commandHistory.getNumChildren() - 1), nullptr);
     }
@@ -123,7 +123,7 @@ juce::String SendCommandDialog::toString(const Type type)
         case Type::null:
             return "null";
     }
-    return ""; // avoid compiler warning
+    return {}; // avoid compiler warning
 }
 
 juce::String SendCommandDialog::createCommand(const juce::String& key, const Type type, const juce::String& string, const juce::String& number)

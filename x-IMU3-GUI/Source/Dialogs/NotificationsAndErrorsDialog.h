@@ -1,21 +1,36 @@
 #pragma once
 
 #include "../Widgets/SimpleLabel.h"
+#include <BinaryData.h>
 #include "Dialog.h"
 
-class NotificationAndErrorMessagesDialog : public Dialog,
-                                           private juce::TableListBoxModel
+class DevicePanel;
+
+class NotificationsAndErrorsDialog : public Dialog,
+                                     private juce::TableListBoxModel
 {
 public:
     struct Message
     {
-        bool isError;
+        enum class Type
+        {
+            notification,
+            error,
+        };
+
+        Type type;
         uint64_t timestamp;
         juce::String message;
-        bool isUnread = true;
+        bool unread = true;
+
+        juce::String getIcon() const;
+
+        juce::String getTooltip() const;
+
+        juce::Colour getColour() const;
     };
 
-    NotificationAndErrorMessagesDialog(std::vector<Message>& messages_, const std::function<void()>& onClear);
+    NotificationsAndErrorsDialog(std::vector<Message>& messages_, const std::function<void()>& onClear, const DevicePanel& devicePanel);
 
     void resized() override;
 
@@ -50,5 +65,5 @@ private:
 
     juce::Component* refreshComponentForCell(int rowNumber, int columnID, bool, juce::Component* existingComponentToUpdate) override;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NotificationAndErrorMessagesDialog)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NotificationsAndErrorsDialog)
 };

@@ -1,9 +1,9 @@
 #include "ApplicationSettings.h"
 #include "CustomLookAndFeel.h"
+#include "DevicePanel.h"
 #include "DevicePanelFooter.h"
-#include "DevicePanelHeader.h"
 
-DevicePanelFooter::DevicePanelFooter(ximu3::Connection& connection_) : connection(connection_)
+DevicePanelFooter::DevicePanelFooter(DevicePanel& devicePanel_) : devicePanel(devicePanel_)
 {
     addAndMakeVisible(statisticsLabel);
 
@@ -23,7 +23,7 @@ DevicePanelFooter::DevicePanelFooter(ximu3::Connection& connection_) : connectio
                                             resized();
                                         });
     };
-    statisticsCallbackID = connection.addStatisticsCallback(statisticsCallback);
+    statisticsCallbackID = devicePanel.getConnection()->addStatisticsCallback(statisticsCallback);
 
     addAndMakeVisible(latestMessageLabel);
 
@@ -37,18 +37,18 @@ DevicePanelFooter::DevicePanelFooter(ximu3::Connection& connection_) : connectio
 
     notificationsButton.onClick = errorsButton.onClick = [&]
     {
-        DialogLauncher::launchDialog(std::make_unique<NotificationAndErrorMessagesDialog>(messages, [&]
+        DialogQueue::getSingleton().pushFront(std::make_unique<NotificationsAndErrorsDialog>(messages, [&]
         {
             messagesChanged();
-        }), [this]
-                                     {
-                                         for (auto& notificationMessage : messages)
-                                         {
-                                             notificationMessage.isUnread = false;
-                                         }
-                                         messagesChanged();
-                                         return true;
-                                     });
+        }, devicePanel), [this]
+                                              {
+                                                  for (auto& notificationMessage : messages)
+                                                  {
+                                                      notificationMessage.unread = false;
+                                                  }
+                                                  messagesChanged();
+                                                  return true;
+                                              });
     };
 
     notificationCallback = [&, self = SafePointer<juce::Component>(this)](auto message)
@@ -60,12 +60,12 @@ DevicePanelFooter::DevicePanelFooter(ximu3::Connection& connection_) : connectio
                                                 return;
                                             }
 
-                                            messages.push_back({ false, message.timestamp, message.char_array });
+                                            messages.push_back({ NotificationsAndErrorsDialog::Message::Type::notification, message.timestamp, message.char_array });
 
                                             messagesChanged();
                                         });
     };
-    notificationCallbackID = connection.addNotificationCallback(notificationCallback);
+    notificationCallbackID = devicePanel.getConnection()->addNotificationCallback(notificationCallback);
 
     errorCallback = [&, self = SafePointer<juce::Component>(this)](auto message)
     {
@@ -76,19 +76,19 @@ DevicePanelFooter::DevicePanelFooter(ximu3::Connection& connection_) : connectio
                                                 return;
                                             }
 
-                                            messages.push_back({ true, message.timestamp, message.char_array });
+                                            messages.push_back({ NotificationsAndErrorsDialog::Message::Type::error, message.timestamp, message.char_array });
 
                                             messagesChanged();
                                         });
     };
-    errorCallbackID = connection.addErrorCallback(errorCallback);
+    errorCallbackID = devicePanel.getConnection()->addErrorCallback(errorCallback);
 }
 
 DevicePanelFooter::~DevicePanelFooter()
 {
-    connection.removeCallback(statisticsCallbackID);
-    connection.removeCallback(notificationCallbackID);
-    connection.removeCallback(errorCallbackID);
+    devicePanel.getConnection()->removeCallback(statisticsCallbackID);
+    devicePanel.getConnection()->removeCallback(notificationCallbackID);
+    devicePanel.getConnection()->removeCallback(errorCallbackID);
 }
 
 void DevicePanelFooter::paint(juce::Graphics& g)
@@ -122,12 +122,12 @@ void DevicePanelFooter::resized()
 
 void DevicePanelFooter::messagesChanged()
 {
-    const auto getCountText = [&](const auto isError)
+    const auto getCountText = [&](const auto type)
     {
         int count = 0;
         for (const auto& message : messages)
         {
-            if ((message.isError == isError) && message.isUnread && (++count >= 100))
+            if ((message.type == type) && message.unread && (++count >= 100))
             {
                 return juce::String("99+");
             }
@@ -135,23 +135,23 @@ void DevicePanelFooter::messagesChanged()
         return juce::String(count);
     };
 
-    numberOfNotificationsLabel.setText(getCountText(false));
+    numberOfNotificationsLabel.setText(getCountText(NotificationsAndErrorsDialog::Message::Type::notification));
     notificationsButton.setToggleState(numberOfNotificationsLabel.getText() != "0", juce::dontSendNotification);
 
-    numberOfErrorsLabel.setText(getCountText(true));
+    numberOfErrorsLabel.setText(getCountText(NotificationsAndErrorsDialog::Message::Type::error));
     errorsButton.setToggleState(numberOfErrorsLabel.getText() != "0", juce::dontSendNotification);
 
-    if (messages.empty() == false && messages.back().isUnread)
+    if (messages.empty() == false && messages.back().unread)
     {
         latestMessageLabel.setText(messages.back().message);
-        latestMessageLabel.setColour(juce::Label::textColourId, messages.back().isError ? UIColours::warning : juce::Colours::white);
+        latestMessageLabel.setColour(juce::Label::textColourId, messages.back().getColour());
     }
     else
     {
         latestMessageLabel.setText("");
     }
 
-    if (auto* const dialog = dynamic_cast<NotificationAndErrorMessagesDialog*>(DialogLauncher::getLaunchedDialog()))
+    if (auto* const dialog = dynamic_cast<NotificationsAndErrorsDialog*>(DialogQueue::getSingleton().getActive()))
     {
         dialog->messagesChanged();
     }

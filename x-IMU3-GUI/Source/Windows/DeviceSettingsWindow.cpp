@@ -15,7 +15,7 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
 
     readAllButton.onClick = [this]
     {
-        setInProgress(true);
+        enableInProgress(settingsTree.getReadCommands());
 
         devicePanel.sendCommands(settingsTree.getReadCommands(), this, [&](const std::vector<CommandMessage>& responses, const std::vector<CommandMessage>& failedCommands)
         {
@@ -32,15 +32,18 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
 
             readAllButton.setToggleState(failedCommands.empty() == false, juce::dontSendNotification);
 
-            setInProgress(false);
+            disableInProgress();
         });
     };
 
-    readAllButton.onClick();
+    if (ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens)
+    {
+        readAllButton.onClick();
+    }
 
     writeAllButton.onClick = [this]
     {
-        setInProgress(true);
+        enableInProgress(settingsTree.getWriteCommands());
 
         devicePanel.sendCommands(settingsTree.getWriteCommands(), this, [&](const auto& responses, const auto& writeFailedCommands)
         {
@@ -57,13 +60,13 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
 
             writeAllButton.setToggleState(writeFailedCommands.empty() == false, juce::dontSendNotification);
 
-            setInProgress(false);
+            disableInProgress();
 
             devicePanel.sendCommands({{ "save", {}}}, this, [&](const auto&, const auto& saveFailedCommands)
             {
                 if (saveFailedCommands.empty() == false)
                 {
-                    DialogLauncher::launchDialog(std::make_unique<ErrorDialog>("Write settings to device failed. Unable to confirm save command."));
+                    DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Write settings to device failed. Unable to confirm save command."));
                     return;
                 }
 
@@ -71,7 +74,7 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
                 {
                     if (applyFailedCommands.empty() == false)
                     {
-                        DialogLauncher::launchDialog(std::make_unique<ErrorDialog>("Write settings to device failed. Unable to confirm apply command."));
+                        DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Write settings to device failed. Unable to confirm apply command."));
                     }
                 });
             });
@@ -120,16 +123,16 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
 
     defaultsButton.onClick = [this]
     {
-        DialogLauncher::launchDialog(std::make_unique<AreYouSureDialog>("Are you sure you want to restore default device settings?"), [this]
+        DialogQueue::getSingleton().pushFront(std::make_unique<AreYouSureDialog>("Are you sure you want to restore default device settings?"), [this]
         {
-            setInProgress(true);
+            enableInProgress(settingsTree.getReadCommands());
 
             devicePanel.sendCommands({{ "default", {}}}, this, [this](const auto&, const auto& defaultFailedCommands)
             {
                 if (defaultFailedCommands.empty() == false)
                 {
-                    setInProgress(false);
-                    DialogLauncher::launchDialog(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm default command."));
+                    disableInProgress();
+                    DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm default command."));
                     return;
                 }
 
@@ -137,8 +140,8 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
                 {
                     if (saveFailedCommands.empty() == false)
                     {
-                        setInProgress(false);
-                        DialogLauncher::launchDialog(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm save command."));
+                        disableInProgress();
+                        DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm save command."));
                         return;
                     }
 
@@ -146,8 +149,8 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
                     {
                         if (applyFailedCommands.empty() == false)
                         {
-                            setInProgress(false);
-                            DialogLauncher::launchDialog(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm apply command."));
+                            disableInProgress();
+                            DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm apply command."));
                             return;
                         }
 
@@ -190,22 +193,28 @@ void DeviceSettingsWindow::resized()
     }
 }
 
-void DeviceSettingsWindow::setInProgress(const bool inProgress)
+void DeviceSettingsWindow::enableInProgress(const std::vector<CommandMessage>& commands)
 {
-    if (inProgress)
+    for (const auto& command : commands)
     {
-        for (const auto& command : settingsTree.getReadCommands())
-        {
-            settingsTree.setStatus(command.key, Setting::Status::normal);
-        }
-        readAllButton.setToggleState(false, juce::dontSendNotification);
-        writeAllButton.setToggleState(false, juce::dontSendNotification);
+        settingsTree.setStatus(command.key, Setting::Status::normal);
     }
+    readAllButton.setToggleState(false, juce::dontSendNotification);
+    writeAllButton.setToggleState(false, juce::dontSendNotification);
 
-    settingsTree.setEnabled(inProgress == false);
+    settingsTree.setEnabled(false);
     for (auto* const button : buttons)
     {
-        button->setEnabled(inProgress == false);
+        button->setEnabled(false);
+    }
+}
+
+void DeviceSettingsWindow::disableInProgress()
+{
+    settingsTree.setEnabled(true);
+    for (auto* const button : buttons)
+    {
+        button->setEnabled(true);
     }
 }
 
@@ -213,25 +222,9 @@ juce::PopupMenu DeviceSettingsWindow::getMenu()
 {
     juce::PopupMenu menu;
 
-    menu.addItem(readAllButton.getTooltip(), [&]
+    menu.addItem("Read Settings When Window Opens", true, ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens, [&]
     {
-        readAllButton.onClick();
-    });
-    menu.addItem(writeAllButton.getTooltip(), [&]
-    {
-        writeAllButton.onClick();
-    });
-    menu.addItem(saveToFileButton.getTooltip(), [&]
-    {
-        saveToFileButton.onClick();
-    });
-    menu.addItem(loadFromFileButton.getTooltip(), [&]
-    {
-        loadFromFileButton.onClick();
-    });
-    menu.addItem(defaultsButton.getTooltip(), [&]
-    {
-        defaultsButton.onClick();
+        ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens = !ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens;
     });
 
     return menu;

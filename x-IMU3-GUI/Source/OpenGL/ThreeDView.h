@@ -32,14 +32,15 @@ public:
         std::atomic<float> cameraElevation = 20.0f;
         std::atomic<float> cameraOrbitDistance = 2.5f;
 
-        std::atomic<bool> isModelEnabled = true;
-        std::atomic<bool> isWorldEnabled = true;
-        std::atomic<bool> isAxesEnabled = true;
+        std::atomic<bool> worldEnabled = true;
+        std::atomic<bool> modelEnabled = true;
+        std::atomic<bool> axesEnabled = true;
+        std::atomic<bool> compassEnabled = true;
         std::atomic<Model> model { Model::housing };
         std::atomic<AxesConvention> axesConvention { AxesConvention::nwu };
     };
 
-    explicit ThreeDView(GLRenderer& renderer_);
+    explicit ThreeDView(GLRenderer& renderer_, const Settings& settings_);
 
     ~ThreeDView() override;
 
@@ -47,24 +48,26 @@ public:
 
     void update(const float x, const float y, const float z, const float w);
 
-    void setSettings(const Settings& settings_);
-
     void setCustomModel(const juce::File& file);
 
     bool isLoading() const;
 
 private:
     GLRenderer& renderer;
+    const Settings& settings;
     std::atomic<float> quaternionX { 0.0f }, quaternionY { 0.0f }, quaternionZ { 0.0f }, quaternionW { 1.0f };
-    Settings settings;
 
-    void renderIMUModel(GLResources& resources, const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation, const float modelScale) const;
+    void renderModel(GLResources& resources, const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation, const float modelScale) const;
 
-    void renderWorldGrid(GLResources& resources, const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const glm::mat4& axesConventionRotationGLM, const float floorHeight);
+    void renderWorld(GLResources& resources, const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const glm::mat4& axesConventionRotation, const float floorHeight);
+
+    void renderCompass(GLResources& resources, const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const float floorHeight);
 
     void renderAxes(GLResources& resources, const juce::Rectangle<int>& viewportBounds, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const;
 
-    void renderAxesWorldSpace(GLResources& resources, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const;
+    void renderAxesInstance(GLResources& resources, const glm::mat4& modelMatrix, const glm::mat4& projectionMatrix) const;
 
-    void renderAxesScreenSpace(GLResources& resources, const glm::mat4& axesConventionRotation) const;
+    void renderAxesForDeviceOrientation(GLResources& resources, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const;
+
+    void renderAxesForWorldOrientation(GLResources& resources, const glm::mat4& axesConventionRotation) const;
 };
