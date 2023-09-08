@@ -46,8 +46,6 @@ namespace UILayout
     static constexpr int panelMargin = 3;
     static constexpr int textComponentHeight = 26;
     static constexpr int tagWidth = 4;
-    static constexpr int graphTopMargin = 24; // TODO: Review with Tim
-    static constexpr int graphRightMargin = 10; // TODO: Review with Tim
 }
 
 namespace UIFonts

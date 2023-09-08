@@ -32,6 +32,9 @@ protected:
     static const juce::String degreeSymbol;
 
 private:
+    static constexpr int labelHeight = 24;
+    static constexpr int rightMargin = 10;
+
     const std::vector<juce::String> legendStrings;
     const std::vector<juce::Colour> legendColours;
     const bool defaultHorizontalAutoscale;

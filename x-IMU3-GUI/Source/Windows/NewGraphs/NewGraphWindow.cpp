@@ -16,7 +16,7 @@ NewGraphWindow::NewGraphWindow(const juce::ValueTree& windowLayout_, const juce:
           defaultHorizontalAutoscale(defaultHorizontalAutoscale_),
           legendColours(legendColours_),
           settingsTree(settingsTree_),
-          graph(glRenderer, legendColours_),
+          graph(glRenderer, legendColours_, labelHeight, rightMargin),
           yLabel(yAxis, UIFonts::getDefaultFont(), juce::Justification::centred)
 {
     jassert(legendStrings.size() == legendColours.size());
@@ -24,8 +24,6 @@ NewGraphWindow::NewGraphWindow(const juce::ValueTree& windowLayout_, const juce:
     addAndMakeVisible(graph);
     addAndMakeVisible(xLabel);
     addAndMakeVisible(yLabel);
-
-    //setMouseCursor(juce::MouseCursor::StandardCursorType::UpDownLeftRightResizeCursor);
 
     settingsTree.addListener(this);
     graph.setSettings(readFromValueTree());
@@ -48,7 +46,7 @@ void NewGraphWindow::paint(juce::Graphics& g)
     static constexpr int margin = 10;
 
     const auto settings = readFromValueTree();
-    auto legendBounds = getContentBounds().removeFromTop(UILayout::graphTopMargin).reduced(UILayout::graphRightMargin, 0);
+    auto legendBounds = getContentBounds().removeFromTop(labelHeight).reduced(rightMargin, 0);
     const auto font = UIFonts::getDefaultFont();
     g.setFont(font);
 
@@ -189,7 +187,7 @@ void NewGraphWindow::zoomHorizontal(const float multiplier)
 {
     auto settings = graph.getSettings();
     auto xLimits = settings.axesLimits.getXLimits();
-    settings.axesLimits.setXLimits(xLimits.getMin() * multiplier, xLimits.getMax());
+    settings.axesLimits.setXLimits(xLimits.getMax() - (xLimits.getRange() * multiplier), xLimits.getMax());
 
     writeToValueTree(settings);
 }

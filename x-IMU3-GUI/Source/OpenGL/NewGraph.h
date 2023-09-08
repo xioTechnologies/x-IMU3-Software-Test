@@ -19,7 +19,7 @@ public:
         std::vector<bool> enabledChannels;
     };
 
-    NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours_);
+    NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours_, const int legendHeight_, const int rightMargin_);
 
     ~NewGraph() override;
 
@@ -42,6 +42,8 @@ public:
 private:
     GLRenderer& renderer;
     const std::vector<juce::Colour> colours;
+    const int legendHeight;
+    const int rightMargin;
 
     mutable std::mutex settingsMutex;
     Settings settings;

@@ -1,9 +1,11 @@
 #include "NewGraph.h"
 
-NewGraph::NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours_)
+NewGraph::NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours_, const int legendHeight_, const int rightMargin_)
         : OpenGLComponent(renderer_.getContext()),
           renderer(renderer_),
-          colours(colours_)
+          colours(colours_),
+          legendHeight(legendHeight_),
+          rightMargin(rightMargin_)
 {
     renderer.addComponent(*this);
 
@@ -60,8 +62,8 @@ void NewGraph::render()
     if (ticksEnabled)
     {
         // Remove top/right margins from graph plot
-        bounds.removeFromRight(UILayout::graphRightMargin);
-        bounds.removeFromTop(UILayout::graphTopMargin);
+        bounds.removeFromRight(rightMargin);
+        bounds.removeFromTop(legendHeight);
 
         static constexpr auto xTickMargin = 2;
         static constexpr auto yTickMargin = 5;
@@ -330,7 +332,7 @@ void NewGraph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, 
 void NewGraph::drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const Ticks& ticks)
 {
     // Expand drawing bounds to allow text to be drawn past the corners of the plot.
-    auto drawBounds = bounds.withRight(bounds.getRight() + UILayout::graphRightMargin);
+    auto drawBounds = bounds.withRight(bounds.getRight() + rightMargin);
     drawBounds.setLeft(yTicksLeftEdge);
     drawTicks(true, bounds, drawBounds, limits, ticks);
 }
@@ -338,7 +340,7 @@ void NewGraph::drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge
 void NewGraph::drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks)
 {
     // Expand drawing bounds to allow text to be drawn past the corners of the plot.
-    auto drawBounds = bounds.expanded(0, UILayout::graphTopMargin);
+    auto drawBounds = bounds.expanded(0, legendHeight);
     drawTicks(false, bounds, drawBounds, limits, ticks);
 }
 
