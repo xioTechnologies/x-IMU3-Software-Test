@@ -53,7 +53,7 @@ void Graph::render()
 {
     const auto bounds = toOpenGLBounds(getBoundsInMainWindow());
 
-    renderer.refreshScreen(UIColours::backgroundLight, bounds);
+    GLUtil::clear(UIColours::backgroundLight, bounds);
 
     if (settings.clearCounter > clearCounter)
     {
@@ -97,12 +97,13 @@ void Graph::render()
 
     const auto innerBounds = toOpenGLBounds(padded(getBoundsInMainWindow()));
 
-    juce::gl::glDisable(juce::gl::GL_CULL_FACE);
-    juce::gl::glDisable(juce::gl::GL_DEPTH_TEST);
+    GLUtil::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false);
+    GLUtil::ScopedCapability scopedDepth(juce::gl::GL_DEPTH_TEST, false);
 
-    juce::gl::glDisable(juce::gl::GL_LINE_SMOOTH);
-    gridLines.render(renderer.getResources(), innerBounds, axesRange, juce::Point<GLfloat>(2.0f / innerBounds.getWidth(), 2.0f / innerBounds.getHeight()));
-    juce::gl::glEnable(juce::gl::GL_LINE_SMOOTH);
+    {
+        GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false);
+        gridLines.render(renderer.getResources(), innerBounds, axesRange, juce::Point<GLfloat>(2.0f / innerBounds.getWidth(), 2.0f / innerBounds.getHeight()));
+    }
 
     // Render graph
     juce::gl::glViewport(innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight());

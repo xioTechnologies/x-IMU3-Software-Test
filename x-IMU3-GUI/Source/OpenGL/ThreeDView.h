@@ -70,4 +70,6 @@ private:
     void renderAxesForDeviceOrientation(GLResources& resources, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const;
 
     void renderAxesForWorldOrientation(GLResources& resources, const glm::mat4& axesConventionRotation) const;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ThreeDView)
 };

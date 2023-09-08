@@ -4,8 +4,11 @@
 #include <memory>
 #include "OpenGL/Common/Text.h"
 #include "OpenGL/Graph/Buffer.h"
+#include "OpenGL/Graph/LineBuffer.h"
 #include "OpenGL/Shaders/GraphDataShader.h"
 #include "OpenGL/Shaders/GraphGridShader.h"
+#include "OpenGL/Shaders/NewGraphGridShader.h"
+#include "OpenGL/Shaders/NewGraphDataShader.h"
 #include "OpenGL/Shaders/LitShader.h"
 #include "OpenGL/Shaders/ScreenSpaceLitShader.h"
 #include "OpenGL/Shaders/TextShader.h"
@@ -15,6 +18,7 @@
 #include "OpenGL/ThreeDView/OrbitCamera.h"
 #include "OpenGL/ThreeDView/PlaneModel.h"
 
+// TODO: Get rid of after eliminating old GridLines.h and other Graph usages. This is replaced with glm::vec4
 struct Vec4
 {
     GLfloat x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
@@ -46,6 +50,9 @@ public:
     Buffer gridHorizontalBuffer;
     Buffer graphDataBuffer;
 
+    LineBuffer graphGridBuffer { true };
+    LineBuffer newGraphDataBuffer { false };
+
     // Models
     Model arrow { context };
     Model board { context };
@@ -55,6 +62,8 @@ public:
 
     // Shaders
     const GraphDataShader graphDataShader { context };
+    const NewGraphDataShader newGraphDataShader { context };
+    const NewGraphGridShader newGraphGridShader { context };
     const GraphGridShader gridLinesShader { context };
     const WorldGridShader grid3DShader { context };
     const TextShader textShader { context };

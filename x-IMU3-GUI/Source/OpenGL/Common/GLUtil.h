@@ -184,7 +184,7 @@ namespace GLUtil
         juce::String uniformName;
 #endif
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Uniform)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Uniform)
     };
 
     static void setCapabilityEnabled(GLenum capability, GLboolean shouldBeEnabled)
@@ -217,6 +217,42 @@ namespace GLUtil
         GLenum capability;
         GLboolean wasEnabled;
     };
+
+    static inline void viewport(const juce::Rectangle<int>& bounds)
+    {
+        juce::gl::glViewport((GLint) bounds.getX(), (GLint) bounds.getY(), (GLsizei) bounds.getWidth(), (GLsizei) bounds.getHeight());
+    }
+
+    static inline void scissor(const juce::Rectangle<int>& bounds)
+    {
+        juce::gl::glScissor((GLint) bounds.getX(), (GLint) bounds.getY(), (GLsizei) bounds.getWidth(), (GLsizei) bounds.getHeight());
+    }
+
+    static inline void viewportAndScissor(const juce::Rectangle<int>& bounds)
+    {
+        GLUtil::viewport(bounds);
+        GLUtil::scissor(bounds);
+    }
+
+    static inline void clear(const juce::Colour& colour, const juce::Rectangle<int>& bounds)
+    {
+        GLUtil::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+        GLUtil::viewportAndScissor(bounds);
+        juce::OpenGLHelpers::clear(colour);
+    }
+
+    template<typename Type>
+    static inline constexpr bool approximatelyEqual(Type a, Type b, Type epsilon)
+    {
+        return std::fabs(a - b) <= epsilon;
+    }
+
+    static inline float roundUpToNearestMultiple(float valueToRound, float multiple)
+    {
+        float remainderToClosestMultiple = std::fmod(std::abs(valueToRound), multiple);
+        bool nearestMultipleIsLessThanValue = valueToRound > 0.0f;
+        return valueToRound + ((nearestMultipleIsLessThanValue) ? (multiple - remainderToClosestMultiple) : remainderToClosestMultiple);
+    }
 
     // Keeping around in case we need this for later potential refactor
     /*

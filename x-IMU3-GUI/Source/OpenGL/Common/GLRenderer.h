@@ -20,8 +20,6 @@ public:
 
     GLResources& getResources();
 
-    void refreshScreen(const juce::Colour& colour, const juce::Rectangle<GLint>& viewport);
-
 private:
     juce::OpenGLContext context;
 
@@ -32,9 +30,14 @@ private:
 
     std::unique_ptr<GLResources> resources;
 
+    // Reset OpenGL state to the default settings expected by our OpenGLComponents.
+    void resetDefaultOpenGLState();
+
     void newOpenGLContextCreated() override;
 
     void renderOpenGL() override;
 
     void openGLContextClosing() override;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GLRenderer)
 };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <BinaryData.h>
-#include "OpenGL/Common/GLUtil.hpp"
+#include "OpenGL/Common/GLUtil.h"
 #include "OpenGL/Common/Shader.h"
 
 class ScreenSpaceLitShader : public Shader
@@ -26,4 +26,7 @@ public:
     GLUtil::Uniform materialColour { *this, "materialColour" };
     GLUtil::Uniform isTextured { *this, "isTextured" };
     GLUtil::Uniform textureImage { *this, "textureImage" };
+
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ScreenSpaceLitShader)
 };

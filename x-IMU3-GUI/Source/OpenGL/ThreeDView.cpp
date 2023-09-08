@@ -65,7 +65,9 @@ void ThreeDView::render()
     }
 
     // Draw scene
-    renderer.refreshScreen(UIColours::backgroundDark, bounds);
+    GLUtil::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+    GLUtil::viewportAndScissor(bounds); // clip drawing to bounds
+    juce::OpenGLHelpers::clear(UIColours::backgroundDark);
 
     bool renderModelBehindWorldAndCompass = camera.getPosition().y < floorHeight; // depth sorting required by compass
     if (renderModelBehindWorldAndCompass && settings.modelEnabled)

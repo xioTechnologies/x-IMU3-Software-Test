@@ -18,9 +18,12 @@ public:
 
     void unloadFont();
 
-    GLuint getFontSize();
+    GLuint getFontSize() const;
 
     GLuint getTotalWidth();
+
+    [[nodiscard]] int getStringWidthGLPixels(const juce::String & string) const;
+    [[nodiscard]] int getStringWidthJucePixels(const juce::String & string) const;
 
     float getDescender() const;
 
@@ -30,6 +33,7 @@ public:
 
     void setScale(const juce::Point<GLfloat>& scale_);
 
+    // TODO: Unused, maybe we should remove
     void setPosition(const juce::Vector3D<GLfloat>& position_);
 
     void render(GLResources& resources);
@@ -61,7 +65,7 @@ private:
         GLint advance; //offset to advance to next glyph
     };
 
-    juce::Vector3D<GLfloat> position;
+    juce::Vector3D<GLfloat> position { 0.0f, 0.0f, 0.0f };
 
     juce::String text;
 

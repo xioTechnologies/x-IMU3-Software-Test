@@ -1,7 +1,7 @@
 #pragma once
 
 #include <BinaryData.h>
-#include "OpenGL/Common/GLUtil.hpp"
+#include "OpenGL/Common/GLUtil.h"
 #include "OpenGL/Common/Shader.h"
 
 class UnlitShader : public Shader
@@ -16,4 +16,7 @@ public:
     GLUtil::Uniform colour { *this, "colour" };
     GLUtil::Uniform isTextured { *this, "isTextured" };
     GLUtil::Uniform textureImage { *this, "textureImage" };
+
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UnlitShader)
 };

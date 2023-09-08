@@ -29,10 +29,11 @@ bool Text::loadFont(const char* data, size_t dataSize, GLuint fontSize_)
 
     FT_Set_Pixel_Sizes(freetypeFace, (FT_UInt) fontSize_, (FT_UInt) fontSize_);
 
-    juce::gl::glPixelStorei(juce::gl::GL_UNPACK_ALIGNMENT, 1);
+    juce::gl::glPixelStorei(juce::gl::GL_UNPACK_ALIGNMENT, 1); // disable OpenGL's default 4-byte alignment restriction
 
     for (int i = 0; i < 256; i++)
     {
+        // If freetype fails to load the current glyph index
         if (FT_Load_Char(freetypeFace, (FT_ULong) i, FT_LOAD_RENDER))
         {
             continue;
@@ -40,13 +41,8 @@ bool Text::loadFont(const char* data, size_t dataSize, GLuint fontSize_)
 
         GLuint freetypeTextureID;
         juce::gl::glGenTextures(1, &freetypeTextureID);
+        GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true);
         juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, freetypeTextureID);
-
-        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_MAG_FILTER, juce::gl::GL_LINEAR);
-        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_MIN_FILTER, juce::gl::GL_LINEAR);
-
-        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_WRAP_S, juce::gl::GL_CLAMP_TO_EDGE);
-        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_WRAP_T, juce::gl::GL_CLAMP_TO_EDGE);
 
         juce::gl::glTexImage2D(juce::gl::GL_TEXTURE_2D,
                                0,
@@ -58,7 +54,13 @@ bool Text::loadFont(const char* data, size_t dataSize, GLuint fontSize_)
                                juce::gl::GL_UNSIGNED_BYTE,
                                freetypeFace->glyph->bitmap.buffer);
 
-        juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, 0);
+        // Set mip map filters
+        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_MAG_FILTER, juce::gl::GL_LINEAR);
+        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_MIN_FILTER, juce::gl::GL_LINEAR);
+
+        // Set texture wrapping preferences
+        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_WRAP_S, juce::gl::GL_CLAMP_TO_EDGE);
+        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_WRAP_T, juce::gl::GL_CLAMP_TO_EDGE);
 
         Glyph glyph = { freetypeTextureID,
                         freetypeFace->glyph->bitmap.width,
@@ -87,7 +89,7 @@ void Text::unloadFont()
     alphabet.clear();
 }
 
-GLuint Text::getFontSize()
+GLuint Text::getFontSize() const
 {
     return fontSize;
 }
@@ -103,6 +105,25 @@ GLuint Text::getTotalWidth()
     }
 
     return totalWidth;
+}
+
+int Text::getStringWidthGLPixels(const juce::String& string) const
+{
+    int width = 0;
+
+    for (const auto& character : string)
+    {
+        const Glyph glyph = alphabet.at((GLchar) character);
+        // TODO: What is magic number 64.0f?
+        width += (int) std::ceil(glyph.advance / 64.0f);
+    }
+
+    return width;
+}
+
+int Text::getStringWidthJucePixels(const juce::String& string) const
+{
+    return (int) std::ceil(getStringWidthGLPixels(string) / juce::OpenGLContext::getCurrentContext()->getRenderingScale());
 }
 
 float Text::getDescender() const
@@ -125,6 +146,7 @@ void Text::setScale(const juce::Point<GLfloat>& scale_)
     scale = scale_;
 }
 
+// TODO: Unused consider removing
 void Text::setPosition(const juce::Vector3D<GLfloat>& position_)
 {
     position = position_;
@@ -146,6 +168,7 @@ void Text::renderScreenSpace(GLResources& resources, const juce::String& label, 
 
 void Text::render(GLResources& resources)
 {
+    // TODO: Unused consider removing
     auto textOrigin = position;
 
     for (size_t index = 0; index < (size_t) text.length(); index++)
@@ -190,11 +213,11 @@ void Text::render(GLResources& resources)
         resources.textBuffer.fillEbo(indices, sizeof(indices), Buffer::multipleFill);
         resources.textBuffer.fillVbo(Buffer::textureBuffer, UVs, sizeof(UVs), Buffer::multipleFill);
 
-        juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, glyph.textureID);
-
-        resources.textBuffer.render(Buffer::triangles);
-
-        juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, 0);
+        {
+            GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true);
+            juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, glyph.textureID);
+            resources.textBuffer.render(Buffer::triangles);
+        }
 
         textOrigin.x += (glyph.advance * scale.x) / 64.0f;
     }
