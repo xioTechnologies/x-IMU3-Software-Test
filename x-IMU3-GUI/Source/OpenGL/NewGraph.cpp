@@ -229,7 +229,7 @@ void NewGraph::drawData(const AxesLimits& limits, const std::vector<std::span<ju
         return;
     }
 
-    renderer.getResources().newGraphDataShader.use();
+    renderer.getResources().newGraphDataShader.use(); // TODO: define local variable for most renderer.getResources() use cases
 
     for (size_t index = 0; index < channelBuffers.size(); index++)
     {
