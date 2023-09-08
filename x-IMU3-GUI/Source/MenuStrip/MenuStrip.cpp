@@ -142,12 +142,36 @@ MenuStrip::MenuStrip(juce::ValueTree& windowLayout_, DevicePanelContainer& devic
         DialogQueue::getSingleton().pushFront(std::make_unique<ApplicationSettingsDialog>());
     };
 
-    versionButton.onClick = []
+    versionButton.onClick = [&]
     {
-        DialogQueue::getSingleton().pushFront(std::make_unique<AboutDialog>());
+        DialogQueue::getSingleton().pushFront(std::make_unique<AboutDialog>(latestVersion));
     };
     versionButton.setColour(juce::TextButton::buttonColourId, {});
     versionButton.setColour(juce::TextButton::buttonOnColourId, {});
+
+    juce::Thread::launch([&, self = SafePointer<juce::Component>(this)]
+                         {
+                             const auto parsed = juce::JSON::parse(juce::URL("https://api.github.com/repos/xioTechnologies/x-IMU3-Software/releases/latest").readEntireTextStream());
+
+                             juce::MessageManager::callAsync([&, self, parsed]
+                                                             {
+                                                                 if (self == nullptr)
+                                                                 {
+                                                                     return;
+                                                                 }
+
+                                                                 if (const auto* const object = parsed.getDynamicObject())
+                                                                 {
+                                                                     latestVersion = object->getProperty("tag_name");
+                                                                     if (latestVersion != ("v" + juce::JUCEApplication::getInstance()->getApplicationVersion()))
+                                                                     {
+                                                                         versionButton.setButtonText(versionButton.getButtonText() + "*");
+                                                                         versionButton.setTooltip(versionButton.getTooltip() + " (" + latestVersion + " available)");
+                                                                     }
+                                                                     resized();
+                                                                 }
+                                                             });
+                         });
 
     devicePanelContainer.onDevicePanelsSizeChanged = [&]
     {
@@ -256,7 +280,7 @@ void MenuStrip::addDevices(juce::PopupMenu& menu, std::function<void(DevicePanel
 
     for (auto* const devicePanel : devicePanelContainer.getDevicePanels())
     {
-        juce::PopupMenu::Item item(devicePanel->getDeviceDescriptor() + "   " + devicePanel->getConnection()->getInfo()->toString());
+        juce::PopupMenu::Item item(devicePanel->getTitle());
 
         item.action = [devicePanel, action]
         {
@@ -380,7 +404,7 @@ juce::PopupMenu MenuStrip::getWindowMenu() const
                 totalWindowSizes += (float) window.getProperty(WindowIDs::size, 1.0f);
             }
 
-            const auto newSize = (totalWindowSizes == 0.0f) ? 1.0f : (totalWindowSizes / (float) windowLayout.getRoot().getNumChildren());
+            const auto newSize = juce::exactlyEqual(totalWindowSizes, 0.0f) ? 1.0f : (totalWindowSizes / (float) windowLayout.getRoot().getNumChildren());
             windowLayout.getRoot().appendChild({ id, {{ WindowIDs::size, newSize }}}, nullptr);
         });
     };
@@ -536,7 +560,7 @@ juce::PopupMenu MenuStrip::getSendCommandMenu()
 
     addDevices(menu, [&](auto& devicePanel)
     {
-        DialogQueue::getSingleton().pushFront(std::make_unique<SendCommandDialog>("Send Command to " + devicePanel.getDeviceDescriptor(), devicePanel.getTag()), [&, devicePanel = &devicePanel]
+        DialogQueue::getSingleton().pushFront(std::make_unique<SendCommandDialog>("Send Command to " + devicePanel.getTitle(), devicePanel.getTag()), [&, devicePanel = &devicePanel]
         {
             if (auto* dialog = dynamic_cast<SendCommandDialog*>(DialogQueue::getSingleton().getActive()))
             {

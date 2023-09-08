@@ -66,17 +66,11 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
             {
                 if (saveFailedCommands.empty() == false)
                 {
-                    DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Write settings to device failed. Unable to confirm save command."));
+                    DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Unable to confirm save command."));
                     return;
                 }
 
-                devicePanel.sendCommands({{ "apply", {}}}, this, [](const auto&, const auto& applyFailedCommands)
-                {
-                    if (applyFailedCommands.empty() == false)
-                    {
-                        DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Write settings to device failed. Unable to confirm apply command."));
-                    }
-                });
+                devicePanel.sendCommands({{ "apply", {}}});
             });
         });
     };
@@ -85,7 +79,17 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
 
     saveToFileButton.onClick = [&]
     {
-        juce::FileChooser fileChooser("Save Device Settings", directory.getChildFile(devicePanel.getDeviceDescriptor()), "*.json");
+        auto fileName = settingsTree.getValue("deviceName").toString();
+        if (fileName.isEmpty())
+        {
+            fileName = "Unknown Device";
+        }
+        if (const auto serialNumber = settingsTree.getValue("serialNumber").toString(); serialNumber.isNotEmpty())
+        {
+            fileName += " " + serialNumber;
+        }
+
+        juce::FileChooser fileChooser("Save Device Settings", directory.getChildFile(fileName), "*.json");
         if (fileChooser.browseForFileToSave(true) == false)
         {
             return;
@@ -132,7 +136,7 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
                 if (defaultFailedCommands.empty() == false)
                 {
                     disableInProgress();
-                    DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm default command."));
+                    DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Unable to confirm default command."));
                     return;
                 }
 
@@ -141,19 +145,12 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
                     if (saveFailedCommands.empty() == false)
                     {
                         disableInProgress();
-                        DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm save command."));
+                        DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Unable to confirm save command."));
                         return;
                     }
 
-                    devicePanel.sendCommands({{ "apply", {}}}, this, [this](const auto&, const auto& applyFailedCommands)
+                    devicePanel.sendCommands({{ "apply", {}}}, this, [this](const auto&, const auto&)
                     {
-                        if (applyFailedCommands.empty() == false)
-                        {
-                            disableInProgress();
-                            DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Restore default device settings failed. Unable to confirm apply command."));
-                            return;
-                        }
-
                         readAllButton.onClick();
                     });
                 });

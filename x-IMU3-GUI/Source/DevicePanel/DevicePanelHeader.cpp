@@ -6,20 +6,26 @@
 DevicePanelHeader::DevicePanelHeader(DevicePanel& devicePanel_, DevicePanelContainer& devicePanelContainer_)
         : devicePanel(devicePanel_),
           devicePanelContainer(devicePanelContainer_),
-          connectionInfo(devicePanel.getConnection()->getInfo()->toString(), UIFonts::getDefaultFont())
+          connection(devicePanel.getConnection())
 {
-    addAndMakeVisible(strobeButton);
+    addAndMakeVisible(retryButton);
+    addChildComponent(strobeButton);
+    addAndMakeVisible(title);
     addAndMakeVisible(rssiIcon);
     addAndMakeVisible(batteryIcon);
-    addAndMakeVisible(deviceDescriptor);
-    addAndMakeVisible(connectionInfo);
+
+    retryButton.onClick = [&]
+    {
+        if (onRetry)
+        {
+            onRetry();
+        }
+    };
 
     strobeButton.onClick = [&]
     {
         DialogQueue::getSingleton().pushFront(std::make_unique<SendingCommandDialog>(CommandMessage("strobe", {}), std::vector<DevicePanel*> { &devicePanel }));
     };
-
-    deviceDescriptor.setText(getDeviceDescriptor());
 
     networkAnnouncementCallbackID = networkAnnouncement->addCallback(networkAnnouncementCallback = [&](auto message)
     {
@@ -40,32 +46,9 @@ DevicePanelHeader::DevicePanelHeader(DevicePanel& devicePanel_, DevicePanelConta
         updateBattery((int) message.percentage, (ximu3::XIMU3_ChargingStatus) message.charging_status);
     });
 
-    juce::Thread::launch([&, connection = devicePanel.getConnection(), pingInProgress = pingInProgress]
-                         {
-                             while (*pingInProgress)
-                             {
-                                 auto response = connection->ping();
-
-                                 if (response.result == ximu3::XIMU3_ResultOk)
-                                 {
-                                     juce::MessageManager::callAsync([&, pingInProgress, response]
-                                                                     {
-                                                                         if (pingInProgress->exchange(false) == false)
-                                                                         {
-                                                                             return;
-                                                                         }
-
-                                                                         deviceName = response.device_name;
-                                                                         serialNumber = response.serial_number;
-                                                                         deviceDescriptor.setText(getDeviceDescriptor());
-                                                                         resized();
-                                                                     });
-                                     return;
-                                 }
-                             }
-                         });
-
     setMouseCursor(juce::MouseCursor::DraggingHandCursor);
+
+    setState(State::connecting);
 }
 
 DevicePanelHeader::~DevicePanelHeader()
@@ -74,7 +57,7 @@ DevicePanelHeader::~DevicePanelHeader()
     devicePanel.getConnection()->removeCallback(rssiCallbackID);
     devicePanel.getConnection()->removeCallback(batteryCallbackID);
 
-    *pingInProgress = false;
+    *destroyed = true;
 }
 
 void DevicePanelHeader::paint(juce::Graphics& g)
@@ -92,21 +75,18 @@ void DevicePanelHeader::resized()
 
     bounds.removeFromLeft(UILayout::tagWidth);
 
-    strobeButton.setBounds(bounds.removeFromLeft(bounds.getHeight()));
+    retryButton.setBounds(bounds.removeFromLeft(bounds.getHeight()));
+    strobeButton.setBounds(retryButton.getBounds());
     bounds.removeFromLeft(margin);
 
-    const auto deviceDescriptorWidth = (int) std::ceil(deviceDescriptor.getTextWidth());
-    const auto connectionInfoWidth = (int) std::ceil(connectionInfo.getTextWidth());
-    const auto iconWidth = juce::jlimit(IconAndText::minimumWidth, IconAndText::maximumWidth, (int) (bounds.getWidth() - deviceDescriptorWidth - connectionInfoWidth - 3 * margin) / 2);
+    const auto showIconText = getWidth() > 500;
 
-    batteryIcon.setBounds(bounds.removeFromRight(iconWidth));
+    batteryIcon.setBounds(bounds.removeFromRight(batteryIcon.getWidth(showIconText)));
     bounds.removeFromRight(margin);
-    rssiIcon.setBounds(bounds.removeFromRight(iconWidth));
+    rssiIcon.setBounds(bounds.removeFromRight(rssiIcon.getWidth(showIconText)));
     bounds.removeFromRight(margin);
 
-    deviceDescriptor.setBounds(bounds.removeFromLeft(deviceDescriptorWidth));
-    bounds.removeFromLeft(margin);
-    connectionInfo.setBounds(bounds.removeFromLeft(connectionInfoWidth));
+    title.setBounds(bounds);
 }
 
 void DevicePanelHeader::mouseDown(const juce::MouseEvent& mouseEvent)
@@ -144,31 +124,79 @@ void DevicePanelHeader::mouseUp(const juce::MouseEvent& mouseEvent)
     }
 }
 
-void DevicePanelHeader::updateDeviceDescriptor(const std::vector<CommandMessage>& responses)
+void DevicePanelHeader::setState(const State state)
+{
+    switch (state)
+    {
+        case State::connecting:
+            updateTitle("Connecting");
+            retryButton.setEnabled(false);
+            break;
+
+        case State::connected:
+            updateTitle("Pinging");
+            retryButton.setVisible(false);
+            strobeButton.setVisible(true);
+            juce::Thread::launch([&, connection = connection, destroyed = destroyed]
+                                 {
+                                     while (*destroyed == false)
+                                     {
+                                         auto response = connection->ping();
+
+                                         if (response.result == ximu3::XIMU3_ResultOk)
+                                         {
+                                             juce::MessageManager::callAsync([&, connection, destroyed, response]
+                                                                             {
+                                                                                 if (*destroyed)
+                                                                                 {
+                                                                                     return;
+                                                                                 }
+
+                                                                                 updateTitle(response.device_name, response.serial_number);
+                                                                             });
+                                             return;
+                                         }
+                                     }
+                                 });
+            break;
+
+        case State::connectionFailed:
+            updateTitle("Connection Failed");
+            retryButton.setEnabled(true);
+            break;
+    }
+}
+
+juce::String DevicePanelHeader::getTitle() const
+{
+    return title.getText();
+}
+
+void DevicePanelHeader::updateTitle(const std::vector<CommandMessage>& responses)
 {
     for (const auto& response : responses)
     {
         if (CommandMessage::normaliseKey(response.key) == CommandMessage::normaliseKey("deviceName"))
         {
-            deviceName = response.value;
+            updateTitle(response.value, serialNumber);
         }
         else if (CommandMessage::normaliseKey(response.key) == CommandMessage::normaliseKey("serialNumber"))
         {
-            serialNumber = response.value;
+            updateTitle(deviceName, response.value);
         }
     }
-
-    deviceDescriptor.setText(getDeviceDescriptor());
-    resized();
 }
 
-juce::String DevicePanelHeader::getDeviceDescriptor() const
+void DevicePanelHeader::updateTitle(const juce::String& deviceName_, const juce::String& serialNumber_)
 {
-    if (*pingInProgress)
-    {
-        return "Unknown Device";
-    }
-    return deviceName + " - " + serialNumber;
+    deviceName = deviceName_;
+    serialNumber = serialNumber_;
+    updateTitle(deviceName + " " + serialNumber);
+}
+
+void DevicePanelHeader::updateTitle(const juce::String& status)
+{
+    title.setText(status + "    " + connection->getInfo()->toString());
 }
 
 void DevicePanelHeader::updateRssi(const int percentage)
