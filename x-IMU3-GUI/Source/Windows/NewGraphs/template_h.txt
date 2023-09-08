@@ -1,0 +1,18 @@
+#pragma once
+
+#include "NewGraphWindow.h"
+#include "Ximu3.hpp"
+
+class New$name$GraphWindow : public NewGraphWindow
+{
+public:
+    New$name$GraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer);
+
+    ~New$name$GraphWindow() override;
+
+private:
+    static juce::ValueTree settingsTree_;
+
+    std::vector<uint64_t> callbackIDs;
+$callback_declarations$
+};
