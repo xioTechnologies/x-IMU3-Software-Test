@@ -41,7 +41,6 @@ public:
 
 private:
     GLRenderer& renderer;
-    GLResources& resources = renderer.getResources();
     const std::vector<juce::Colour> colours;
 
     mutable std::mutex settingsMutex;
@@ -51,9 +50,9 @@ private:
 
     std::atomic<bool> ticksEnabled { false };
 
-    static constexpr GLfloat majorTickColorBrightness = 0.65f;
-    static constexpr GLfloat minorTickColorBrightness = 0.45f;
-    static constexpr GLfloat borderColorBrightness = 0.65f;
+    static constexpr GLfloat majorTickBrightness = 0.65f;
+    static constexpr GLfloat minorTickBrightness = 0.45f;
+    static constexpr GLfloat borderBrightness = 0.65f;
 
     static float engineeringValueToNDC(float value, const AxisLimits& axisLimits); // map to OpenGL Normalized Device Coordinates (NDC) with values ranging from -1.0 to 1.0
 

@@ -15,7 +15,6 @@ namespace UIColours
     static const juce::Colour graphRed = juce::Colour::fromRGB(224, 32, 32);
     static const juce::Colour graphBlue = juce::Colour::fromRGB(50, 197, 255);
     static const juce::Colour graphGreen = juce::Colour::fromRGB(109, 212, 0);
-    static const juce::Colour graphText = juce::Colours::grey; // TODO: Review with Tim
 
     static const std::vector<juce::Colour> tags =
             {

@@ -38,29 +38,25 @@ void NewGraphWindow::paint(juce::Graphics& g)
         return;
     }
 
-    // Draw background colour, but do not draw on top of the portions rendered by OpenGL.
-    {
-        juce::Graphics::ScopedSaveState scopedState(g);
-        g.excludeClipRegion(graph.getBounds().withRight(graph.getBounds().getRight() + UILayout::graphRightMargin));
-        g.fillAll(UIColours::backgroundLight);
-    }
+    // Draw background
+    juce::RectangleList<int> backgroundBounds(getLocalBounds());
+    backgroundBounds.subtract(graph.getBounds());
+    g.setColour(UIColours::backgroundLight);
+    g.fillRectList (backgroundBounds);
 
-    // Draw legend strings with colors at the top of the graph
-    auto settings = graph.getSettings();
+    // Draw legend
+    static constexpr int margin = 10;
 
-    // TODO: Use labels instead?
-    auto bounds = getContentBounds();
-    auto legendBounds = bounds.removeFromTop(labelHeight);
-    legendBounds.reduce(UILayout::graphRightMargin, 0);
-    auto font = UIFonts::getDefaultFont();
+    const auto settings = readFromValueTree();
+    auto legendBounds = getContentBounds().removeFromTop(UILayout::graphTopMargin).reduced(UILayout::graphRightMargin, 0);
+    const auto font = UIFonts::getDefaultFont();
     g.setFont(font);
-    static constexpr int legendStringGap = 10;
 
     for (int index = numberOfChannels - 1; index >= 0; index--)
     {
-        auto legendString = legendStrings[(size_t) index];
-        g.setColour(settings.enabledChannels[(size_t) index] ? legendColours[(size_t) index] : UIColours::graphText);
-        g.drawText(legendString, legendBounds.removeFromRight(font.getStringWidth(legendString) + legendStringGap), juce::Justification::centredRight);
+        const auto legendString = legendStrings[(size_t) index];
+        g.setColour(settings.enabledChannels[(size_t) index] ? legendColours[(size_t) index] : juce::Colours::grey);
+        g.drawText(legendString, legendBounds.removeFromRight(font.getStringWidth(legendString) + margin), juce::Justification::centredRight);
     }
 }
 
@@ -77,6 +73,8 @@ void NewGraphWindow::resized()
 
     if (compactView == false)
     {
+        const int labelHeight = 25;
+
         xLabel.setBounds(graphArea.removeFromBottom(labelHeight).withTrimmedLeft(labelHeight));
 
         // Rotate Y label vertical

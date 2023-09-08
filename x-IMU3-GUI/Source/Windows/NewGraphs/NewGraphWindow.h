@@ -32,9 +32,6 @@ protected:
     static const juce::String degreeSymbol;
 
 private:
-    static constexpr int labelPadding = 8;
-    const int labelHeight = juce::roundToInt(UIFonts::getDefaultFont().getHeight()) + labelPadding;
-
     const std::vector<juce::String> legendStrings;
     const std::vector<juce::Colour> legendColours;
     const bool defaultHorizontalAutoscale;

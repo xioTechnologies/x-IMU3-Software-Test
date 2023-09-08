@@ -145,7 +145,7 @@ void NewGraph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Tic
         // Add line to grid based on position in graph units
         auto addLine = [&](float position, bool isMajorTick)
         {
-            float tickBrightness = isMajorTick ? majorTickColorBrightness : minorTickColorBrightness;
+            float tickBrightness = isMajorTick ? majorTickBrightness : minorTickBrightness;
             const float ndcPosition = engineeringValueToNDC(position, axisLimits);
             if (areVertical)
             {
@@ -202,19 +202,19 @@ void NewGraph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Tic
 
     // Border lines
     lines.insert(lines.end(), {
-            -1.0f, -1.0f, borderColorBrightness, -1.0f, 1.0f, borderColorBrightness, // left edge
-            1.0f, -1.0f, borderColorBrightness, 1.0f, 1.0f, borderColorBrightness, // right edge
-            -1.0f, 1.0f, borderColorBrightness, 1.0f, 1.0f, borderColorBrightness, // top edge
-            -1.0f, -1.0f, borderColorBrightness, 1.0f, -1.0f, borderColorBrightness // bottom edge
+            -1.0f, -1.0f, borderBrightness, -1.0f, 1.0f, borderBrightness, // left edge
+            1.0f, -1.0f, borderBrightness, 1.0f, 1.0f, borderBrightness, // right edge
+            -1.0f, 1.0f, borderBrightness, 1.0f, 1.0f, borderBrightness, // top edge
+            -1.0f, -1.0f, borderBrightness, 1.0f, -1.0f, borderBrightness // bottom edge
     });
 
     // Draw lines
     GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
 
-    auto& newGraphGridShader = resources.newGraphGridShader;
+    auto& newGraphGridShader = renderer.getResources().newGraphGridShader;
     newGraphGridShader.use();
 
-    auto& gridBuffer = resources.graphGridBuffer;
+    auto& gridBuffer = renderer.getResources().graphGridBuffer;
     gridBuffer.fillBuffers(lines);
     gridBuffer.draw(juce::gl::GL_LINES);
 }
@@ -227,7 +227,7 @@ void NewGraph::drawData(const AxesLimits& limits, const std::vector<std::span<ju
         return;
     }
 
-    resources.newGraphDataShader.use();
+    renderer.getResources().newGraphDataShader.use();
 
     for (size_t index = 0; index < channelBuffers.size(); index++)
     {
@@ -245,9 +245,9 @@ void NewGraph::drawData(const AxesLimits& limits, const std::vector<std::span<ju
             lines.insert(lines.end(), { xNDC, yNDC });
         }
 
-        resources.newGraphDataShader.colour.setRGBA(colours[index]);
-        resources.newGraphDataBuffer.fillBuffers(lines);
-        resources.newGraphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
+        renderer.getResources().newGraphDataShader.colour.setRGBA(colours[index]);
+        renderer.getResources().newGraphDataBuffer.fillBuffers(lines);
+        renderer.getResources().newGraphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
     }
 }
 
@@ -263,7 +263,7 @@ void NewGraph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, 
     GLUtil::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false); // TODO: Why is this necessary??
     GLUtil::ScopedCapability scopedDepthTest(juce::gl::GL_DEPTH_TEST, false); // do not hide text based on depth
 
-    auto& text = resources.getGraphAxisValuesText();
+    auto& text = renderer.getResources().getGraphAxisValuesText();
     const int distanceOfPlotAxis = isXTicks ? glPlotBounds.getWidth() : glPlotBounds.getHeight();
     const int plotStartOffset = isXTicks ? glPlotBounds.getX() - glDrawBounds.getX() : glPlotBounds.getY() - glDrawBounds.getY();
     auto labelsToDraw = ticks.labels;
@@ -323,7 +323,7 @@ void NewGraph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, 
         const auto x = isXTicks ? offsetAlongAxis : offsetTowardsAxis;
         const auto y = isXTicks ? offsetTowardsAxis : offsetAlongAxis;
 
-        drawText(resources, glDrawBounds, text, label.text, UIColours::graphText, x, y, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
+        drawText(renderer.getResources(), glDrawBounds, text, label.text, juce::Colours::grey, x, y, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
     }
 }
 
