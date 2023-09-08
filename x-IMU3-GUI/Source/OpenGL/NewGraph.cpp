@@ -7,11 +7,7 @@ NewGraph::NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colou
 {
     renderer.addComponent(*this);
 
-    // TEMP: give axes limits test values
-    std::scoped_lock _(settingsMutex);
-    settings.axesLimits.setXLimits(-5.64f, 0.0f);
-    settings.axesLimits.setYLimits(-1.5f, 1.5f);
-    settings.enabledChannels.resize(colours.size(), true);
+    setSettings(settings);
 }
 
 NewGraph::~NewGraph()
@@ -19,7 +15,7 @@ NewGraph::~NewGraph()
     renderer.removeComponent(*this);
 }
 
-void NewGraph::setSettings(const Settings& settings_)
+void NewGraph::setSettings(Settings settings_)
 {
     std::scoped_lock _(settingsMutex);
     settings = settings_;
@@ -38,7 +34,7 @@ void NewGraph::setTicksEnabled(const bool enabled)
 
 void NewGraph::clear()
 {
-    // TODO: Implement
+    buffer.clear();
 }
 
 void NewGraph::write(const uint64_t timestamp, const std::vector<float>& values)

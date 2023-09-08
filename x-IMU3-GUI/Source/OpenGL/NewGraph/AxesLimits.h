@@ -6,6 +6,9 @@
 class AxisLimits
 {
 public:
+    float min = 0.0f;
+    float max = 1.0f;
+
     AxisLimits() = default;
 
     AxisLimits(const AxisLimits& other)
@@ -17,6 +20,10 @@ public:
     {
         setLimits(other.min, other.max);
         return *this;
+    }
+
+    AxisLimits(float min_, float max_) : min(min_), max(max_)
+    {
     }
 
     [[nodiscard]] float getMin() const
@@ -64,9 +71,6 @@ public:
     }
 
 private:
-    float min = 0.0f;
-    float max = 1.0f;
-
     void ensureValidRange()
     {
         // NaN checks
@@ -116,6 +120,9 @@ private:
 class AxesLimits
 {
 public:
+    AxisLimits x { -5.64f, 0.0f };
+    AxisLimits y { -1.5f, 1.5f };
+
     [[nodiscard]] const AxisLimits& getXLimits() const
     {
         return x;
@@ -225,6 +232,5 @@ public:
     }
 
 private:
-    AxisLimits x;
-    AxisLimits y;
+
 };

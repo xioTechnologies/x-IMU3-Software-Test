@@ -25,7 +25,7 @@ public:
 
     void render() override;
 
-    void setSettings(const Settings& settings_);
+    void setSettings(Settings settings_);
 
     Settings getSettings() const;
 
