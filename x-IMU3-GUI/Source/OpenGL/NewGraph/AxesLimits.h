@@ -115,7 +115,6 @@ private:
 class AxesLimits
 {
 public:
-
     [[nodiscard]] const AxisLimits& getXLimits() const
     {
         return x;

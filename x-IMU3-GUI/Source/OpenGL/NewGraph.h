@@ -1,12 +1,12 @@
 #pragma once
 
-#include "OpenGLComponent.h"
+#include "../CustomLookAndFeel.h"
 #include "Common/GLRenderer.h"
 #include "Common/GLUtil.h"
 #include "NewGraph/AxesLimits.h"
 #include "NewGraph/NewBuffer.h"
 #include "NewGraph/Ticks.h"
-#include "../CustomLookAndFeel.h"
+#include "OpenGLComponent.h"
 
 class NewGraph : public OpenGLComponent
 {

@@ -1,6 +1,6 @@
-#include "NewGraphWindow.h"
-#include "../../Widgets/PopupMenuHeader.h"
 #include "../../DevicePanel/DevicePanel.h"
+#include "../../Widgets/PopupMenuHeader.h"
+#include "NewGraphWindow.h"
 
 NewGraphWindow::NewGraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer, std::vector<juce::String> legendStrings_, std::vector<juce::Colour> legendColours_)
         : Window(devicePanel_, windowLayout_, type_, "", std::bind(&NewGraphWindow::getMenu, this)),

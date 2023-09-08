@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Window.h"
-#include "../../Widgets/SimpleLabel.h"
 #include "../../OpenGL/NewGraph.h"
+#include "../../Widgets/SimpleLabel.h"
+#include "../Window.h"
 #include "Ximu3.hpp"
 
 class NewGraphWindow : public Window
