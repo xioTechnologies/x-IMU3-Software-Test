@@ -57,6 +57,7 @@ void NewGraphWindow::paint(juce::Graphics& g)
         return;
     }
 
+    // TODO: Use labels instead?
     auto bounds = getContentBounds();
     auto legendBounds = bounds.removeFromTop(labelHeight);
     legendBounds.reduce(UILayout::graphRightMargin, 0);

@@ -2,6 +2,7 @@
 
 #include <juce_opengl/juce_opengl.h>
 
+// TODO: Move to NewGraph?
 class LineBuffer
 {
 public:

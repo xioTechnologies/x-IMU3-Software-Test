@@ -54,6 +54,7 @@ public:
 
 private:
     GLRenderer& renderer;
+    GLResources& resources = renderer.getResources();
     const Settings& settings;
     std::atomic<float> quaternionX { 0.0f }, quaternionY { 0.0f }, quaternionZ { 0.0f }, quaternionW { 1.0f };
 

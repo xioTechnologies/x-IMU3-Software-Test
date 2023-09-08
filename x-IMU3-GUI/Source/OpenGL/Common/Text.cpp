@@ -2,7 +2,7 @@
 #include "OpenGL/Common/GLResources.h"
 #include "Text.h"
 
-static FT_Library freetypeLibrary;
+static FT_Library freetypeLibrary; // TODO: Make member of Initializer and rename Initializer
 
 Text::Initializer::Initializer()
 {
@@ -41,7 +41,7 @@ bool Text::loadFont(const char* data, size_t dataSize, GLuint fontSize_)
 
         GLuint freetypeTextureID;
         juce::gl::glGenTextures(1, &freetypeTextureID);
-        GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true);
+        GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true); // TODO: Rename to _
         juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, freetypeTextureID);
 
         juce::gl::glTexImage2D(juce::gl::GL_TEXTURE_2D,

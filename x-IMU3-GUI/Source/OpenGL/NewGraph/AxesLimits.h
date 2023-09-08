@@ -2,6 +2,7 @@
 
 #include <span>
 
+// TODO: Simplify
 class AxisLimits
 {
 public:

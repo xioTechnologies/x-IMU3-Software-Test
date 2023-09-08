@@ -19,7 +19,7 @@ public:
         std::vector<bool> enabledChannels;
     };
 
-    NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours);
+    NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours_);
 
     ~NewGraph() override;
 
@@ -41,15 +41,15 @@ public:
 
 private:
     GLRenderer& renderer;
+    GLResources& resources = renderer.getResources();
+    const std::vector<juce::Colour> colours;
 
     mutable std::mutex settingsMutex;
     Settings settings;
 
-    NewBuffer buffer;
+    NewBuffer buffer { (int) colours.size() };
 
     std::atomic<bool> ticksEnabled { false };
-
-    const std::vector<juce::Colour> legendColours;
 
     static constexpr GLfloat majorTickColorBrightness = 0.65f;
     static constexpr GLfloat minorTickColorBrightness = 0.45f;
@@ -63,11 +63,12 @@ private:
 
     void drawData(const AxesLimits& limits, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels);
 
+    // TODO: Match order of .cpp
     void drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const Ticks& ticks);
 
     void drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks);
 
-    void drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks);
+    void drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks); // TODO: remove isXTicks
 
     static void drawText(GLResources& resources, const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification);
 

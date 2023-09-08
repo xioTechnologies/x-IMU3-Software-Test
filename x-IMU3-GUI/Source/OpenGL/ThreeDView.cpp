@@ -31,7 +31,6 @@ ThreeDView::~ThreeDView()
 void ThreeDView::render()
 {
     const auto bounds = toOpenGLBounds(getBoundsInMainWindow());
-    auto& resources = renderer.getResources();
     auto& camera = resources.orbitCamera;
 
     // Update camera for current component view settings
@@ -106,7 +105,7 @@ void ThreeDView::update(const float x, const float y, const float z, const float
 
 void ThreeDView::setCustomModel(const juce::File& file)
 {
-    renderer.getResources().custom.setModel(file);
+    resources.custom.setModel(file);
 }
 
 bool ThreeDView::isLoading() const
@@ -114,11 +113,11 @@ bool ThreeDView::isLoading() const
     switch (settings.model.load())
     {
         case Model::board:
-            return renderer.getResources().board.isLoading();
+            return resources.board.isLoading();
         case Model::housing:
-            return renderer.getResources().housing.isLoading();
+            return resources.housing.isLoading();
         case Model::custom:
-            return renderer.getResources().custom.isLoading();
+            return resources.custom.isLoading();
     }
     return false;
 }
@@ -256,7 +255,7 @@ void ThreeDView::renderAxesInstance(GLResources& resources, const glm::mat4& mod
     {
         GLUtil::ScopedCapability _(juce::gl::GL_CULL_FACE, false); // TODO: why does Text need culling disabled?
 
-        renderer.getResources().textShader.use();
+        resources.textShader.use();
 
         const auto textDistanceFromOrigin = 1.3f;
         const auto textDistanceFromOriginZ = textDistanceFromOrigin * inverseScreenScale;

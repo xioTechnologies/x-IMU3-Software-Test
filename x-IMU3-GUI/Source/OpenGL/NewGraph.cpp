@@ -1,10 +1,9 @@
 #include "NewGraph.h"
 
-NewGraph::NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours)
+NewGraph::NewGraph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours_)
         : OpenGLComponent(renderer_.getContext()),
           renderer(renderer_),
-          buffer((int) colours.size()),
-          legendColours(colours)
+          colours(colours_)
 {
     renderer.addComponent(*this);
 
@@ -44,8 +43,6 @@ void NewGraph::clear()
 
 void NewGraph::write(const uint64_t timestamp, const std::vector<float>& values)
 {
-    // TODO: return if paused
-
     buffer.write(timestamp, values);
 }
 
@@ -218,8 +215,6 @@ void NewGraph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Tic
     // Draw lines
     GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
 
-    auto& resources = renderer.getResources();
-
     auto& newGraphGridShader = resources.newGraphGridShader;
     newGraphGridShader.use();
 
@@ -230,16 +225,17 @@ void NewGraph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Tic
 
 void NewGraph::drawData(const AxesLimits& limits, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
 {
-    auto& resources = renderer.getResources();
+    if ((channelBuffers.size() != enabledChannels.size()) || (channelBuffers.size() != colours.size()))
+    {
+        jassertfalse;
+        return;
+    }
 
-    auto& newGraphDataShader = resources.newGraphDataShader;
-    newGraphDataShader.use();
-
-    auto& graphDataBuffer = resources.newGraphDataBuffer;
+    resources.newGraphDataShader.use();
 
     for (size_t index = 0; index < channelBuffers.size(); index++)
     {
-        if (index < enabledChannels.size() && (enabledChannels[index] == false))
+        if (enabledChannels[index] == false)
         {
             continue;
         }
@@ -253,18 +249,14 @@ void NewGraph::drawData(const AxesLimits& limits, const std::vector<std::span<ju
             lines.insert(lines.end(), { xNDC, yNDC });
         }
 
-        juce::Colour lineColour = (index < legendColours.size()) ? legendColours[index] : UIColours::graphRed;
-
-        newGraphDataShader.colour.setRGBA(lineColour);
-        graphDataBuffer.fillBuffers(lines);
-        graphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
+        resources.newGraphDataShader.colour.setRGBA(colours[index]);
+        resources.newGraphDataBuffer.fillBuffers(lines);
+        resources.newGraphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
     }
 }
 
 void NewGraph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks)
 {
-    auto& resources = renderer.getResources();
-
     // Set rendering bounds, expanded to allow drawing past graph edges
     auto glPlotBounds = toOpenGLBounds(plotBounds); // only plot area
     auto glDrawBounds = toOpenGLBounds(drawBounds); // full area allowed to draw text
@@ -298,7 +290,7 @@ void NewGraph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, 
             return leftEdgeX < (float) glDrawBounds.getX() || rightEdgeX > (float) glDrawBounds.getRight();
         }), labelsToDraw.end());
 
-        auto areAnyLabelsTooClose = [&]()
+        auto areAnyLabelsTooClose = [&]
         {
             // Check each pair of labels to see if they are too close
             constexpr float minimumSpaceBetweenLabels = 8.0f;

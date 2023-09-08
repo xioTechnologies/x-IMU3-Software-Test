@@ -6,6 +6,8 @@
 #include "glm/vec4.hpp"
 #include <juce_opengl/juce_opengl.h>
 
+// TODO: rename to Helpers?
+// TODO: use namespace instead of prefix GL
 namespace GLUtil
 {
     /** Represents an OpenGL uniform value.

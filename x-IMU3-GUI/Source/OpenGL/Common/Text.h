@@ -22,7 +22,7 @@ public:
 
     GLuint getTotalWidth();
 
-    [[nodiscard]] int getStringWidthGLPixels(const juce::String& string) const;
+    [[nodiscard]] int getStringWidthGLPixels(const juce::String& string) const; // TODO: Remove [[nodiscard]]
 
     [[nodiscard]] int getStringWidthJucePixels(const juce::String& string) const;
 
@@ -42,7 +42,6 @@ public:
     void renderScreenSpace(GLResources& resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform);
 
 private:
-
     class Initializer
     {
     public:
@@ -66,7 +65,7 @@ private:
         GLint advance; //offset to advance to next glyph
     };
 
-    juce::Vector3D<GLfloat> position { 0.0f, 0.0f, 0.0f };
+    juce::Vector3D<GLfloat> position;
 
     juce::String text;
 
