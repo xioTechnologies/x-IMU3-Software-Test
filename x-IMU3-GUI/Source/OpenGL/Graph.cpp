@@ -17,33 +17,6 @@ Graph::~Graph()
     renderer.removeComponent(*this);
 }
 
-void Graph::setSettings(Settings settings_)
-{
-    std::scoped_lock _(settingsMutex);
-    settings = settings_;
-}
-
-Graph::Settings Graph::getSettings() const
-{
-    std::scoped_lock _(settingsMutex);
-    return settings;
-}
-
-void Graph::setTicksEnabled(const bool enabled)
-{
-    ticksEnabled = enabled;
-}
-
-void Graph::clear()
-{
-    buffer.clear();
-}
-
-void Graph::write(const uint64_t timestamp, const std::vector<float>& values)
-{
-    buffer.write(timestamp, values);
-}
-
 void Graph::render()
 {
     std::scoped_lock _(settingsMutex);
@@ -95,6 +68,48 @@ void Graph::render()
 
     plotWidthJUCEPixels = (float) bounds.getWidth();
     plotHeightJUCEPixels = (float) bounds.getHeight();
+}
+
+void Graph::setSettings(Settings settings_)
+{
+    std::scoped_lock _(settingsMutex);
+    settings = settings_;
+}
+
+Graph::Settings Graph::getSettings() const
+{
+    std::scoped_lock _(settingsMutex);
+    return settings;
+}
+
+void Graph::setTicksEnabled(const bool enabled)
+{
+    ticksEnabled = enabled;
+}
+
+void Graph::clear()
+{
+    buffer.clear();
+}
+
+void Graph::write(const uint64_t timestamp, const std::vector<float>& values)
+{
+    buffer.write(timestamp, values);
+}
+
+float Graph::engineeringValueToNDC(float value, const AxisLimits& axisLimits)
+{
+    return (((value - axisLimits.min) / axisLimits.getRange()) * 2.0f) - 1.0f;
+}
+
+int Graph::getMaximumStringWidth(const Ticks& ticks, const Text& text)
+{
+    int maxStringWidth = 0;
+    for (const auto& label : ticks.labels)
+    {
+        maxStringWidth = std::max(maxStringWidth, text.getStringWidthJucePixels(label.text));
+    }
+    return maxStringWidth;
 }
 
 void Graph::drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
@@ -220,8 +235,8 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
         return;
     }
 
-    auto & graphDataShader = resources->graphDataShader;
-    auto & graphDataBuffer = resources->graphDataBuffer;
+    auto& graphDataShader = resources->graphDataShader;
+    auto& graphDataBuffer = resources->graphDataBuffer;
     graphDataShader.use();
     graphDataShader.axisLimitsRange.set({ limits.x.getRange(), limits.y.getRange() });
     graphDataShader.axisLimitsMin.set({ limits.x.min, limits.y.min });
@@ -237,6 +252,21 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
         graphDataBuffer.fillBuffers(channelBuffers[index]);
         graphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
     }
+}
+
+void Graph::drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const Ticks& ticks)
+{
+    // Expand drawing bounds to allow text to be drawn past the corners of the plot.
+    auto drawBounds = bounds.withRight(bounds.getRight() + rightMargin);
+    drawBounds.setLeft(yTicksLeftEdge);
+    drawTicks(true, bounds, drawBounds, limits, ticks);
+}
+
+void Graph::drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks)
+{
+    // Expand drawing bounds to allow text to be drawn past the corners of the plot.
+    auto drawBounds = bounds.expanded(0, legendHeight);
+    drawTicks(false, bounds, drawBounds, limits, ticks);
 }
 
 void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks)
@@ -315,24 +345,9 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     }
 }
 
-void Graph::drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const Ticks& ticks)
-{
-    // Expand drawing bounds to allow text to be drawn past the corners of the plot.
-    auto drawBounds = bounds.withRight(bounds.getRight() + rightMargin);
-    drawBounds.setLeft(yTicksLeftEdge);
-    drawTicks(true, bounds, drawBounds, limits, ticks);
-}
-
-void Graph::drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks)
-{
-    // Expand drawing bounds to allow text to be drawn past the corners of the plot.
-    auto drawBounds = bounds.expanded(0, legendHeight);
-    drawTicks(false, bounds, drawBounds, limits, ticks);
-}
-
 void Graph::drawText(const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification)
 {
-    auto & textShader = resources->textShader;
+    auto& textShader = resources->textShader;
     textShader.use();
     textShader.colour.setRGBA(colour);
     text.setText(label);
@@ -363,19 +378,4 @@ void Graph::drawText(const juce::Rectangle<int>& openGLBounds, Text& text, const
     textShader.transformation.setMatrix4(translation.mat, 1, false);
 
     text.render(resources);
-}
-
-float Graph::engineeringValueToNDC(float value, const AxisLimits& axisLimits)
-{
-    return (((value - axisLimits.min) / axisLimits.getRange()) * 2.0f) - 1.0f;
-}
-
-int Graph::getMaximumStringWidth(const Ticks& ticks, const Text& text)
-{
-    int maxStringWidth = 0;
-    for (const auto& label : ticks.labels)
-    {
-        maxStringWidth = std::max(maxStringWidth, text.getStringWidthJucePixels(label.text));
-    }
-    return maxStringWidth;
 }

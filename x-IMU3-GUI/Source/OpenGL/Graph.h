@@ -65,7 +65,6 @@ private:
 
     void drawData(const AxesLimits& limits, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels);
 
-    // TODO: Match order of .cpp
     void drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const Ticks& ticks);
 
     void drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks);
