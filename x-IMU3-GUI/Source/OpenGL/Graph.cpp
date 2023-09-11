@@ -233,15 +233,8 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
             continue;
         }
 
-        // Convert to raw floats for OpenGL buffer
-        std::vector<GLfloat> lines;
-        for (const auto& point : channelBuffers[index])
-        {
-            lines.insert(lines.end(), { point.x, point.y });
-        }
-
         renderer.getResources().graphDataShader.colour.setRGBA(colours[index]);
-        renderer.getResources().graphDataBuffer.fillBuffers(lines);
+        renderer.getResources().graphDataBuffer.fillBuffers(channelBuffers[index]);
         renderer.getResources().graphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
     }
 }
