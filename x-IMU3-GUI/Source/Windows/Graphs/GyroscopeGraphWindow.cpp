@@ -2,17 +2,22 @@
 
 #include "../../Convert.h"
 #include "GyroscopeGraphWindow.h"
+#include "../../DevicePanel/DevicePanel.h"
 
-Graph::Settings GyroscopeGraphWindow::settings = Graph::Settings(false);
+juce::ValueTree GyroscopeGraphWindow::settingsTree_("GyroscopeGraphSettings");
 
 GyroscopeGraphWindow::GyroscopeGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
-        : GraphWindow(windowLayout, type_, devicePanel_, glRenderer, "Angular velocity (" + degreeSymbol + "/s)", {{ "X", UIColours::graphRed },
-                                                                                                                   { "Y", UIColours::graphGreen },
-                                                                                                                   { "Z", UIColours::graphBlue }}, settings, Graph::Settings(false))
+        : GraphWindow(windowLayout, type_, devicePanel_,
+                         glRenderer,
+                         "Angular velocity (" + degreeSymbol + "/s)",
+                         { "X", "Y", "Z" },
+                         { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                         settingsTree_,
+                         false)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addInertialCallback(inertialCallback = [&](auto message)
     {
-        update(message.timestamp, { message.gyroscope_x, message.gyroscope_y, message.gyroscope_z });
+        write(message.timestamp, { message.gyroscope_x, message.gyroscope_y, message.gyroscope_z });
     }));
 }
 

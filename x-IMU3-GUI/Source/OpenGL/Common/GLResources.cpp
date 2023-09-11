@@ -27,19 +27,7 @@ GLResources::GLResources(juce::OpenGLContext& context_) : context(context_)
     compassTexture.loadImage(juce::ImageFileFormat::loadFrom(BinaryData::Compass_png, BinaryData::Compass_pngSize));
 
     createGraphDataBuffer();
-    createGridBuffers();
     createTextBuffer();
-}
-
-Text& GLResources::getGraphLegendText()
-{
-    const auto fontSize = (GLuint) juce::roundToInt(13 * context.getRenderingScale());
-    if (legendText == nullptr || legendText->getFontSize() != fontSize)
-    {
-        legendText = std::make_unique<Text>(false);
-        legendText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
-    }
-    return *legendText;
 }
 
 Text& GLResources::getGraphAxisValuesText()
@@ -51,17 +39,6 @@ Text& GLResources::getGraphAxisValuesText()
         axisValuesText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
     }
     return *axisValuesText;
-}
-
-Text& GLResources::getGraphAxisLabelText()
-{
-    const auto fontSize = (GLuint) juce::roundToInt(13 * context.getRenderingScale());
-    if (axisLabelText == nullptr || axisLabelText->getFontSize() != fontSize)
-    {
-        axisLabelText = std::make_unique<Text>(false);
-        axisLabelText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
-    }
-    return *axisLabelText;
 }
 
 Text& GLResources::get3DViewAxisText()
@@ -79,20 +56,6 @@ void GLResources::createGraphDataBuffer()
 {
     graphDataBuffer.create(graphBufferSize);
     graphDataBuffer.fillVbo(Buffer::vertexBuffer, nullptr, graphBufferSize * sizeof(juce::Point<GLfloat>), Buffer::multipleFill);
-}
-
-void GLResources::createGridBuffers()
-{
-    const int TOTAL_BYTES_VBO = 1024 * sizeof(Vec4);  //xyzw (w is for scalar color)
-    const int TOTAL_BYTES_VBO_BORDER = 12 * borderThickness * sizeof(Vec4);  //xyzw (w is for scalar color)
-
-    gridBorderBuffer.create(12 * borderThickness);
-    gridVerticalBuffer.create(1024);
-    gridHorizontalBuffer.create(1024);
-
-    gridBorderBuffer.fillVbo(Buffer::vertexBuffer, nullptr, TOTAL_BYTES_VBO_BORDER, Buffer::multipleFill);
-    gridVerticalBuffer.fillVbo(Buffer::vertexBuffer, nullptr, TOTAL_BYTES_VBO, Buffer::multipleFill);
-    gridHorizontalBuffer.fillVbo(Buffer::vertexBuffer, nullptr, TOTAL_BYTES_VBO, Buffer::multipleFill);
 }
 
 void GLResources::createTextBuffer()

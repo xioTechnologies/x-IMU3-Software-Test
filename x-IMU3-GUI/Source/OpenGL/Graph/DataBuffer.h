@@ -2,10 +2,10 @@
 
 #include <span>
 
-class NewBuffer
+class DataBuffer
 {
 public:
-    NewBuffer(const int numberOfChannels) : channelBuffers((size_t) numberOfChannels)
+    DataBuffer(const int numberOfChannels) : channelBuffers((size_t) numberOfChannels)
     {
 
     }

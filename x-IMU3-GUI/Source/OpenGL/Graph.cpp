@@ -1,47 +1,15 @@
-#include "../Convert.h"
-#include "../CustomLookAndFeel.h"
 #include "Graph.h"
-#include "Graph/AxesRange.h"
 
-Graph::Settings::Settings(const bool horizontalAutoscale, const float horizontalMin, const float horizontalMax,
-                          const bool verticalAutoscale, const float verticalMin, const float verticalMax)
-{
-    horizontal.autoscale = horizontalAutoscale;
-    horizontal.min = horizontalMin;
-    horizontal.max = horizontalMax;
-    vertical.autoscale = verticalAutoscale;
-    vertical.min = verticalMin;
-    vertical.max = verticalMax;
-}
-
-Graph::Settings::Settings(const Settings& other)
-{
-    (*this) = other;
-}
-
-Graph::Settings& Graph::Settings::operator=(const Graph::Settings& other)
-{
-    horizontal.autoscale = other.horizontal.autoscale.load();
-    horizontal.min = other.horizontal.min.load();
-    horizontal.max = other.horizontal.max.load();
-    vertical.autoscale = other.vertical.autoscale.load();
-    vertical.min = other.vertical.min.load();
-    vertical.max = other.vertical.max.load();
-    for (size_t index = 0; index < visibleLines.size(); index++)
-    {
-        visibleLines[index] = other.visibleLines[index].load();
-    }
-    return *this;
-}
-
-Graph::Graph(GLRenderer& renderer_, const juce::String& yAxis_, const std::vector<LegendItem>& legend_, const Settings& settings_)
+Graph::Graph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours_, const int legendHeight_, const int rightMargin_)
         : OpenGLComponent(renderer_.getContext()),
           renderer(renderer_),
-          yAxis(yAxis_),
-          legend(legend_),
-          settings(settings_)
+          colours(colours_),
+          legendHeight(legendHeight_),
+          rightMargin(rightMargin_)
 {
     renderer.addComponent(*this);
+
+    setSettings(settings);
 }
 
 Graph::~Graph()
@@ -49,193 +17,378 @@ Graph::~Graph()
     renderer.removeComponent(*this);
 }
 
+void Graph::setSettings(Settings settings_)
+{
+    std::scoped_lock _(settingsMutex);
+    settings = settings_;
+}
+
+Graph::Settings Graph::getSettings() const
+{
+    std::scoped_lock _(settingsMutex);
+    return settings;
+}
+
+void Graph::setTicksEnabled(const bool enabled)
+{
+    ticksEnabled = enabled;
+}
+
+void Graph::clear()
+{
+    buffer.clear();
+}
+
+void Graph::write(const uint64_t timestamp, const std::vector<float>& values)
+{
+    buffer.write(timestamp, values);
+}
+
 void Graph::render()
 {
-    const auto bounds = toOpenGLBounds(getBoundsInMainWindow());
+    std::scoped_lock _(settingsMutex);
 
-    GLUtil::clear(UIColours::backgroundLight, bounds);
+    auto bounds = getBoundsInMainWindow();
 
-    if (settings.clearCounter > clearCounter)
+    // TODO: Could NewBuffer update and read be one operation updateAndRead?
+    buffer.update();
+    auto channelBuffers = buffer.read();
+
+    settings.axesLimits.autoscale(settings.horizontalAutoscale, settings.verticalAutoscale, channelBuffers, settings.enabledChannels);
+
+    // Paint graph background color
+    GLUtil::clear(UIColours::backgroundLight, toOpenGLBounds(bounds));
+
+    if (ticksEnabled)
     {
-        graphDataBuffer.clear();
+        // Remove top/right margins from graph plot
+        bounds.removeFromRight(rightMargin);
+        bounds.removeFromTop(legendHeight);
+
+        static constexpr auto xTickMargin = 2;
+        static constexpr auto yTickMargin = 5;
+
+        // TODO: This was a bug: renderer.getResources().getGraphAxisValuesText().getFontSize() is using OpenGL font size pixels
+        // but here, we are still working in JUCE coordinates (virtualized pixels), so we actually want to use the font size WITHOUT
+        // OpenGLContext::getRenderingScale(). Replaced temporarily below . . .
+        //auto xTicksBounds = plotBounds.removeFromBottom((int) renderer.getResources().getGraphAxisValuesText().getFontSize()); // font height
+        // TODO: Refactor Text to handle both JUCE and GL font sizes
+        // TODO: Refactor GLResources getGraphAxisValuesText to return ONE Text object that was created at GL startup.
+        //  The Text object should handle knowing both JUCE and GL font sizes instead of requiring reconstruction
+        auto xTicksBounds = bounds.removeFromBottom(13); // font height
+        bounds.removeFromBottom(xTickMargin);
+
+        const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.getYLimits());
+
+        const auto yTicksWidth = getMaximumStringWidth(yTicks, renderer.getResources().getGraphAxisValuesText());
+        const auto yTicksBounds = bounds.removeFromLeft(yTicksWidth);
+        bounds.removeFromLeft(yTickMargin);
+
+        xTicksBounds.removeFromLeft(yTicksWidth);
+        xTicksBounds.removeFromLeft(yTickMargin);
+
+        const auto xTicks = Ticks::createXTicks(bounds.getWidth(), settings.axesLimits.getXLimits());
+
+        drawXTicks(xTicksBounds, yTicksBounds.getX(), settings.axesLimits.getXLimits(), xTicks);
+        drawYTicks(yTicksBounds, settings.axesLimits.getYLimits(), yTicks);
+        drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channelBuffers, settings.enabledChannels);
     }
-    clearCounter = settings.clearCounter;
-
-    AxesRange axesRange;
-    axesRange.xMin = settings.horizontal.min;
-    axesRange.xMax = settings.horizontal.max;
-    axesRange.yMin = settings.vertical.min;
-    axesRange.yMax = settings.vertical.max;
-    axesRange = graphDataBuffer.update(axesRange, settings.horizontal.autoscale, settings.vertical.autoscale, settings.visibleLines);
-
-    const auto numberOfDecimalPlacesX = getNumberOfDecimalPlaces((float) axesRange.xMin, (float) axesRange.xMax);
-    const auto numberOfDecimalPlacesY = getNumberOfDecimalPlaces((float) axesRange.yMin, (float) axesRange.yMax);
-    const auto majorYPositions = gridLines.getMajorYPositions();
-
-    const auto getAxisValueAsString = [](auto value, auto numberOfDecimalPlaces)
+    else
     {
-        if (std::fabs(value) < 1E-6f) // TODO: Redesign so that axis value is precisely zero
-        {
-            return juce::String("0");
-        }
-        return numberOfDecimalPlaces == 0 ? juce::String(juce::roundToInt(value)) : juce::String(value, numberOfDecimalPlaces);
-    };
+        const auto xTicks = Ticks::createXTicks(bounds.getWidth(), settings.axesLimits.getXLimits());
+        const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.getYLimits());
+        drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channelBuffers, settings.enabledChannels);
+    }
 
-    extraLeftPadding = [&]
-    {
-        int padding = 0;
+    plotWidthJUCEPixels = (float) bounds.getWidth();
+    plotHeightJUCEPixels = (float) bounds.getHeight();
+}
 
-        for (const auto value : majorYPositions)
-        {
-            auto& text = renderer.getResources().getGraphAxisValuesText();
-            text.setText(getAxisValueAsString(value, numberOfDecimalPlacesY));
-            padding = std::max(padding, (int) text.getTotalWidth());
-        }
+void Graph::drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
+{
+    // Set rendering bounds
+    auto glBounds = toOpenGLBounds(bounds);
+    GLUtil::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+    GLUtil::viewportAndScissor(glBounds);
 
-        return juce::roundToInt(padding / context.getRenderingScale());
-    }();
-
-    const auto innerBounds = toOpenGLBounds(padded(getBoundsInMainWindow()));
-
+    // Setup OpenGL state
     GLUtil::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false);
     GLUtil::ScopedCapability scopedDepth(juce::gl::GL_DEPTH_TEST, false);
 
-    {
-        GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false);
-        gridLines.render(renderer.getResources(), innerBounds, axesRange, juce::Point<GLfloat>(2.0f / innerBounds.getWidth(), 2.0f / innerBounds.getHeight()));
-    }
+    /*  NOTE: We are using OpenGL's built-in line rendering system, GL_LINES. By using this system, we are
+     *  limited to drawing lines with a width of 1 pixel. The OpenGL spec only requires graphics drivers
+     *  implement line widths of 1 pixel, allowing optional implementation of more widths. To have consistent
+     *  line drawing behavior across devices, we can only really use glLineWidth of 1.0.
+     *
+     *  If we want to increase line width in the future, we will need to create our own line system using
+     *  elongated quads.
+     *
+     *  Refs:
+     *  - https://registry.khronos.org/OpenGL-Refpages/gl4/html/glLineWidth.xhtml "Only width 1 is guaranteed to be supported" and this is often the case.
+     *  - https://mattdesl.svbtle.com/drawing-lines-is-hard
+     */
+    juce::gl::glLineWidth(1.0f);
 
-    // Render graph
-    juce::gl::glViewport(innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight());
-    renderer.getResources().graphDataShader.use();
+    // Draw
+    drawGrid(limits, xTicks, yTicks);
+    drawData(limits, channelBuffers, enabledChannels);
+}
 
-    const auto setUniforms = [&](const juce::Colour& colour, const Vec4& window, const Vec4& offsetAndScale)
+void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks)
+{
+    auto addGridLines = [](std::vector<GLfloat>& linesToAddTo, bool areVertical, const Ticks& ticks, const AxisLimits& axisLimits)
     {
-        renderer.getResources().graphDataShader.colour.set(colour.getFloatRed(), colour.getFloatGreen(), colour.getFloatBlue(), colour.getFloatAlpha());
-        renderer.getResources().graphDataShader.window.set(window.x, window.y, window.z, window.w);
-        renderer.getResources().graphDataShader.offsetAndScale.set(offsetAndScale.x, offsetAndScale.y, offsetAndScale.z, offsetAndScale.w);
+        if (ticks.major <= 0.0 || ticks.minorPerMajor <= 0)
+        {
+            jassertfalse;
+            return;
+        }
+
+        // Add line to grid based on position in graph units
+        auto addLine = [&](float position, bool isMajorTick)
+        {
+            float tickBrightness = isMajorTick ? majorTickBrightness : minorTickBrightness;
+            const float ndcPosition = engineeringValueToNDC(position, axisLimits);
+            if (areVertical)
+            {
+                linesToAddTo.insert(linesToAddTo.end(), { ndcPosition, -1.0f, tickBrightness, ndcPosition, 1.0f, tickBrightness });
+            }
+            else
+            {
+                linesToAddTo.insert(linesToAddTo.end(), { -1.0f, ndcPosition, tickBrightness, 1.0f, ndcPosition, tickBrightness });
+            }
+        };
+
+        const float minorDistance = ticks.major / (float) ticks.minorPerMajor;
+
+        // Major and minor ticks from first major position and greater
+        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(axisLimits.getMin(), ticks.major);
+        const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(axisLimits.getRange() / ticks.major)) + 1;
+        for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
+        {
+            const float majorPosition = firstMajorPosition + (float) majorTickIndex * ticks.major;
+            if (majorPosition > axisLimits.getMax())
+            {
+                break;
+            }
+
+            addLine(majorPosition, true);
+
+            for (unsigned int minorTickIndex = 1; minorTickIndex < ticks.minorPerMajor; minorTickIndex++)
+            {
+                const float minorPosition = majorPosition + (float) minorTickIndex * minorDistance;
+                if (minorPosition > axisLimits.getMax())
+                {
+                    break;
+                }
+                addLine(minorPosition, false);
+            }
+        }
+
+        // Minor ticks prior to first major position
+        for (unsigned int minorTickIndex = 1; minorTickIndex < ticks.minorPerMajor; minorTickIndex++)
+        {
+            const float minorPosition = firstMajorPosition - (float) minorTickIndex * minorDistance;
+            if (minorPosition < axisLimits.getMin())
+            {
+                break;
+            }
+            addLine(minorPosition, false);
+        }
     };
 
-    for (size_t index = 0; index < graphDataBuffer.getLineBuffers().size(); index++)
+    // Compute line vertices for LineBuffer
+    std::vector<GLfloat> lines;
+    addGridLines(lines, true, xTicks, limits.getXLimits()); // vertical x ticks
+    addGridLines(lines, false, yTicks, limits.getYLimits()); // horizontal y ticks
+
+    // Border lines
+    lines.insert(lines.end(), {
+            -1.0f, -1.0f, borderBrightness, -1.0f, 1.0f, borderBrightness, // left edge
+            1.0f, -1.0f, borderBrightness, 1.0f, 1.0f, borderBrightness, // right edge
+            -1.0f, 1.0f, borderBrightness, 1.0f, 1.0f, borderBrightness, // top edge
+            -1.0f, -1.0f, borderBrightness, 1.0f, -1.0f, borderBrightness // bottom edge
+    });
+
+    // Draw lines
+    GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
+
+    auto& newGraphGridShader = renderer.getResources().newGraphGridShader;
+    newGraphGridShader.use();
+
+    auto& gridBuffer = renderer.getResources().graphGridBuffer;
+    gridBuffer.fillBuffers(lines);
+    gridBuffer.draw(juce::gl::GL_LINES);
+}
+
+void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
+{
+    if ((channelBuffers.size() != enabledChannels.size()) || (channelBuffers.size() != colours.size()))
     {
-        if (settings.visibleLines[index] == false)
+        jassertfalse;
+        return;
+    }
+
+    renderer.getResources().newGraphDataShader.use(); // TODO: define local variable for most renderer.getResources() use cases
+
+    for (size_t index = 0; index < channelBuffers.size(); index++)
+    {
+        if (enabledChannels[index] == false)
         {
             continue;
         }
 
-        setUniforms(legend[index].colour,
-                    { 0.0f, 0.0f, 1.0f, 1.0f },
-                    { (GLfloat) -axesRange.getXCenter(),
-                      (GLfloat) -axesRange.getYCenter(),
-                      (GLfloat) axesRange.getXScale(),
-                      (GLfloat) axesRange.getYScale() });
+        // Convert to raw floats for OpenGL buffer
+        std::vector<GLfloat> lines;
+        for (const auto& point : channelBuffers[index])
+        {
+            float xNDC = engineeringValueToNDC(point.x, limits.getXLimits());
+            float yNDC = engineeringValueToNDC(point.y, limits.getYLimits());
+            lines.insert(lines.end(), { xNDC, yNDC });
+        }
 
-        renderer.getResources().graphDataBuffer.linkVbo(renderer.getResources().graphDataShader.position.attributeID, Buffer::vertexBuffer, Buffer::XY, Buffer::floatingPoint);
-        renderer.getResources().graphDataBuffer.fillVbo(Buffer::vertexBuffer, &graphDataBuffer.getLineBuffers()[index][0].x, static_cast<GLsizeiptr>(graphDataBuffer.getNumberAvailable() * sizeof(juce::Point<GLfloat>)));
-        renderer.getResources().graphDataBuffer.render(Buffer::lineStrip, (int) graphDataBuffer.getNumberAvailable());
+        renderer.getResources().newGraphDataShader.colour.setRGBA(colours[index]);
+        renderer.getResources().newGraphDataBuffer.fillBuffers(lines);
+        renderer.getResources().newGraphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
     }
+}
 
-    const auto renderText = [&resources = renderer.getResources(), bounds](Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, const juce::Justification justification, bool rotated = false)
+void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks)
+{
+    // Set rendering bounds, expanded to allow drawing past graph edges
+    auto glPlotBounds = toOpenGLBounds(plotBounds); // only plot area
+    auto glDrawBounds = toOpenGLBounds(drawBounds); // full area allowed to draw text
+    GLUtil::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+    GLUtil::viewportAndScissor(glDrawBounds);
+
+    // Setup OpenGL state
+    GLUtil::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false); // TODO: Why is this necessary??
+    GLUtil::ScopedCapability scopedDepthTest(juce::gl::GL_DEPTH_TEST, false); // do not hide text based on depth
+
+    auto& text = renderer.getResources().getGraphAxisValuesText();
+    const int distanceOfPlotAxis = isXTicks ? glPlotBounds.getWidth() : glPlotBounds.getHeight();
+    const int plotStartOffset = isXTicks ? glPlotBounds.getX() - glDrawBounds.getX() : glPlotBounds.getY() - glDrawBounds.getY();
+    auto labelsToDraw = ticks.labels;
+
+    // For X-axis, hide tick labels that extend out of bounds or overlap
+    if (isXTicks)
     {
-        juce::gl::glViewport(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        resources.textShader.use();
-
-        resources.textShader.colour.setRGBA(colour);
-        text.setText(label);
-
-        const juce::Point<GLfloat> pixelSize(2.0f / bounds.getWidth(), 2.0f / bounds.getHeight());
-        text.setScale({ rotated ? pixelSize.y : pixelSize.x, rotated ? pixelSize.x : pixelSize.y });
-
-        if (justification.testFlags(juce::Justification::horizontallyCentred))
+        auto getLabelEdges = [&](const Ticks::Label& label) -> std::tuple<float, float>
         {
-            (rotated ? y : x) -= text.getTotalWidth() / 2;
-        }
-        else if (justification.testFlags(juce::Justification::right))
-        {
-            (rotated ? y : x) -= text.getTotalWidth();
-        }
+            const auto centreX = juce::jmap<float>(label.value, limits.getMin(), limits.getMax(), 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset + (float) glDrawBounds.getX();
+            const auto leftEdgeX = centreX - ((float) text.getStringWidthGLPixels(label.text) / 2.0f);
+            const auto rightEdgeX = centreX + ((float) text.getStringWidthGLPixels(label.text) / 2.0f);
+            return { leftEdgeX, rightEdgeX };
+        };
 
-        if (justification.testFlags(juce::Justification::verticallyCentred))
+        // Remove any tick text which would extend past the edges of the drawing bounds
+        labelsToDraw.erase(std::remove_if(labelsToDraw.begin(), labelsToDraw.end(), [&](auto& label)
         {
-            const auto offset = text.getFontSize() / 2.0f + text.getDescender();
-            if (rotated)
+            auto [leftEdgeX, rightEdgeX] = getLabelEdges(label);
+            return leftEdgeX < (float) glDrawBounds.getX() || rightEdgeX > (float) glDrawBounds.getRight();
+        }), labelsToDraw.end());
+
+        auto areAnyLabelsTooClose = [&]
+        {
+            // Check each pair of labels to see if they are too close
+            constexpr float minimumSpaceBetweenLabels = 8.0f;
+            for (size_t index = 0; index < labelsToDraw.size() - 1; index++)
             {
-                x += offset;
+                auto [label1LeftEdge, label1RightEdge] = getLabelEdges(labelsToDraw[index]);
+                auto [label2LeftEdge, label2RightEdge] = getLabelEdges(labelsToDraw[index + 1]);
+                if (label1RightEdge + minimumSpaceBetweenLabels > label2LeftEdge)
+                {
+                    return true;
+                }
             }
-            else
+
+            return false;
+        };
+
+        // If labels are too close, remove every other label until no overlaps
+        while (labelsToDraw.size() > 1 && areAnyLabelsTooClose())
+        {
+            // Erase every other element, except for "0" if it is displayed
+            labelsToDraw.erase(std::remove_if(labelsToDraw.begin(), labelsToDraw.end(), [&](auto& label)
             {
-                y -= offset;
-            }
+                return ((&label - &*labelsToDraw.begin()) % 2) && label.text != "0";
+            }), labelsToDraw.end());
         }
-
-        auto translation = juce::Matrix3D<float>::fromTranslation(juce::Vector3D<float>(-1 + (x * pixelSize.x), -1 + (y * pixelSize.y), 0.0f));
-        auto rotation = juce::Matrix3D<float>::rotation({ 0.0f, 0.0f, rotated ? juce::degreesToRadians(90.0f) : 0.0f });
-
-        auto transformation = translation * rotation;
-
-        resources.textShader.transformation.setMatrix4(transformation.mat, 1, false);
-
-        text.render(resources);
-    };
-
-    // Render x axis label
-    renderText(renderer.getResources().getGraphAxisLabelText(), "Time (s)", juce::Colours::white, (float) (bounds.getWidth() / 2), (xAxisLabelHeight / 2.0f) * (float) context.getRenderingScale(), juce::Justification::centred, false);
-
-    // Render y axis label
-    renderText(renderer.getResources().getGraphAxisLabelText(), yAxis, juce::Colours::white, (yAxisLabelWidth / 2.0f) * (float) context.getRenderingScale(), (float) (innerBounds.getCentreY() - bounds.getY()), juce::Justification::centred, true);
-
-    // Render x axis values
-    for (auto& seconds : gridLines.getMajorXPositions())
-    {
-        const auto x = juce::jmap<float>(seconds, (float) axesRange.xMin, (float) axesRange.xMax, (float) (innerBounds.getX() - bounds.getX()), (float) (innerBounds.getX() - bounds.getX() + innerBounds.getWidth()));
-        const auto y = innerBounds.getY() - bounds.getY() - (int) renderer.getResources().getGraphAxisValuesText().getFontSize() - 5;
-        renderText(renderer.getResources().getGraphAxisValuesText(), getAxisValueAsString(seconds, numberOfDecimalPlacesX), juce::Colours::grey, x, (float) y, juce::Justification::horizontallyCentred);
     }
 
-    // Render y axis values
-    for (auto& value : majorYPositions)
+    // Draw each text string
+    for (const auto& label : labelsToDraw)
     {
-        const auto x = innerBounds.getX() - bounds.getX() - 10;
-        const auto y = juce::jmap<float>(value, (float) axesRange.yMin, (float) axesRange.yMax, (float) (innerBounds.getY() - bounds.getY()), (float) (innerBounds.getY() - bounds.getY() + innerBounds.getHeight()));
-        renderText(renderer.getResources().getGraphAxisValuesText(), getAxisValueAsString(value, numberOfDecimalPlacesY), juce::Colours::grey, (float) x, y, juce::Justification::centredRight);
-    }
+        const auto offsetAlongAxis = juce::jmap<float>(label.value, limits.getMin(), limits.getMax(), 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
+        const auto offsetTowardsAxis = isXTicks ? (float) (glDrawBounds.getHeight() - (int) text.getFontSize()) : (float) glDrawBounds.getWidth();
 
-    // Render legend
-    auto x = innerBounds.getRight() - bounds.getX();
-    for (int index = (int) legend.size() - 1; index >= 0; index--)
-    {
-        auto topPadding = bounds.getBottom() - innerBounds.getBottom();
-        auto y = innerBounds.getY() - bounds.getY() + innerBounds.getHeight() + topPadding / 2 - (int) renderer.getResources().getGraphLegendText().getFontSize() / 2;
-        renderText(renderer.getResources().getGraphLegendText(), legend[(size_t) index].label, settings.visibleLines[(size_t) index] ? legend[(size_t) index].colour : juce::Colours::grey, (float) x, (float) y, juce::Justification::right);
-        x -= (int) renderer.getResources().getGraphLegendText().getTotalWidth() + 15;
+        const auto x = isXTicks ? offsetAlongAxis : offsetTowardsAxis;
+        const auto y = isXTicks ? offsetTowardsAxis : offsetAlongAxis;
+
+        drawText(renderer.getResources(), glDrawBounds, text, label.text, juce::Colours::grey, x, y, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
     }
 }
 
-const std::vector<Graph::LegendItem>& Graph::getLegend() const
+void Graph::drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const Ticks& ticks)
 {
-    return legend;
+    // Expand drawing bounds to allow text to be drawn past the corners of the plot.
+    auto drawBounds = bounds.withRight(bounds.getRight() + rightMargin);
+    drawBounds.setLeft(yTicksLeftEdge);
+    drawTicks(true, bounds, drawBounds, limits, ticks);
 }
 
-void Graph::update(const uint64_t timestamp, const std::vector<float>& values)
+void Graph::drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks)
 {
-    if (settings.paused)
+    // Expand drawing bounds to allow text to be drawn past the corners of the plot.
+    auto drawBounds = bounds.expanded(0, legendHeight);
+    drawTicks(false, bounds, drawBounds, limits, ticks);
+}
+
+void Graph::drawText(GLResources& resources, const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification)
+{
+    resources.textShader.use();
+    resources.textShader.colour.setRGBA(colour);
+    text.setText(label);
+
+    // NOTE: The 2.0 / width here and -1.0 offset in the translation matrix below are specifically translating to NDC coordinates via math
+    // computed in the shader. We could consider moving this math to one place here, not in the shader, so it is more obvious.
+    const juce::Point<GLfloat> pixelSize(2.0f / (GLfloat) openGLBounds.getWidth(), 2.0f / (GLfloat) openGLBounds.getHeight());
+    text.setScale({ pixelSize.x, pixelSize.y });
+
+    if (justification.testFlags(juce::Justification::horizontallyCentred))
     {
-        return;
+        x -= (GLfloat) text.getTotalWidth() / 2.0f;
+    }
+    else if (justification.testFlags(juce::Justification::right))
+    {
+        x -= (GLfloat) text.getTotalWidth();
     }
 
-    graphDataBuffer.write(timestamp, values);
+    if (justification.testFlags(juce::Justification::verticallyCentred))
+    {
+        const auto offset = (GLfloat) text.getFontSize() / 2.0f + text.getDescender();
+        y -= offset;
+    }
+
+    // NOTE: Translate position to NDC in -1.0 to 1.0 range
+    auto translation = juce::Matrix3D<float>::fromTranslation(juce::Vector3D<float>(-1 + (x * pixelSize.x), -1 + (y * pixelSize.y), 0.0f));
+
+    resources.textShader.transformation.setMatrix4(translation.mat, 1, false);
+
+    text.render(resources);
 }
 
-juce::Rectangle<int> Graph::padded(juce::Rectangle<int> rectangle)
+float Graph::engineeringValueToNDC(float value, const AxisLimits& axisLimits)
 {
-    rectangle.removeFromLeft(yAxisLabelWidth + extraLeftPadding);
-    rectangle.removeFromTop(25);
-    rectangle.removeFromRight(10);
-    rectangle.removeFromBottom(xAxisLabelHeight + xAxisValuesHeight);
-    return rectangle;
+    return (((value - axisLimits.getMin()) / axisLimits.getRange()) * 2.0f) - 1.0f;
 }
 
-int Graph::getNumberOfDecimalPlaces(const float rangeMin, const float rangeMax)
+int Graph::getMaximumStringWidth(const Ticks& ticks, const Text& text)
 {
-    return std::abs(std::min((int) std::ceil(std::log((rangeMax - rangeMin) * 0.01f) / std::log(10)), 0));
+    int maxStringWidth = 0;
+    for (const auto& label : ticks.labels)
+    {
+        maxStringWidth = std::max(maxStringWidth, text.getStringWidthJucePixels(label.text));
+    }
+    return maxStringWidth;
 }

@@ -1,10 +1,11 @@
 #pragma once
 
+#include "../CustomLookAndFeel.h"
 #include "Common/GLRenderer.h"
-#include "Common/Text.h"
-#include "Graph/GraphDataBuffer.h"
-#include "Graph/GridLines.h"
-#include <juce_gui_basics/juce_gui_basics.h>
+#include "Common/GLUtil.h"
+#include "Graph/AxesLimits.h"
+#include "Graph/DataBuffer.h"
+#include "Graph/Ticks.h"
 #include "OpenGLComponent.h"
 
 class Graph : public OpenGLComponent
@@ -12,65 +13,67 @@ class Graph : public OpenGLComponent
 public:
     struct Settings
     {
-        Settings(const bool horizontalAutoscale = false, const float horizontalMin = -5.0f, const float horizontalMax = 0.0f,
-                 const bool verticalAutoscale = true, const float verticalMin = -1.0f, const float verticalMax = 1.0f);
-
-        Settings(const Settings& other);
-
-        Settings& operator=(const Settings& other);
-
-        std::atomic<int> clearCounter { 0 };
-        std::atomic<bool> paused { false };
-
-        struct Axis
-        {
-            std::atomic<bool> autoscale;
-            std::atomic<float> min;
-            std::atomic<float> max;
-        };
-
-        Axis horizontal;
-        Axis vertical;
-
-        std::array<std::atomic<bool>, 3> visibleLines { true, true, true };
+        AxesLimits axesLimits;
+        bool horizontalAutoscale = false;
+        bool verticalAutoscale = false;
+        std::vector<bool> enabledChannels;
     };
 
-    struct LegendItem
-    {
-        juce::String label;
-        juce::Colour colour;
-    };
-
-    Graph(GLRenderer& renderer_, const juce::String& yAxis_, const std::vector<LegendItem>& legend_, const Settings& settings_);
+    Graph(GLRenderer& renderer_, const std::vector<juce::Colour>& colours_, const int legendHeight_, const int rightMargin_);
 
     ~Graph() override;
 
     void render() override;
 
-    const std::vector<LegendItem>& getLegend() const;
+    void setSettings(Settings settings_);
 
-    void update(const uint64_t timestamp, const std::vector<float>& values);
+    Settings getSettings() const;
 
-    juce::Rectangle<int> padded(juce::Rectangle<int> rectangle);
+    void setTicksEnabled(const bool enabled);
+
+    void clear();
+
+    void write(const uint64_t timestamp, const std::vector<float>& values);
+
+    // Plot size info for NewGraphWindow mouse drag functionality
+    std::atomic<float> plotWidthJUCEPixels = 0.0f;
+    std::atomic<float> plotHeightJUCEPixels = 0.0f;
 
 private:
-    static constexpr int yAxisLabelWidth = 30;
-    static constexpr int xAxisLabelHeight = 25;
-    static constexpr int xAxisValuesHeight = 15;
-
     GLRenderer& renderer;
-    const juce::String yAxis;
-    std::vector<LegendItem> legend;
-    const Settings& settings;
+    const std::vector<juce::Colour> colours;
+    const int legendHeight;
+    const int rightMargin;
 
-    int clearCounter = 0;
+    mutable std::mutex settingsMutex;
+    Settings settings;
 
-    GridLines gridLines;
-    GraphDataBuffer graphDataBuffer { legend.size() };
+    DataBuffer buffer { (int) colours.size() };
 
-    std::atomic<int> extraLeftPadding { 0 };
+    std::atomic<bool> ticksEnabled { false };
 
-    static int getNumberOfDecimalPlaces(const float rangeMin, const float rangeMax);
+    static constexpr GLfloat majorTickBrightness = 0.65f;
+    static constexpr GLfloat minorTickBrightness = 0.45f;
+    static constexpr GLfloat borderBrightness = 0.65f;
+
+    static float engineeringValueToNDC(float value, const AxisLimits& axisLimits); // map to OpenGL Normalized Device Coordinates (NDC) with values ranging from -1.0 to 1.0
+
+    void drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels);
+
+    void drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks);
+
+    void drawData(const AxesLimits& limits, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels);
+
+    // TODO: Match order of .cpp
+    void drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const Ticks& ticks);
+
+    void drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks);
+
+    void drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks); // TODO: remove isXTicks
+
+    static void drawText(GLResources& resources, const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification);
+
+    static int getMaximumStringWidth(const Ticks& ticks, const Text& text);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Graph)
 };

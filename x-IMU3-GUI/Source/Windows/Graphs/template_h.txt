@@ -1,3 +1,5 @@
+#pragma once
+
 #include "GraphWindow.h"
 #include "Ximu3.hpp"
 
@@ -9,7 +11,7 @@ public:
     ~$name$GraphWindow() override;
 
 private:
-    static Graph::Settings settings;
+    static juce::ValueTree settingsTree_;
 
     std::vector<uint64_t> callbackIDs;
 $callback_declarations$

@@ -35,19 +35,12 @@ public:
     explicit GLResources(juce::OpenGLContext& context_);
 
     // Text
-    Text& getGraphLegendText();
-
     Text& getGraphAxisValuesText();
-
-    Text& getGraphAxisLabelText();
 
     Text& get3DViewAxisText();
 
     // Buffers
     Buffer textBuffer;
-    Buffer gridBorderBuffer;
-    Buffer gridVerticalBuffer;
-    Buffer gridHorizontalBuffer;
     Buffer graphDataBuffer;
 
     LineBuffer graphGridBuffer { true };
@@ -78,8 +71,6 @@ public:
 
 private:
     void createGraphDataBuffer();
-
-    void createGridBuffers();
 
     void createTextBuffer();
 
