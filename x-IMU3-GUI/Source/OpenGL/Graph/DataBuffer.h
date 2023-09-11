@@ -90,6 +90,7 @@ public:
         juce::AbstractFifo::ScopedWrite(fifo, 1).forEach([&](auto index)
                                                          {
                                                              fifoData[(size_t) index] = { timestamp, values };
+                                                             fifoData[(size_t) index].values.resize( channelBuffers.size());
                                                          });
     }
 

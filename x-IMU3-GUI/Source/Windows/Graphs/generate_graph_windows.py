@@ -196,6 +196,18 @@ windows = [
         write(message.timestamp, { message.power });\n\
     }));",
            ),
+    Window(name="SerialAccessory",
+           callback_declarations="    std::function<void(ximu3::XIMU3_InertialMessage)> inertialCallback;",
+           horizontal_autoscale="false",
+           y_axis="Value",
+           legend_strings="{ \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\" }",
+           legend_colours="{ UIColours::tags[1], UIColours::tags[2], UIColours::tags[3], UIColours::tags[4], UIColours::tags[5], UIColours::tags[6], UIColours::tags[7], UIColours::tags[8] }",
+           callback_implementations="\
+    callbackIDs.push_back(devicePanel.getConnection()->addInertialCallback(inertialCallback = [&](auto message)\n\
+    {\n\
+        write(message.timestamp, { message.accelerometer_x, message.accelerometer_y, message.accelerometer_z });\n\
+    }));",
+           ),
     Window(name="ReceivedMessageRate",
            callback_declarations="    std::function<void(ximu3::XIMU3_Statistics)> statisticsCallback;",
            horizontal_autoscale="true",
@@ -270,3 +282,20 @@ for window in windows:
     code += template.replace("$name$", window.name)
 
 helpers.insert(file_path, code, 1)
+
+# Insert code into x-IMU3-GUI/Source/MenuStrip/MenuStrip.cpp
+file_path = "../../MenuStrip/MenuStrip.cpp"
+
+code = ""
+
+for window in windows:
+    code += "    addWindowItem(WindowIDs::" + window.name + ");\n"
+
+helpers.insert(file_path, code, "0")
+
+code = ""
+
+for window in windows:
+    code += "    addSingleWindowItem(WindowIDs::" + window.name + ");\n"
+
+helpers.insert(file_path, code, "1")

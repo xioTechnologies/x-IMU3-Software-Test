@@ -9,23 +9,24 @@ namespace WindowIDs
     DECLARE_ID(Column)
     DECLARE_ID(Row)
 
-    DECLARE_ID(DeviceSettings)
-    DECLARE_ID(ThreeDView)
-    DECLARE_ID(SerialAccessoryTerminal)
-    DECLARE_ID(Gyroscope)
     DECLARE_ID(Accelerometer)
-    DECLARE_ID(Magnetometer)
-    DECLARE_ID(EulerAngles)
-    DECLARE_ID(LinearAcceleration)
-    DECLARE_ID(EarthAcceleration)
-    DECLARE_ID(HighGAccelerometer)
-    DECLARE_ID(Temperature)
     DECLARE_ID(BatteryPercentage)
     DECLARE_ID(BatteryVoltage)
+    DECLARE_ID(DeviceSettings)
+    DECLARE_ID(EarthAcceleration)
+    DECLARE_ID(EulerAngles)
+    DECLARE_ID(Gyroscope)
+    DECLARE_ID(HighGAccelerometer)
+    DECLARE_ID(LinearAcceleration)
+    DECLARE_ID(Magnetometer)
+    DECLARE_ID(ReceivedDataRate)
+    DECLARE_ID(ReceivedMessageRate)
     DECLARE_ID(RssiPercentage)
     DECLARE_ID(RssiPower)
-    DECLARE_ID(ReceivedMessageRate)
-    DECLARE_ID(ReceivedDataRate)
+    DECLARE_ID(SerialAccessory)
+    DECLARE_ID(SerialAccessoryTerminal)
+    DECLARE_ID(Temperature)
+    DECLARE_ID(ThreeDView)
 
     DECLARE_ID(size)
 
@@ -50,6 +51,7 @@ inline juce::String getWindowTitle(const juce::Identifier& windowType)
                     { WindowIDs::ReceivedMessageRate,     "Received Message Rate" },
                     { WindowIDs::RssiPercentage,          "RSSI Percentage" },
                     { WindowIDs::RssiPower,               "RSSI Power" },
+                    { WindowIDs::SerialAccessory,    "Serial Accessory Graph" },
                     { WindowIDs::SerialAccessoryTerminal, "Serial Accessory Terminal" },
                     { WindowIDs::Temperature,             "Temperature" },
                     { WindowIDs::ThreeDView,              "3D View" },
