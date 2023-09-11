@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "HighGAccelerometerGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree HighGAccelerometerGraphWindow::settingsTree_("HighGAccelerometerGraphSettings");
 

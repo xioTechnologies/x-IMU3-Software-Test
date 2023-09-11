@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "RssiPowerGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree RssiPowerGraphWindow::settingsTree_("RssiPowerGraphSettings");
 

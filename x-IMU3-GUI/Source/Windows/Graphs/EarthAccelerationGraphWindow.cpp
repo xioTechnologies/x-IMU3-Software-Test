@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "EarthAccelerationGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree EarthAccelerationGraphWindow::settingsTree_("EarthAccelerationGraphSettings");
 

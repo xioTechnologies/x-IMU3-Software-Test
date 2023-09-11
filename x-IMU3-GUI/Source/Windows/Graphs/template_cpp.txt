@@ -1,6 +1,5 @@
 #include "../../Convert.h"
 #include "$name$GraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree $name$GraphWindow::settingsTree_("$name$GraphSettings");
 

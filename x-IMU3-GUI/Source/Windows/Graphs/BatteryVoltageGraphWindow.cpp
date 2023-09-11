@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "BatteryVoltageGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree BatteryVoltageGraphWindow::settingsTree_("BatteryVoltageGraphSettings");
 

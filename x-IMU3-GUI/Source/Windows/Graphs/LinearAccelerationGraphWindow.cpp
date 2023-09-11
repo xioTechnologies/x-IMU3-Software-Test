@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "LinearAccelerationGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree LinearAccelerationGraphWindow::settingsTree_("LinearAccelerationGraphSettings");
 

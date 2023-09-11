@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "BatteryPercentageGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree BatteryPercentageGraphWindow::settingsTree_("BatteryPercentageGraphSettings");
 

@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "ReceivedMessageRateGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree ReceivedMessageRateGraphWindow::settingsTree_("ReceivedMessageRateGraphSettings");
 

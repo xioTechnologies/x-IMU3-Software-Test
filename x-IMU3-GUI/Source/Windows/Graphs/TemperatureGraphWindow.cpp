@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "TemperatureGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree TemperatureGraphWindow::settingsTree_("TemperatureGraphSettings");
 

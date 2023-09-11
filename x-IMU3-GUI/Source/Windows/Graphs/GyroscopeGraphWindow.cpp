@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "GyroscopeGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree GyroscopeGraphWindow::settingsTree_("GyroscopeGraphSettings");
 

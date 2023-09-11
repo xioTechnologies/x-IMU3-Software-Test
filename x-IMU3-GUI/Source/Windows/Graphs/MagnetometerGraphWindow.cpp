@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "MagnetometerGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree MagnetometerGraphWindow::settingsTree_("MagnetometerGraphSettings");
 

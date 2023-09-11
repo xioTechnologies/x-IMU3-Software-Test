@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "RssiPercentageGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree RssiPercentageGraphWindow::settingsTree_("RssiPercentageGraphSettings");
 

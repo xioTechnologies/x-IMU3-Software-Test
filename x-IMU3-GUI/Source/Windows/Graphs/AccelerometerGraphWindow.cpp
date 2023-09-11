@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "AccelerometerGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree AccelerometerGraphWindow::settingsTree_("AccelerometerGraphSettings");
 

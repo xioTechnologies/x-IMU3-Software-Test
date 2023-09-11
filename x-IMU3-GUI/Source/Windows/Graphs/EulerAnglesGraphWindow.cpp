@@ -2,7 +2,6 @@
 
 #include "../../Convert.h"
 #include "EulerAnglesGraphWindow.h"
-#include "../../DevicePanel/DevicePanel.h"
 
 juce::ValueTree EulerAnglesGraphWindow::settingsTree_("EulerAnglesGraphSettings");
 
