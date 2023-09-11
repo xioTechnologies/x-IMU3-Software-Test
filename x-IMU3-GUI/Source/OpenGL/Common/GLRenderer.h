@@ -29,7 +29,7 @@ private:
     std::unique_ptr<GLResources> resources;
 
     // Reset OpenGL state to the default settings expected by our OpenGLComponents.
-    void resetDefaultOpenGLState();
+    static void resetDefaultOpenGLState();
 
     void newOpenGLContextCreated() override;
 

@@ -143,7 +143,7 @@ void GraphWindow::mouseDrag(const juce::MouseEvent& mouseEvent)
     writeToValueTree(settings);
 }
 
-void GraphWindow::mouseDoubleClick(const juce::MouseEvent& mouseEvent)
+void GraphWindow::mouseDoubleClick([[maybe_unused]] const juce::MouseEvent& mouseEvent)
 {
     auto settings = graph.getSettings();
     settings.axesLimits.setDefault();
