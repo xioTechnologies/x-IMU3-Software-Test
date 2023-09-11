@@ -4,7 +4,6 @@
 
 #include "GraphWindow.h"
 #include "Ximu3.hpp"
-#include "../../DevicePanel/DevicePanel.h"
 #include "../../OpenGL/Common/GLRenderer.h"
 
 class MagnetometerGraphWindow : public GraphWindow
