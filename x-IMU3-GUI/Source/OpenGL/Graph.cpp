@@ -50,9 +50,7 @@ void Graph::render()
 
     auto bounds = getBoundsInMainWindow();
 
-    // TODO: Could NewBuffer update and read be one operation updateAndRead?
-    buffer.update();
-    auto channelBuffers = buffer.read();
+    const auto channelBuffers = buffer.read();
 
     settings.axesLimits.autoscale(settings.horizontalAutoscale, settings.verticalAutoscale, channelBuffers, settings.enabledChannels);
 
@@ -104,7 +102,7 @@ void Graph::render()
     plotHeightJUCEPixels = (float) bounds.getHeight();
 }
 
-void Graph::drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
+void Graph::drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
 {
     // Set rendering bounds
     auto glBounds = toOpenGLBounds(bounds);
@@ -221,7 +219,7 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
     gridBuffer.draw(juce::gl::GL_LINES);
 }
 
-void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
+void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
 {
     if ((channelBuffers.size() != enabledChannels.size()) || (channelBuffers.size() != colours.size()))
     {

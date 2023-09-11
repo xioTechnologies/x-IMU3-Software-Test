@@ -15,7 +15,53 @@ public:
         clearPending = true;
     }
 
-    void update()
+    std::vector<std::span<const juce::Point<GLfloat>>> read()
+    {
+        updateChannelBuffers();
+
+        std::vector<std::span<const juce::Point<GLfloat>>> channelBuffers_;
+        for (auto& channelBuffer : channelBuffers)
+        {
+            channelBuffers_.push_back({ channelBuffer.cbegin(), channelBuffer.cbegin() + numberAvailable });
+        }
+        return channelBuffers_;
+    }
+
+    void write(const uint64_t timestamp, const std::vector<float>& values)
+    {
+        if (timestamp < mostRecentTimestamp)
+        {
+            fifo.reset();
+            clearPending = true;
+        }
+        mostRecentTimestamp = timestamp;
+
+        juce::AbstractFifo::ScopedWrite(fifo, 1).forEach([&](auto index)
+                                                         {
+                                                             fifoData[(size_t) index] = { timestamp, values };
+                                                             fifoData[(size_t) index].values.resize( channelBuffers.size());
+                                                         });
+    }
+
+private:
+    struct FifoDatum
+    {
+        uint64_t timestamp;
+        std::vector<float> values;
+    };
+    std::array<FifoDatum, 1 << 10> fifoData;
+    juce::AbstractFifo fifo { (int) fifoData.size() };
+
+    std::array<uint64_t, GLResources::graphBufferSize> timestamps;
+    std::vector<std::array<juce::Point<GLfloat>, GLResources::graphBufferSize>> channelBuffers;
+
+    int numberAvailable = 0;
+
+    std::atomic<bool> clearPending { false };
+
+    uint64_t mostRecentTimestamp = 0;
+
+    void updateChannelBuffers()
     {
         if (clearPending.exchange(false))
         {
@@ -67,48 +113,4 @@ public:
             }
         }
     }
-
-    std::vector<std::span<juce::Point<GLfloat>>> read()
-    {
-        std::vector<std::span<juce::Point<GLfloat>>> channelBuffers_;
-        for (auto& channelBuffer : channelBuffers)
-        {
-            channelBuffers_.push_back({ channelBuffer.begin(), channelBuffer.begin() + numberAvailable });
-        }
-        return channelBuffers_;
-    }
-
-    void write(const uint64_t timestamp, const std::vector<float>& values)
-    {
-        if (timestamp < mostRecentTimestamp)
-        {
-            fifo.reset();
-            clearPending = true;
-        }
-        mostRecentTimestamp = timestamp;
-
-        juce::AbstractFifo::ScopedWrite(fifo, 1).forEach([&](auto index)
-                                                         {
-                                                             fifoData[(size_t) index] = { timestamp, values };
-                                                             fifoData[(size_t) index].values.resize( channelBuffers.size());
-                                                         });
-    }
-
-private:
-    struct FifoDatum
-    {
-        uint64_t timestamp;
-        std::vector<float> values;
-    };
-    std::array<FifoDatum, 1 << 10> fifoData;
-    juce::AbstractFifo fifo { (int) fifoData.size() };
-
-    std::array<uint64_t, GLResources::graphBufferSize> timestamps;
-    std::vector<std::array<juce::Point<GLfloat>, GLResources::graphBufferSize>> channelBuffers;
-
-    int numberAvailable = 0;
-
-    std::atomic<bool> clearPending { false };
-
-    uint64_t mostRecentTimestamp = 0;
 };
