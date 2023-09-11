@@ -155,6 +155,7 @@ public:
         y.setLimits(min, max);
     }
 
+    // TODO: fix jassert (! approximatelyEqual (sourceRangeMax, sourceRangeMin)); in juce::jmap
     void autoscale(const bool horizontal, const bool vertical, const std::vector<std::span<juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
     {
         if (channelBuffers.empty())
