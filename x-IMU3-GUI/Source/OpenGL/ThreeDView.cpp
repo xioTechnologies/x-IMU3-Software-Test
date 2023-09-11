@@ -31,7 +31,7 @@ ThreeDView::~ThreeDView()
 void ThreeDView::render()
 {
     const auto bounds = toOpenGLBounds(getBoundsInMainWindow());
-    auto& camera = renderer.getResources().orbitCamera;
+    auto& camera = resources->orbitCamera;
 
     // Update camera for current component view settings
     camera.setViewportBounds(bounds);
@@ -105,7 +105,7 @@ void ThreeDView::update(const float x, const float y, const float z, const float
 
 void ThreeDView::setCustomModel(const juce::File& file)
 {
-    renderer.getResources().custom.setModel(file);
+    resources->custom.setModel(file);
 }
 
 bool ThreeDView::isLoading() const
@@ -113,23 +113,23 @@ bool ThreeDView::isLoading() const
     switch (settings.model.load())
     {
         case Model::board:
-            return renderer.getResources().board.isLoading();
+            return resources->board.isLoading();
         case Model::housing:
-            return renderer.getResources().housing.isLoading();
+            return resources->housing.isLoading();
         case Model::custom:
-            return renderer.getResources().custom.isLoading();
+            return resources->custom.isLoading();
     }
     return false;
 }
 
 void ThreeDView::renderModel(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation, const float modelScale) const
 {
-    const auto& camera = renderer.getResources().orbitCamera;
+    const auto& camera = resources->orbitCamera;
     const auto rotateModelFlat = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 1.0f, 0.0f, 0.0f });
 
     const auto modelMatrix = axesConventionRotation * deviceRotation * rotateModelFlat * glm::scale(glm::mat4(1.0f), glm::vec3(modelScale));
 
-    auto& threeDViewShader = renderer.getResources().threeDViewShader;
+    auto& threeDViewShader = resources->threeDViewShader;
     threeDViewShader.use();
     threeDViewShader.cameraPosition.set(camera.getPosition());
     threeDViewShader.modelMatrix.set(modelMatrix);
@@ -144,13 +144,13 @@ void ThreeDView::renderModel(const glm::mat4& projectionMatrix, const glm::mat4&
     switch (settings.model.load())
     {
         case Model::board:
-            renderer.getResources().board.renderWithMaterials(threeDViewShader);
+            resources->board.renderWithMaterials(threeDViewShader);
             break;
         case Model::housing:
-            renderer.getResources().housing.renderWithMaterials(threeDViewShader);
+            resources->housing.renderWithMaterials(threeDViewShader);
             break;
         case Model::custom:
-            renderer.getResources().custom.renderWithMaterials(threeDViewShader);
+            resources->custom.renderWithMaterials(threeDViewShader);
             break;
     }
 }
@@ -162,9 +162,9 @@ void ThreeDView::renderWorld(const glm::mat4& projectionMatrix, const glm::mat4&
     // World Grid - tiles have width/height of 1.0 OpenGL units when `gridTilingFactor` in Grid3D.frag os equivalent to the scale of the grid
     const auto scaleGrid = glm::scale(glm::mat4(1.0f), glm::vec3(20.0f));
     const auto translateGrid = glm::translate(glm::mat4(1.0), glm::vec3(0.0f, floorHeight, 0.0f));
-    renderer.getResources().grid3DShader.use();
-    renderer.getResources().grid3DShader.modelViewProjectionMatrix.set(projectionMatrix * viewMatrix * translateGrid * scaleGrid * axesConventionRotation);
-    renderer.getResources().plane.render();
+    resources->grid3DShader.use();
+    resources->grid3DShader.modelViewProjectionMatrix.set(projectionMatrix * viewMatrix * translateGrid * scaleGrid * axesConventionRotation);
+    resources->plane.render();
 }
 
 void ThreeDView::renderCompass(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const float floorHeight)
@@ -175,20 +175,20 @@ void ThreeDView::renderCompass(const glm::mat4& projectionMatrix, const glm::mat
 
     const auto compassRotateScale = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
     const auto compassModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, floorHeight, 0.0f)) * compassRotateScale;
-    auto& unlitShader = renderer.getResources().unlitShader;
+    auto& unlitShader = resources->unlitShader;
     unlitShader.use();
     const auto brightness = 0.8f;
     unlitShader.colour.set(glm::vec4(glm::vec3(brightness), 1.0f)); // tint color to decrease brightness
     unlitShader.isTextured.set(true);
     unlitShader.modelViewProjectionMatrix.set(projectionMatrix * viewMatrix * compassModelMatrix); // top compass layer above grid
-    renderer.getResources().compassTexture.bind();
-    renderer.getResources().plane.render();
-    renderer.getResources().compassTexture.unbind();
+    resources->compassTexture.bind();
+    resources->plane.render();
+    resources->compassTexture.unbind();
 }
 
 void ThreeDView::renderAxes(const juce::Rectangle<int>& viewportBounds, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const
 {
-    auto& text = renderer.getResources().get3DViewAxisText();
+    auto& text = resources->get3DViewAxisText();
     text.setScale({ 1.0f / (float) viewportBounds.getWidth(), 1.0f / (float) viewportBounds.getHeight() }); // sets text scale to the normalized size of a screen pixel
 
     renderAxesForDeviceOrientation(deviceRotation, axesConventionRotation); // attached to model
@@ -198,8 +198,8 @@ void ThreeDView::renderAxes(const juce::Rectangle<int>& viewportBounds, const gl
 void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat4& projectionMatrix) const
 {
     const auto bounds = toOpenGLBounds(getBoundsInMainWindow()); // already accounts for context.getRenderingScale()
-    const auto& screenSpaceShader = renderer.getResources().screenSpaceLitShader;
-    const auto& camera = renderer.getResources().orbitCamera;
+    const auto& screenSpaceShader = resources->screenSpaceLitShader;
+    const auto& camera = resources->orbitCamera;
 
     const auto viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f)) * camera.getRotationMatrix(); // axes not affected by zoom, so this is a custom "camera" translation of -1 on the Z axis so the objects become visible and are not clipped out of view
 
@@ -230,7 +230,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     screenSpaceShader.inverseScreenScale.set(inverseScreenScale);
     screenSpaceShader.modelMatrix.set(xModel);
     screenSpaceShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(xModel)));
-    renderer.getResources().arrow.render();
+    resources->arrow.render();
 
     // Y-Axis in x-io coordinate space aligns with OpenGL -Z axis
     const glm::mat4 yRotate = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -239,7 +239,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     screenSpaceShader.inverseScreenScale.set(inverseScreenScale);
     screenSpaceShader.modelMatrix.set(yModel);
     screenSpaceShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(yModel)));
-    renderer.getResources().arrow.render();
+    resources->arrow.render();
 
     // Z-Axis in x-io coordinate space aligns with OpenGL +Y axis
     const glm::mat4 zRotate = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -248,13 +248,13 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     screenSpaceShader.inverseScreenScale.set(inverseScreenScale);
     screenSpaceShader.modelMatrix.set(zModel);
     screenSpaceShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(zModel)));
-    renderer.getResources().arrow.render();
+    resources->arrow.render();
 
     // Text labels XYZ
     {
         GLUtil::ScopedCapability _(juce::gl::GL_CULL_FACE, false); // TODO: why does Text need culling disabled?
 
-        renderer.getResources().textShader.use();
+        resources->textShader.use();
 
         const auto textDistanceFromOrigin = 1.3f;
         const auto textDistanceFromOriginZ = textDistanceFromOrigin * inverseScreenScale;
@@ -267,16 +267,16 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
 
         const auto textTransform = projectionMatrix * viewMatrix * modelMatrix;
 
-        auto& text = renderer.getResources().get3DViewAxisText();
-        text.renderScreenSpace(renderer.getResources(), "X", UIColours::graphRed, textTransform * xTranslate);
-        text.renderScreenSpace(renderer.getResources(), "Y", UIColours::graphGreen, textTransform * yTranslate);
-        text.renderScreenSpace(renderer.getResources(), "Z", UIColours::graphBlue, textTransform * zTranslate);
+        auto& text = resources->get3DViewAxisText();
+        text.renderScreenSpace(resources, "X", UIColours::graphRed, textTransform * xTranslate);
+        text.renderScreenSpace(resources, "Y", UIColours::graphGreen, textTransform * yTranslate);
+        text.renderScreenSpace(resources, "Z", UIColours::graphBlue, textTransform * zTranslate);
     }
 }
 
 void ThreeDView::renderAxesForDeviceOrientation(const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const
 {
-    renderAxesInstance(axesConventionRotation * deviceRotation, renderer.getResources().orbitCamera.getOrthogonalProjectionMatrix());
+    renderAxesInstance(axesConventionRotation * deviceRotation, resources->orbitCamera.getOrthogonalProjectionMatrix());
 }
 
 void ThreeDView::renderAxesForWorldOrientation(const glm::mat4& axesConventionRotation) const
@@ -291,5 +291,5 @@ void ThreeDView::renderAxesForWorldOrientation(const glm::mat4& axesConventionRo
     const glm::vec2 topRightNDC(1.0f, 1.0f);
     const auto ndcMat = glm::translate(glm::mat4(1.0f), glm::vec3(topRightNDC - pixelOffsetNDC, 0.0f));
 
-    renderAxesInstance(axesConventionRotation, ndcMat * renderer.getResources().orbitCamera.getOrthogonalProjectionMatrix());
+    renderAxesInstance(axesConventionRotation, ndcMat * resources->orbitCamera.getOrthogonalProjectionMatrix());
 }

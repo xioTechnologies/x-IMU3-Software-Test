@@ -3,6 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_opengl/juce_opengl.h>
 #include <mutex>
+#include "Common/GLResources.h"
 
 class OpenGLComponent : public juce::Component,
                         private juce::ComponentListener
@@ -14,10 +15,12 @@ public:
 
     void parentHierarchyChanged() override;
 
-    virtual void render() = 0; // TODO: Add GLResources parameter
+    virtual void render() = 0;
 
 protected:
     juce::OpenGLContext& context;
+
+    GLResources * resources = nullptr;
 
     juce::Rectangle<int> getBoundsInMainWindow() const;
 
@@ -36,6 +39,8 @@ private:
     void updateBounds();
 
     void componentMovedOrResized(juce::Component&, bool, bool) override;
+
+    friend class GLRenderer; // sets resources
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenGLComponent)
 };

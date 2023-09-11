@@ -36,9 +36,9 @@ public:
     // TODO: Unused, maybe we should remove
     void setPosition(const juce::Vector3D<GLfloat>& position_);
 
-    void render(GLResources& resources);
+    void render(GLResources * const resources);
 
-    void renderScreenSpace(GLResources& resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform);
+    void renderScreenSpace(GLResources * const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform);
 
     // TODO: getFontSizeInJUCEPixels
 

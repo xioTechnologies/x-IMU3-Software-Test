@@ -73,7 +73,7 @@ void Graph::render()
 
         const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.y);
 
-        const auto yTicksWidth = getMaximumStringWidth(yTicks, renderer.getResources().getGraphAxisValuesText());
+        const auto yTicksWidth = getMaximumStringWidth(yTicks, resources->getGraphAxisValuesText());
         const auto yTicksBounds = bounds.removeFromLeft(yTicksWidth);
         bounds.removeFromLeft(yTickMargin);
 
@@ -206,10 +206,8 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
     // Draw lines
     GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
 
-    auto& graphGridShader = renderer.getResources().graphGridShader;
-    graphGridShader.use();
-
-    auto& gridBuffer = renderer.getResources().graphGridBuffer;
+    resources->graphGridShader.use();
+    auto& gridBuffer = resources->graphGridBuffer;
     gridBuffer.fillBuffers(lines);
     gridBuffer.draw(juce::gl::GL_LINES);
 }
@@ -222,9 +220,11 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
         return;
     }
 
-    renderer.getResources().graphDataShader.use(); // TODO: define local variable for most renderer.getResources() use cases
-    renderer.getResources().graphDataShader.axisLimitsRange.set({ limits.x.getRange(), limits.y.getRange() });
-    renderer.getResources().graphDataShader.axisLimitsMin.set({ limits.x.min, limits.y.min });
+    auto & graphDataShader = resources->graphDataShader;
+    auto & graphDataBuffer = resources->graphDataBuffer;
+    graphDataShader.use();
+    graphDataShader.axisLimitsRange.set({ limits.x.getRange(), limits.y.getRange() });
+    graphDataShader.axisLimitsMin.set({ limits.x.min, limits.y.min });
 
     for (size_t index = 0; index < channelBuffers.size(); index++)
     {
@@ -233,9 +233,9 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
             continue;
         }
 
-        renderer.getResources().graphDataShader.colour.setRGBA(colours[index]);
-        renderer.getResources().graphDataBuffer.fillBuffers(channelBuffers[index]);
-        renderer.getResources().graphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
+        graphDataShader.colour.setRGBA(colours[index]);
+        graphDataBuffer.fillBuffers(channelBuffers[index]);
+        graphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
     }
 }
 
@@ -251,7 +251,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     GLUtil::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false); // TODO: Why is this necessary??
     GLUtil::ScopedCapability scopedDepthTest(juce::gl::GL_DEPTH_TEST, false); // do not hide text based on depth
 
-    auto& text = renderer.getResources().getGraphAxisValuesText();
+    auto& text = resources->getGraphAxisValuesText();
     const int distanceOfPlotAxis = isXTicks ? glPlotBounds.getWidth() : glPlotBounds.getHeight();
     const int plotStartOffset = isXTicks ? (glPlotBounds.getX() - glDrawBounds.getX()) : (glPlotBounds.getY() - glDrawBounds.getY());
     auto labelsToDraw = ticks.labels;
@@ -311,7 +311,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
         const auto x = isXTicks ? offsetAlongAxis : offsetTowardsAxis;
         const auto y = isXTicks ? offsetTowardsAxis : offsetAlongAxis;
 
-        drawText(renderer.getResources(), glDrawBounds, text, label.text, juce::Colours::grey, x, y, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
+        drawText(glDrawBounds, text, label.text, juce::Colours::grey, x, y, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
     }
 }
 
@@ -330,10 +330,11 @@ void Graph::drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& lim
     drawTicks(false, bounds, drawBounds, limits, ticks);
 }
 
-void Graph::drawText(GLResources& resources, const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification)
+void Graph::drawText(const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification)
 {
-    resources.textShader.use();
-    resources.textShader.colour.setRGBA(colour);
+    auto & textShader = resources->textShader;
+    textShader.use();
+    textShader.colour.setRGBA(colour);
     text.setText(label);
 
     // NOTE: The 2.0 / width here and -1.0 offset in the translation matrix below are specifically translating to NDC coordinates via math
@@ -359,7 +360,7 @@ void Graph::drawText(GLResources& resources, const juce::Rectangle<int>& openGLB
     // NOTE: Translate position to NDC in -1.0 to 1.0 range
     auto translation = juce::Matrix3D<float>::fromTranslation(juce::Vector3D<float>(-1 + (x * pixelSize.x), -1 + (y * pixelSize.y), 0.0f));
 
-    resources.textShader.transformation.setMatrix4(translation.mat, 1, false);
+    textShader.transformation.setMatrix4(translation.mat, 1, false);
 
     text.render(resources);
 }

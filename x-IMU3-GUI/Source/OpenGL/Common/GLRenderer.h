@@ -18,8 +18,6 @@ public:
 
     void removeComponent(OpenGLComponent& component);
 
-    GLResources& getResources();
-
 private:
     juce::OpenGLContext context;
 

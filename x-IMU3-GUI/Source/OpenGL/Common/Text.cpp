@@ -151,21 +151,21 @@ void Text::setPosition(const juce::Vector3D<GLfloat>& position_)
     position = position_;
 }
 
-void Text::renderScreenSpace(GLResources& resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform)
+void Text::renderScreenSpace(GLResources * const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform)
 {
     // Calculate Normalized Device Coordinates (NDC) transformation to place text at position on screen with a constant size
     glm::vec2 ndcCoord = glm::vec2(transform[3][0], transform[3][1]) / transform[3][3]; // get x, y of matrix translation then divide by w of translation for constant size in pixels
     const auto zTranslation = transform[3][2]; // use z of matrix translation so 2D elements have proper layering
     const auto ndcMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(ndcCoord, zTranslation));
 
-    resources.textShader.colour.setRGBA(colour);
-    resources.textShader.transformation.set(ndcMatrix);
+    resources->textShader.colour.setRGBA(colour);
+    resources->textShader.transformation.set(ndcMatrix);
 
     setText(label);
     render(resources);
 }
 
-void Text::render(GLResources& resources)
+void Text::render(GLResources * const resources)
 {
     // TODO: Unused consider removing
     auto textOrigin = position;
@@ -184,7 +184,7 @@ void Text::render(GLResources& resources)
                                    textOrigin.x + (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f,
                                    textOrigin.x - (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f };
 
-            resources.textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
+            resources->textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
         }
 
         else
@@ -194,7 +194,7 @@ void Text::render(GLResources& resources)
                                    textOrigin.x + (glyph.bearingX * scale.x) + (glyph.width * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f,
                                    textOrigin.x + (glyph.bearingX * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f };
 
-            resources.textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
+            resources->textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
         }
 
         GLfloat UVs[] = { 0.0f, 0.0f,
@@ -205,17 +205,17 @@ void Text::render(GLResources& resources)
         GLuint indices[] = { 0, 1, 3,
                              3, 1, 2 };
 
-        resources.textBuffer.linkEbo();
-        resources.textBuffer.linkVbo(resources.textShader.vertexIn.attributeID, TextBuffer::vertexBuffer, TextBuffer::Xyz, TextBuffer::floatingPoint);
-        resources.textBuffer.linkVbo(resources.textShader.textureIn.attributeID, TextBuffer::textureBuffer, TextBuffer::UV, TextBuffer::floatingPoint);
+        resources->textBuffer.linkEbo();
+        resources->textBuffer.linkVbo(resources->textShader.vertexIn.attributeID, TextBuffer::vertexBuffer, TextBuffer::Xyz, TextBuffer::floatingPoint);
+        resources->textBuffer.linkVbo(resources->textShader.textureIn.attributeID, TextBuffer::textureBuffer, TextBuffer::UV, TextBuffer::floatingPoint);
 
-        resources.textBuffer.fillEbo(indices, sizeof(indices), TextBuffer::multipleFill);
-        resources.textBuffer.fillVbo(TextBuffer::textureBuffer, UVs, sizeof(UVs), TextBuffer::multipleFill);
+        resources->textBuffer.fillEbo(indices, sizeof(indices), TextBuffer::multipleFill);
+        resources->textBuffer.fillVbo(TextBuffer::textureBuffer, UVs, sizeof(UVs), TextBuffer::multipleFill);
 
         {
             GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true);
             juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, glyph.textureID);
-            resources.textBuffer.render(TextBuffer::triangles);
+            resources->textBuffer.render(TextBuffer::triangles);
         }
 
         textOrigin.x += (glyph.advance * scale.x) / 64.0f;

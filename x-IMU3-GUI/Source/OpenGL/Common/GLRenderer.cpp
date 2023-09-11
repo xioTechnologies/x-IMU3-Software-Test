@@ -22,6 +22,7 @@ juce::OpenGLContext& GLRenderer::getContext()
 void GLRenderer::addComponent(OpenGLComponent& component)
 {
     std::lock_guard<std::mutex> _(sharedGLDataLock);
+    component.resources = resources.get();
     components.push_back(&component);
 }
 
@@ -29,11 +30,7 @@ void GLRenderer::removeComponent(OpenGLComponent& component)
 {
     std::lock_guard<std::mutex> _(sharedGLDataLock);
     components.erase(std::remove(components.begin(), components.end(), &component), components.end());
-}
-
-GLResources& GLRenderer::getResources()
-{
-    return *resources;
+    component.resources = nullptr;
 }
 
 void GLRenderer::resetDefaultOpenGLState()
@@ -57,8 +54,16 @@ void GLRenderer::resetDefaultOpenGLState()
 
 void GLRenderer::newOpenGLContextCreated()
 {
+    std::lock_guard<std::mutex> _(sharedGLDataLock);
+
     // All texture, shader, model and buffer resources are created here
     resources = std::make_unique<GLResources>(context);
+
+    // If components have already been added, ensure they have valid resources
+    for (auto& component : components)
+    {
+        component->resources = resources.get();
+    }
 }
 
 void GLRenderer::renderOpenGL()
