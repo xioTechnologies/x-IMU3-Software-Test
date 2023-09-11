@@ -210,13 +210,16 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
     addGridLines(lines, true, xTicks, limits.x); // vertical x ticks
     addGridLines(lines, false, yTicks, limits.y); // horizontal y ticks
 
-    // Border lines
-    lines.insert(lines.end(), {
-            -1.0f, -1.0f, borderBrightness, -1.0f, 1.0f, borderBrightness, // left edge
-            1.0f, -1.0f, borderBrightness, 1.0f, 1.0f, borderBrightness, // right edge
-            -1.0f, 1.0f, borderBrightness, 1.0f, 1.0f, borderBrightness, // top edge
-            -1.0f, -1.0f, borderBrightness, 1.0f, -1.0f, borderBrightness // bottom edge
-    });
+    if (ticksEnabled)
+    {
+        // Border lines
+        lines.insert(lines.end(), {
+                -1.0f, -1.0f, borderBrightness, -1.0f, 1.0f, borderBrightness, // left edge
+                1.0f, -1.0f, borderBrightness, 1.0f, 1.0f, borderBrightness, // right edge
+                -1.0f, 1.0f, borderBrightness, 1.0f, 1.0f, borderBrightness, // top edge
+                -1.0f, -1.0f, borderBrightness, 1.0f, -1.0f, borderBrightness // bottom edge
+        });
+    }
 
     // Draw lines
     GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
