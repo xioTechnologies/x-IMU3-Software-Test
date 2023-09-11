@@ -8,12 +8,12 @@ juce::ValueTree TemperatureGraphWindow::settingsTree_("TemperatureGraphSettings"
 
 TemperatureGraphWindow::TemperatureGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
-                         glRenderer,
-                         "Temperature (" + degreeSymbol + "C)",
-                         { "" },
-                         { juce::Colours::yellow },
-                         settingsTree_,
-                         true)
+                      glRenderer,
+                      "Temperature (" + degreeSymbol + "C)",
+                      { "" },
+                      { juce::Colours::yellow },
+                      settingsTree_,
+                      true)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addTemperatureCallback(temperatureCallback = [&](auto message)
     {

@@ -8,12 +8,12 @@ juce::ValueTree MagnetometerGraphWindow::settingsTree_("MagnetometerGraphSetting
 
 MagnetometerGraphWindow::MagnetometerGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
-                         glRenderer,
-                         "Intensity (a.u.)",
-                         { "X", "Y", "Z" },
-                         { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
-                         settingsTree_,
-                         false)
+                      glRenderer,
+                      "Intensity (a.u.)",
+                      { "X", "Y", "Z" },
+                      { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                      settingsTree_,
+                      false)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addMagnetometerCallback(magnetometerCallback = [&](auto message)
     {

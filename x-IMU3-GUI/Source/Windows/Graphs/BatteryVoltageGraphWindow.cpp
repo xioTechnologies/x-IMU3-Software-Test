@@ -8,12 +8,12 @@ juce::ValueTree BatteryVoltageGraphWindow::settingsTree_("BatteryVoltageGraphSet
 
 BatteryVoltageGraphWindow::BatteryVoltageGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
-                         glRenderer,
-                         "Voltage (V)",
-                         { "" },
-                         { juce::Colours::yellow },
-                         settingsTree_,
-                         true)
+                      glRenderer,
+                      "Voltage (V)",
+                      { "" },
+                      { juce::Colours::yellow },
+                      settingsTree_,
+                      true)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addBatteryCallback(batteryCallback = [&](auto message)
     {

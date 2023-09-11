@@ -8,12 +8,12 @@ juce::ValueTree EarthAccelerationGraphWindow::settingsTree_("EarthAccelerationGr
 
 EarthAccelerationGraphWindow::EarthAccelerationGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
-                         glRenderer,
-                         "Acceleration (g)",
-                         { "X", "Y", "Z" },
-                         { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
-                         settingsTree_,
-                         false)
+                      glRenderer,
+                      "Acceleration (g)",
+                      { "X", "Y", "Z" },
+                      { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                      settingsTree_,
+                      false)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addEarthAccelerationCallback(earthAccelerationCallback = [&](auto message)
     {

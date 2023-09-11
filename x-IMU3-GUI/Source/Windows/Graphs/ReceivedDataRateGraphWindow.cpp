@@ -8,12 +8,12 @@ juce::ValueTree ReceivedDataRateGraphWindow::settingsTree_("ReceivedDataRateGrap
 
 ReceivedDataRateGraphWindow::ReceivedDataRateGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
-                         glRenderer,
-                         "Receive rate (kB/s)",
-                         { "" },
-                         { juce::Colours::yellow },
-                         settingsTree_,
-                         true)
+                      glRenderer,
+                      "Receive rate (kB/s)",
+                      { "" },
+                      { juce::Colours::yellow },
+                      settingsTree_,
+                      true)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addStatisticsCallback(statisticsCallback = [&](auto message)
     {

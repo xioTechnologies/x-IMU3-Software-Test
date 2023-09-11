@@ -8,12 +8,12 @@ juce::ValueTree RssiPercentageGraphWindow::settingsTree_("RssiPercentageGraphSet
 
 RssiPercentageGraphWindow::RssiPercentageGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
-                         glRenderer,
-                         "Percentage (%)",
-                         { "" },
-                         { juce::Colours::yellow },
-                         settingsTree_,
-                         false)
+                      glRenderer,
+                      "Percentage (%)",
+                      { "" },
+                      { juce::Colours::yellow },
+                      settingsTree_,
+                      false)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addRssiCallback(rssiCallback = [&](auto message)
     {
