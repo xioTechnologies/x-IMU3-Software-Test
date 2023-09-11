@@ -13,8 +13,8 @@ GraphWindow::GraphWindow(const juce::ValueTree& windowLayout_, const juce::Ident
                          bool defaultHorizontalAutoscale_)
         : Window(windowLayout_, type_, devicePanel_, "", std::bind(&GraphWindow::getMenu, this)),
           legendStrings(legendStrings_),
-          defaultHorizontalAutoscale(defaultHorizontalAutoscale_),
           legendColours(legendColours_),
+          defaultHorizontalAutoscale(defaultHorizontalAutoscale_),
           settingsTree(settingsTree_),
           graph(glRenderer, legendColours_, labelHeight, rightMargin),
           yLabel(yAxis, UIFonts::getDefaultFont(), juce::Justification::centred)
@@ -71,8 +71,6 @@ void GraphWindow::resized()
 
     if (compactView == false)
     {
-        const int labelHeight = 25;
-
         xLabel.setBounds(graphArea.removeFromBottom(labelHeight).withTrimmedLeft(labelHeight));
 
         // Rotate Y label vertical
@@ -180,7 +178,7 @@ Graph::Settings GraphWindow::readFromValueTree() const
     settings.axesLimits.y.max = settingsTree.getProperty("axesLimitsYMax", settings.axesLimits.y.max);
     settings.horizontalAutoscale = settingsTree.getProperty("horizontalAutoscale", defaultHorizontalAutoscale);
     settings.verticalAutoscale = settingsTree.getProperty("verticalAutoscale", settings.verticalAutoscale);
-    for (size_t index = 0; index < numberOfChannels; index++)
+    for (size_t index = 0; index < (size_t) numberOfChannels; index++)
     {
         settings.enabledChannels.push_back(settingsTree.getProperty("enabledChannels" + juce::String(index), true));
     }
@@ -217,7 +215,7 @@ juce::PopupMenu GraphWindow::getMenu()
 
         Graph::Settings settings;
         settings.horizontalAutoscale = defaultHorizontalAutoscale;
-        settings.enabledChannels.resize(numberOfChannels, true);
+        settings.enabledChannels.resize((size_t) numberOfChannels, true);
         writeToValueTree(settings);
     });
     menu.addItem("Clear", true, false, [this]
@@ -286,7 +284,7 @@ juce::PopupMenu GraphWindow::getMenu()
             repaint(); // refresh legend text color
         });
 
-        for (size_t index = 0; index < numberOfChannels; index++)
+        for (size_t index = 0; index < (size_t) numberOfChannels; index++)
         {
             menu.addItem(legendStrings[index], true, settings.enabledChannels[index], [this, index]
             {
