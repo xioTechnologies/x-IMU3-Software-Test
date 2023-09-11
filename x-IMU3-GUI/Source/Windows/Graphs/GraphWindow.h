@@ -32,7 +32,7 @@ protected:
     static const juce::String degreeSymbol;
 
 private:
-    static constexpr int labelHeight = 24;
+    static constexpr int labelHeight = 20;
     static constexpr int rightMargin = 10;
 
     const std::vector<juce::String> legendStrings;
@@ -43,7 +43,7 @@ private:
 
     Graph graph;
 
-    SimpleLabel xLabel { "Time (s)", UIFonts::getDefaultFont(), juce::Justification::centred };
+    SimpleLabel xLabel;
     SimpleLabel yLabel;
 
     bool paused = settingsTree["paused"];
