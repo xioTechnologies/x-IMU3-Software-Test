@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_opengl/juce_opengl.h>
+#include <span>
 
 class LineBuffer
 {
@@ -19,7 +20,7 @@ public:
         glDeleteBuffers(1, &vbo);
     }
 
-    void fillBuffers(const std::vector<GLfloat>& vertices)
+    void fillBuffers(const std::span<GLfloat>& vertices)
     {
         using namespace ::juce::gl;
 

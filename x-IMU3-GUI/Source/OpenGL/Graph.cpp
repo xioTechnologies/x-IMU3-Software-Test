@@ -223,6 +223,8 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
     }
 
     renderer.getResources().graphDataShader.use(); // TODO: define local variable for most renderer.getResources() use cases
+    renderer.getResources().graphDataShader.axisLimitsRange.set({ limits.x.getRange(), limits.y.getRange() });
+    renderer.getResources().graphDataShader.axisLimitsMin.set({ limits.x.min, limits.y.min });
 
     for (size_t index = 0; index < channelBuffers.size(); index++)
     {
@@ -232,13 +234,10 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
         }
 
         // Convert to raw floats for OpenGL buffer
-        // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         std::vector<GLfloat> lines;
         for (const auto& point : channelBuffers[index])
         {
-            float xNDC = engineeringValueToNDC(point.x, limits.x);
-            float yNDC = engineeringValueToNDC(point.y, limits.y);
-            lines.insert(lines.end(), { xNDC, yNDC });
+            lines.insert(lines.end(), { point.x, point.y });
         }
 
         renderer.getResources().graphDataShader.colour.setRGBA(colours[index]);

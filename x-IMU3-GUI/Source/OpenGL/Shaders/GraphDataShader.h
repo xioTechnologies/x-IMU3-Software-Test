@@ -11,6 +11,8 @@ public:
     {
     }
 
+    GLUtil::Uniform axisLimitsRange { *this, "axisLimitsRange" };
+    GLUtil::Uniform axisLimitsMin { *this, "axisLimitsMin" };
     GLUtil::Uniform colour { *this, "colour" };
 
 private:
