@@ -272,7 +272,7 @@ code = "".join(["#include \"Windows/Graphs/" + w.name + "GraphWindow.h\"\n" for 
 helpers.insert(file_path, code, "0")
 
 template = "\
-    if (type == WindowIDs::$name$)\n\
+    if (type == WindowIDs::$name$Graph)\n\
     {\n\
         return window = std::make_shared<$name$GraphWindow>(windowLayout, type, *this, glRenderer);\n\
     }\n"
@@ -283,8 +283,8 @@ helpers.insert(file_path, code, 1)
 # Insert code into x-IMU3-GUI/Source/MenuStrip/MenuStrip.cpp
 file_path = "../../MenuStrip/MenuStrip.cpp"
 
-code = "".join(["    addWindowItem(WindowIDs::" + w.name + ");\n" for w in windows])
+code = "".join(["    addWindowItem(WindowIDs::" + w.name + "Graph);\n" for w in windows])
 helpers.insert(file_path, code, "0")
 
-code = "".join(["    addSingleWindowItem(WindowIDs::" + w.name + ");\n" for w in windows])
+code = "".join(["    addSingleWindowItem(WindowIDs::" + w.name + "Graph);\n" for w in windows])
 helpers.insert(file_path, code, "1")
