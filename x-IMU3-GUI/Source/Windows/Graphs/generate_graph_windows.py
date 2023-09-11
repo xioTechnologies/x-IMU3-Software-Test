@@ -268,14 +268,8 @@ for window in windows:
 # Insert code into x-IMU3-GUI/Source/DevicePanel/DevicePanel.cpp
 file_path = "../../DevicePanel/DevicePanel.cpp"
 
-code = ""
-
-for window in windows:
-    code += "#include \"Windows/Graphs/" + window.name + "GraphWindow.h\"\n"
-
+code = "".join(["#include \"Windows/Graphs/" + w.name + "GraphWindow.h\"\n" for w in windows])
 helpers.insert(file_path, code, "0")
-
-code = ""
 
 template = "\
     if (type == WindowIDs::$name$)\n\
@@ -283,24 +277,14 @@ template = "\
         return window = std::make_shared<$name$GraphWindow>(windowLayout, type, *this, glRenderer);\n\
     }\n"
 
-for window in windows:
-    code += template.replace("$name$", window.name)
-
+code = "".join([template.replace("$name$", w.name) for w in windows])
 helpers.insert(file_path, code, 1)
 
 # Insert code into x-IMU3-GUI/Source/MenuStrip/MenuStrip.cpp
 file_path = "../../MenuStrip/MenuStrip.cpp"
 
-code = ""
-
-for window in windows:
-    code += "    addWindowItem(WindowIDs::" + window.name + ");\n"
-
+code = "".join(["    addWindowItem(WindowIDs::" + w.name + ");\n" for w in windows])
 helpers.insert(file_path, code, "0")
 
-code = ""
-
-for window in windows:
-    code += "    addSingleWindowItem(WindowIDs::" + window.name + ");\n"
-
+code = "".join(["    addSingleWindowItem(WindowIDs::" + w.name + ");\n" for w in windows])
 helpers.insert(file_path, code, "1")
