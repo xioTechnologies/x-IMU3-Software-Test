@@ -15,7 +15,7 @@ public:
     {
         AxesLimits axesLimits;
         bool horizontalAutoscale = false;
-        bool verticalAutoscale = false;
+        bool verticalAutoscale = true;
         std::vector<bool> enabledChannels;
     };
 
