@@ -197,15 +197,20 @@ windows = [
     }));",
            ),
     Window(name="SerialAccessory",
-           callback_declarations="    std::function<void(ximu3::XIMU3_InertialMessage)> inertialCallback;",
+           callback_declarations="    std::function<void(ximu3::XIMU3_SerialAccessoryMessage)> serialAccessoryCallback;",
            horizontal_autoscale="false",
-           y_axis="Value",
+           y_axis="CSV",
            legend_strings="{ \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\" }",
            legend_colours="{ UIColours::tags[1], UIColours::tags[2], UIColours::tags[3], UIColours::tags[4], UIColours::tags[5], UIColours::tags[6], UIColours::tags[7], UIColours::tags[8] }",
            callback_implementations="\
-    callbackIDs.push_back(devicePanel.getConnection()->addInertialCallback(inertialCallback = [&](auto message)\n\
+    callbackIDs.push_back(devicePanel.getConnection()->addSerialAccessoryCallback(serialAccessoryCallback = [&](auto message)\n\
     {\n\
-        write(message.timestamp, { message.accelerometer_x, message.accelerometer_y, message.accelerometer_z });\n\
+        std::vector<float> values;\n\
+        for (const auto& string : juce::StringArray::fromTokens(message.char_array, \",\", \"\"))\n\
+        {\n\
+            values.push_back(string.getFloatValue());\n\
+        }\n\
+        write(message.timestamp, values);\n\
     }));",
            ),
     Window(name="ReceivedMessageRate",

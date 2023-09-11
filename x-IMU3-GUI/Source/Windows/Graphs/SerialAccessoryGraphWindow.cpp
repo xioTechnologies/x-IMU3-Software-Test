@@ -9,7 +9,7 @@ juce::ValueTree SerialAccessoryGraphWindow::settingsTree_("SerialAccessoryGraphS
 SerialAccessoryGraphWindow::SerialAccessoryGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
                       glRenderer,
-                      "CSV Value",
+                      "CSV",
                       { "1", "2", "3", "4", "5", "6", "7", "8" },
                       { UIColours::tags[1], UIColours::tags[2], UIColours::tags[3], UIColours::tags[4], UIColours::tags[5], UIColours::tags[6], UIColours::tags[7], UIColours::tags[8] },
                       settingsTree_,
