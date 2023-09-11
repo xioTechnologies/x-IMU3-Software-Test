@@ -30,7 +30,7 @@ void Graph::render()
     settings.axesLimits.autoscale(settings.horizontalAutoscale, settings.verticalAutoscale, channelBuffers, settings.enabledChannels);
 
     // Paint graph background color
-    GLUtil::clear(UIColours::backgroundLight, toOpenGLBounds(bounds));
+    GLHelpers::clear(UIColours::backgroundLight, toOpenGLBounds(bounds));
 
     if (ticksEnabled)
     {
@@ -116,12 +116,12 @@ void Graph::drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limit
 {
     // Set rendering bounds
     auto glBounds = toOpenGLBounds(bounds);
-    GLUtil::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
-    GLUtil::viewportAndScissor(glBounds);
+    GLHelpers::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+    GLHelpers::viewportAndScissor(glBounds);
 
     // Setup OpenGL state
-    GLUtil::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false);
-    GLUtil::ScopedCapability scopedDepth(juce::gl::GL_DEPTH_TEST, false);
+    GLHelpers::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false);
+    GLHelpers::ScopedCapability scopedDepth(juce::gl::GL_DEPTH_TEST, false);
 
     /*  NOTE: We are using OpenGL's built-in line rendering system, GL_LINES. By using this system, we are
      *  limited to drawing lines with a width of 1 pixel. The OpenGL spec only requires graphics drivers
@@ -170,7 +170,7 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
         const float minorDistance = ticks.major / (float) ticks.minorPerMajor;
 
         // Major and minor ticks from first major position and greater
-        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(axisLimits.min, ticks.major);
+        const float firstMajorPosition = GLHelpers::roundUpToNearestMultiple(axisLimits.min, ticks.major);
         const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(axisLimits.getRange() / ticks.major)) + 1;
         for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
         {
@@ -222,7 +222,7 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
     }
 
     // Draw lines
-    GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
+    GLHelpers::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
 
     resources->graphGridShader.use();
     auto& gridBuffer = resources->graphGridBuffer;
@@ -277,12 +277,12 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     // Set rendering bounds, expanded to allow drawing past graph edges
     auto glPlotBounds = toOpenGLBounds(plotBounds); // only plot area
     auto glDrawBounds = toOpenGLBounds(drawBounds); // full area allowed to draw text
-    GLUtil::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
-    GLUtil::viewportAndScissor(glDrawBounds);
+    GLHelpers::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+    GLHelpers::viewportAndScissor(glDrawBounds);
 
     // Setup OpenGL state
-    GLUtil::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false); // TODO: Why is this necessary??
-    GLUtil::ScopedCapability scopedDepthTest(juce::gl::GL_DEPTH_TEST, false); // do not hide text based on depth
+    GLHelpers::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false); // TODO: Why is this necessary??
+    GLHelpers::ScopedCapability scopedDepthTest(juce::gl::GL_DEPTH_TEST, false); // do not hide text based on depth
 
     auto& text = resources->getGraphAxisValuesText();
     const int distanceOfPlotAxis = isXTicks ? glPlotBounds.getWidth() : glPlotBounds.getHeight();

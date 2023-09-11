@@ -11,9 +11,9 @@ public:
     {
     }
 
-    GLUtil::Uniform axisLimitsRange { *this, "axisLimitsRange" };
-    GLUtil::Uniform axisLimitsMin { *this, "axisLimitsMin" };
-    GLUtil::Uniform colour { *this, "colour" };
+    GLHelpers::Uniform axisLimitsRange { *this, "axisLimitsRange" };
+    GLHelpers::Uniform axisLimitsMin { *this, "axisLimitsMin" };
+    GLHelpers::Uniform colour { *this, "colour" };
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GraphDataShader)

@@ -6,8 +6,7 @@
 #include "glm/vec4.hpp"
 #include <juce_opengl/juce_opengl.h>
 
-// TODO: rename to GLHelpers?
-namespace GLUtil
+namespace GLHelpers
 {
     /** Represents an OpenGL uniform value.
         After a juce::OpenGLShaderProgram has been linked, you can create Uniform objects to
@@ -231,14 +230,14 @@ namespace GLUtil
 
     static inline void viewportAndScissor(const juce::Rectangle<int>& bounds)
     {
-        GLUtil::viewport(bounds);
-        GLUtil::scissor(bounds);
+        GLHelpers::viewport(bounds);
+        GLHelpers::scissor(bounds);
     }
 
     static inline void clear(const juce::Colour& colour, const juce::Rectangle<int>& bounds)
     {
-        GLUtil::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
-        GLUtil::viewportAndScissor(bounds);
+        GLHelpers::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+        GLHelpers::viewportAndScissor(bounds);
         juce::OpenGLHelpers::clear(colour);
     }
 

@@ -11,9 +11,9 @@ public:
     {
     }
 
-    GLUtil::Uniform colour { *this, "colour" };
+    GLHelpers::Uniform colour { *this, "colour" };
     Uniform textureImage { *this, "textureImage" };
-    GLUtil::Uniform transformation { *this, "transformation" };
+    GLHelpers::Uniform transformation { *this, "transformation" };
 
     // TODO: Attribute variables can be removed in refactor
     Attribute vertexIn { *this, "vertexIn" };

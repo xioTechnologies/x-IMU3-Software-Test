@@ -41,7 +41,7 @@ bool Text::loadFont(const char* data, size_t dataSize, GLuint fontSize_)
 
         GLuint freetypeTextureID;
         juce::gl::glGenTextures(1, &freetypeTextureID);
-        GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true); // TODO: Rename to _ when only one ScopedCapability
+        GLHelpers::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true); // TODO: Rename to _ when only one ScopedCapability
         juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, freetypeTextureID);
 
         juce::gl::glTexImage2D(juce::gl::GL_TEXTURE_2D,
@@ -213,7 +213,7 @@ void Text::render(GLResources * const resources)
         resources->textBuffer.fillVbo(TextBuffer::textureBuffer, UVs, sizeof(UVs), TextBuffer::multipleFill);
 
         {
-            GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true);
+            GLHelpers::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true);
             juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, glyph.textureID);
             resources->textBuffer.render(TextBuffer::triangles);
         }

@@ -74,7 +74,7 @@ struct Ticks
         }
 
         // Fill in text labels for major ticks
-        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(limits.min, ticks.major); // TODO: Avoid OpenGL knowledge
+        const float firstMajorPosition = GLHelpers::roundUpToNearestMultiple(limits.min, ticks.major); // TODO: Avoid OpenGL knowledge
         const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(limits.getRange() / ticks.major)) + 1;
         for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
         {
@@ -86,7 +86,7 @@ struct Ticks
             }
 
             // Ensure 0 is written properly with no rounding error
-            if (GLUtil::approximatelyEqual(majorPosition, 0.0f, ticks.major / (float) ticks.minorPerMajor)) // TODO: Avoid OpenGL knowledge
+            if (GLHelpers::approximatelyEqual(majorPosition, 0.0f, ticks.major / (float) ticks.minorPerMajor)) // TODO: Avoid OpenGL knowledge
             {
                 ticks.labels.push_back({ "0", 0.0f });
             }

@@ -11,11 +11,11 @@ public:
     {
     }
 
-    GLUtil::Uniform modelViewProjectionMatrix { *this, "modelViewProjectionMatrix" };
+    GLHelpers::Uniform modelViewProjectionMatrix { *this, "modelViewProjectionMatrix" };
 
-    GLUtil::Uniform colour { *this, "colour" };
-    GLUtil::Uniform isTextured { *this, "isTextured" };
-    GLUtil::Uniform textureImage { *this, "textureImage" };
+    GLHelpers::Uniform colour { *this, "colour" };
+    GLHelpers::Uniform isTextured { *this, "isTextured" };
+    GLHelpers::Uniform textureImage { *this, "textureImage" };
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UnlitShader)
