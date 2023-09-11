@@ -30,8 +30,22 @@ public:
 class AxesLimits
 {
 public:
-    AxisLimits x { -5.0f, 0.0f };
-    AxisLimits y { -1.0f, 1.0f };
+    AxisLimits x;
+    AxisLimits y;
+
+    AxesLimits()
+    {
+        setDefault();
+    }
+
+    void setDefault()
+    {
+        x.min = -5.0f;
+        x.max = 0.0f;
+
+        y.min = -1.0f;
+        y.max = 1.0f;
+    }
 
     void autoscale(const bool horizontal, const bool vertical, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
     {

@@ -26,6 +26,8 @@ public:
 
     void mouseDrag(const juce::MouseEvent& mouseEvent) override;
 
+    void mouseDoubleClick(const juce::MouseEvent& mouseEvent) override;
+
 protected:
     void write(const uint64_t timestamp, const std::vector<float>& arguments);
 

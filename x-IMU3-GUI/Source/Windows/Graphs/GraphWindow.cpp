@@ -143,6 +143,13 @@ void GraphWindow::mouseDrag(const juce::MouseEvent& mouseEvent)
     writeToValueTree(settings);
 }
 
+void GraphWindow::mouseDoubleClick(const juce::MouseEvent& mouseEvent)
+{
+    auto settings = graph.getSettings();
+    settings.axesLimits.setDefault();
+    writeToValueTree(settings);
+}
+
 void GraphWindow::write(const uint64_t timestamp, const std::vector<float>& arguments)
 {
     if (paused)
