@@ -8,12 +8,12 @@ juce::ValueTree GyroscopeGraphWindow::settingsTree_("GyroscopeGraphSettings");
 
 GyroscopeGraphWindow::GyroscopeGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
-                         glRenderer,
-                         "Angular velocity (" + degreeSymbol + "/s)",
-                         { "X", "Y", "Z" },
-                         { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
-                         settingsTree_,
-                         false)
+                      glRenderer,
+                      "Angular velocity (" + degreeSymbol + "/s)",
+                      { "X", "Y", "Z" },
+                      { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                      settingsTree_,
+                      false)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addInertialCallback(inertialCallback = [&](auto message)
     {

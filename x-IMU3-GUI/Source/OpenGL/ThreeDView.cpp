@@ -192,8 +192,8 @@ void ThreeDView::renderAxes(const juce::Rectangle<int>& viewportBounds, const gl
     // TODO: Optimization: Only necessary IF bounds have changed . . .
     text.setScale({ 1.0f / (float) viewportBounds.getWidth(), 1.0f / (float) viewportBounds.getHeight() }); // sets text scale to the normalized size of a screen pixel
 
-    renderAxesForDeviceOrientation( deviceRotation, axesConventionRotation); // attached to model
-    renderAxesForWorldOrientation( axesConventionRotation); // in HUD top right
+    renderAxesForDeviceOrientation(deviceRotation, axesConventionRotation); // attached to model
+    renderAxesForWorldOrientation(axesConventionRotation); // in HUD top right
 }
 
 void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat4& projectionMatrix) const
@@ -277,7 +277,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
 
 void ThreeDView::renderAxesForDeviceOrientation(const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const
 {
-    renderAxesInstance( axesConventionRotation * deviceRotation, renderer.getResources().orbitCamera.getOrthogonalProjectionMatrix());
+    renderAxesInstance(axesConventionRotation * deviceRotation, renderer.getResources().orbitCamera.getOrthogonalProjectionMatrix());
 }
 
 void ThreeDView::renderAxesForWorldOrientation(const glm::mat4& axesConventionRotation) const
@@ -292,5 +292,5 @@ void ThreeDView::renderAxesForWorldOrientation(const glm::mat4& axesConventionRo
     const glm::vec2 topRightNDC(1.0f, 1.0f);
     const auto ndcMat = glm::translate(glm::mat4(1.0f), glm::vec3(topRightNDC - pixelOffsetNDC, 0.0f));
 
-    renderAxesInstance( axesConventionRotation, ndcMat * renderer.getResources().orbitCamera.getOrthogonalProjectionMatrix());
+    renderAxesInstance(axesConventionRotation, ndcMat * renderer.getResources().orbitCamera.getOrthogonalProjectionMatrix());
 }

@@ -5,12 +5,12 @@
 const juce::String GraphWindow::degreeSymbol = (juce::CharPointer_UTF8("\xc2\xba"));
 
 GraphWindow::GraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, DevicePanel& devicePanel_,
-                               GLRenderer& glRenderer,
-                               const juce::String& yAxis,
-                               std::vector<juce::String> legendStrings_,
-                               std::vector<juce::Colour> legendColours_,
-                               juce::ValueTree settingsTree_,
-                               bool defaultHorizontalAutoscale_)
+                         GLRenderer& glRenderer,
+                         const juce::String& yAxis,
+                         std::vector<juce::String> legendStrings_,
+                         std::vector<juce::Colour> legendColours_,
+                         juce::ValueTree settingsTree_,
+                         bool defaultHorizontalAutoscale_)
         : Window(windowLayout_, type_, devicePanel_, "", std::bind(&GraphWindow::getMenu, this)),
           legendStrings(legendStrings_),
           defaultHorizontalAutoscale(defaultHorizontalAutoscale_),
@@ -40,7 +40,7 @@ void GraphWindow::paint(juce::Graphics& g)
     juce::RectangleList<int> backgroundBounds(getLocalBounds());
     backgroundBounds.subtract(graph.getBounds());
     g.setColour(UIColours::backgroundLight);
-    g.fillRectList (backgroundBounds);
+    g.fillRectList(backgroundBounds);
 
     // Draw legend
     static constexpr int margin = 10;
