@@ -12,7 +12,7 @@ struct Ticks
     unsigned int minorPerMajor;
     std::vector<Label> labels;
 
-    static Ticks getDefault()
+    static Ticks getDefault() // TODO: Remove getDefault
     {
         Ticks ticks;
         ticks.major = 1.0f;
@@ -25,7 +25,7 @@ struct Ticks
         const float range = limits.getRange();
 
         // Prevent undefined log calculation or division by 0
-        if (range <= 0.0 || lengthPixels <= 0)
+        if (range <= 0.0 || lengthPixels <= 0) // TODO: Remove redundant range <= 0.0
         {
             jassertfalse;
             return Ticks::getDefault();
@@ -47,7 +47,7 @@ struct Ticks
 
         auto toPixels = [=](float dataUnits)
         {
-            return dataUnits / range * (float) lengthPixels;
+            return dataUnits / range * (float) lengthPixels; // TODO: Add paranthesis
         };
 
         if (toPixels(previousOOMDouble) >= minimumMajorTickLengthPixels)
@@ -89,7 +89,7 @@ struct Ticks
         }
 
         // Fill in text labels for major ticks
-        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(limits.getMin(), ticks.major);
+        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(limits.getMin(), ticks.major); // TODO: Avoid OpenGL knowledge
         const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(limits.getRange() / ticks.major)) + 1;
         for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
         {
@@ -101,7 +101,7 @@ struct Ticks
             }
 
             // Ensure 0 is written properly with no rounding error
-            if (GLUtil::approximatelyEqual(majorPosition, 0.0f, ticks.major / (float) ticks.minorPerMajor))
+            if (GLUtil::approximatelyEqual(majorPosition, 0.0f, ticks.major / (float) ticks.minorPerMajor)) // TODO: Avoid OpenGL knowledge
             {
                 ticks.labels.push_back({ "0", 0.0f });
             }

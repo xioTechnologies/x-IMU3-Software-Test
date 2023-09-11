@@ -58,6 +58,10 @@ private:
 
     static float engineeringValueToNDC(float value, const AxisLimits& axisLimits); // map to OpenGL Normalized Device Coordinates (NDC) with values ranging from -1.0 to 1.0
 
+    static void drawText(GLResources& resources, const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification);
+
+    static int getMaximumStringWidth(const Ticks& ticks, const Text& text);
+
     void drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels);
 
     void drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks);
@@ -70,10 +74,6 @@ private:
     void drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks);
 
     void drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks); // TODO: remove isXTicks
-
-    static void drawText(GLResources& resources, const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification);
-
-    static int getMaximumStringWidth(const Ticks& ticks, const Text& text);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Graph)
 };
