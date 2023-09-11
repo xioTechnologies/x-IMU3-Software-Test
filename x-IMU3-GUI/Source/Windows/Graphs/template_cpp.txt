@@ -6,12 +6,12 @@ juce::ValueTree $name$GraphWindow::settingsTree_("$name$GraphSettings");
 
 $name$GraphWindow::$name$GraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer)
         : GraphWindow(windowLayout, type_, devicePanel_,
-                         glRenderer,
-                         "$y_axis$",
-                         $legend_strings$,
-                         $legend_colours$,
-                         settingsTree_,
-                         $horizontal_autoscale$)
+                      glRenderer,
+                      "$y_axis$",
+                      $legend_strings$,
+                      $legend_colours$,
+                      settingsTree_,
+                      $horizontal_autoscale$)
 {
 $callback_implementations$
 }
