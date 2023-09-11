@@ -89,13 +89,13 @@ struct Ticks
         }
 
         // Fill in text labels for major ticks
-        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(limits.getMin(), ticks.major); // TODO: Avoid OpenGL knowledge
+        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(limits.min, ticks.major); // TODO: Avoid OpenGL knowledge
         const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(limits.getRange() / ticks.major)) + 1;
         for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
         {
             const float majorPosition = firstMajorPosition + (float) majorTickIndex * ticks.major;
 
-            if (majorPosition > limits.getMax())
+            if (majorPosition > limits.max)
             {
                 break;
             }

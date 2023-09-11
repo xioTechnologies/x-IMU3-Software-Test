@@ -125,16 +125,20 @@ void GraphWindow::mouseDrag(const juce::MouseEvent& mouseEvent)
 
     if (settings.horizontalAutoscale == false)
     {
-        auto& cachedXLimits = graphSettingsMouseCache.axesLimits.getXLimits();
-        auto xLimitsOffset = -(dragOffsetPixels.x * cachedXLimits.getRange() / plotWidthJUCEPixelsMouseCache);
-        settings.axesLimits.setXLimits(cachedXLimits.withOffset(xLimitsOffset));
+        // TODO: Clamp to 0
+        auto limits = graphSettingsMouseCache.axesLimits.x;
+        const auto offset = -1.0f * (dragOffsetPixels.x * (limits.getRange() / plotWidthJUCEPixelsMouseCache));
+        limits.min += offset;
+        limits.max += offset;
+        settings.axesLimits.x = limits;
     }
-
     if (settings.verticalAutoscale == false)
     {
-        auto& cachedYLimits = graphSettingsMouseCache.axesLimits.getYLimits();
-        auto yLimitsOffset = dragOffsetPixels.y * cachedYLimits.getRange() / plotHeightJUCEPixelsMouseCache;
-        settings.axesLimits.setYLimits(cachedYLimits.withOffset(yLimitsOffset));
+        auto limits = graphSettingsMouseCache.axesLimits.y;
+        auto offset = dragOffsetPixels.y * (limits.getRange() / plotHeightJUCEPixelsMouseCache);
+        limits.min += offset;
+        limits.max += offset;
+        settings.axesLimits.y = limits;
     }
 
     writeToValueTree(settings);
@@ -186,8 +190,8 @@ Graph::Settings GraphWindow::readFromValueTree() const
 void GraphWindow::zoomHorizontal(const float multiplier)
 {
     auto settings = graph.getSettings();
-    auto xLimits = settings.axesLimits.getXLimits();
-    settings.axesLimits.setXLimits(xLimits.getMax() - (xLimits.getRange() * multiplier), xLimits.getMax());
+    auto limits = settings.axesLimits.x;
+    settings.axesLimits.x = { limits.max - (limits.getRange() * multiplier), limits.max };
 
     writeToValueTree(settings);
 }
@@ -195,10 +199,10 @@ void GraphWindow::zoomHorizontal(const float multiplier)
 void GraphWindow::zoomVertical(const float multiplier)
 {
     auto settings = graph.getSettings();
-    auto yLimits = settings.axesLimits.getYLimits();
+    auto yLimits = settings.axesLimits.y;
     auto range = yLimits.getRange();
     const auto offset = (multiplier * range - range) / 2;
-    settings.axesLimits.setYLimits(yLimits.getMin() - offset, yLimits.getMax() + offset);
+    settings.axesLimits.y = { yLimits.min - offset, yLimits.max + offset };
 
     writeToValueTree(settings);
 }

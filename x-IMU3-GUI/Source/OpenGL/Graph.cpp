@@ -52,6 +52,8 @@ void Graph::render()
 
     const auto channelBuffers = buffer.read();
 
+    // Remove dissbaled from  channelBuffers
+
     settings.axesLimits.autoscale(settings.horizontalAutoscale, settings.verticalAutoscale, channelBuffers, settings.enabledChannels);
 
     // Paint graph background color
@@ -76,7 +78,7 @@ void Graph::render()
         auto xTicksBounds = bounds.removeFromBottom(13); // font height
         bounds.removeFromBottom(xTickMargin);
 
-        const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.getYLimits());
+        const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.y);
 
         const auto yTicksWidth = getMaximumStringWidth(yTicks, renderer.getResources().getGraphAxisValuesText());
         const auto yTicksBounds = bounds.removeFromLeft(yTicksWidth);
@@ -85,16 +87,16 @@ void Graph::render()
         xTicksBounds.removeFromLeft(yTicksWidth);
         xTicksBounds.removeFromLeft(yTickMargin);
 
-        const auto xTicks = Ticks::createXTicks(bounds.getWidth(), settings.axesLimits.getXLimits());
+        const auto xTicks = Ticks::createXTicks(bounds.getWidth(), settings.axesLimits.x);
 
-        drawXTicks(xTicksBounds, yTicksBounds.getX(), settings.axesLimits.getXLimits(), xTicks);
-        drawYTicks(yTicksBounds, settings.axesLimits.getYLimits(), yTicks);
+        drawXTicks(xTicksBounds, yTicksBounds.getX(), settings.axesLimits.x, xTicks);
+        drawYTicks(yTicksBounds, settings.axesLimits.y, yTicks);
         drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channelBuffers, settings.enabledChannels);
     }
     else
     {
-        const auto xTicks = Ticks::createXTicks(bounds.getWidth(), settings.axesLimits.getXLimits());
-        const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.getYLimits());
+        const auto xTicks = Ticks::createXTicks(bounds.getWidth(), settings.axesLimits.x);
+        const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.y);
         drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channelBuffers, settings.enabledChannels);
     }
 
@@ -160,12 +162,12 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
         const float minorDistance = ticks.major / (float) ticks.minorPerMajor;
 
         // Major and minor ticks from first major position and greater
-        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(axisLimits.getMin(), ticks.major);
+        const float firstMajorPosition = GLUtil::roundUpToNearestMultiple(axisLimits.min, ticks.major);
         const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(axisLimits.getRange() / ticks.major)) + 1;
         for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
         {
             const float majorPosition = firstMajorPosition + (float) majorTickIndex * ticks.major;
-            if (majorPosition > axisLimits.getMax())
+            if (majorPosition > axisLimits.max)
             {
                 break;
             }
@@ -175,7 +177,7 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
             for (unsigned int minorTickIndex = 1; minorTickIndex < ticks.minorPerMajor; minorTickIndex++)
             {
                 const float minorPosition = majorPosition + (float) minorTickIndex * minorDistance;
-                if (minorPosition > axisLimits.getMax())
+                if (minorPosition > axisLimits.max)
                 {
                     break;
                 }
@@ -187,7 +189,7 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
         for (unsigned int minorTickIndex = 1; minorTickIndex < ticks.minorPerMajor; minorTickIndex++)
         {
             const float minorPosition = firstMajorPosition - (float) minorTickIndex * minorDistance;
-            if (minorPosition < axisLimits.getMin())
+            if (minorPosition < axisLimits.min)
             {
                 break;
             }
@@ -197,8 +199,8 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
 
     // Compute line vertices for LineBuffer
     std::vector<GLfloat> lines;
-    addGridLines(lines, true, xTicks, limits.getXLimits()); // vertical x ticks
-    addGridLines(lines, false, yTicks, limits.getYLimits()); // horizontal y ticks
+    addGridLines(lines, true, xTicks, limits.x); // vertical x ticks
+    addGridLines(lines, false, yTicks, limits.y); // horizontal y ticks
 
     // Border lines
     lines.insert(lines.end(), {
@@ -241,8 +243,8 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
         std::vector<GLfloat> lines;
         for (const auto& point : channelBuffers[index])
         {
-            float xNDC = engineeringValueToNDC(point.x, limits.getXLimits());
-            float yNDC = engineeringValueToNDC(point.y, limits.getYLimits());
+            float xNDC = engineeringValueToNDC(point.x, limits.x);
+            float yNDC = engineeringValueToNDC(point.y, limits.y);
             lines.insert(lines.end(), { xNDC, yNDC });
         }
 
@@ -274,7 +276,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     {
         auto getLabelEdges = [&](const Ticks::Label& label) -> std::tuple<float, float>
         {
-            const auto centreX = juce::jmap<float>(label.value, limits.getMin(), limits.getMax(), 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset + (float) glDrawBounds.getX();
+            const auto centreX = juce::jmap<float>(label.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset + (float) glDrawBounds.getX();
             const auto leftEdgeX = centreX - ((float) text.getStringWidthGLPixels(label.text) / 2.0f);
             const auto rightEdgeX = centreX + ((float) text.getStringWidthGLPixels(label.text) / 2.0f);
             return { leftEdgeX, rightEdgeX };
@@ -318,7 +320,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     // Draw each text string
     for (const auto& label : labelsToDraw)
     {
-        const auto offsetAlongAxis = juce::jmap<float>(label.value, limits.getMin(), limits.getMax(), 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
+        const auto offsetAlongAxis = juce::jmap<float>(label.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
         const auto offsetTowardsAxis = isXTicks ? (float) (glDrawBounds.getHeight() - (int) text.getFontSize()) : (float) glDrawBounds.getWidth();
 
         const auto x = isXTicks ? offsetAlongAxis : offsetTowardsAxis;
@@ -379,7 +381,7 @@ void Graph::drawText(GLResources& resources, const juce::Rectangle<int>& openGLB
 
 float Graph::engineeringValueToNDC(float value, const AxisLimits& axisLimits)
 {
-    return (((value - axisLimits.getMin()) / axisLimits.getRange()) * 2.0f) - 1.0f;
+    return (((value - axisLimits.min) / axisLimits.getRange()) * 2.0f) - 1.0f;
 }
 
 int Graph::getMaximumStringWidth(const Ticks& ticks, const Text& text)
