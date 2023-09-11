@@ -41,7 +41,7 @@ bool Text::loadFont(const char* data, size_t dataSize, GLuint fontSize_)
 
         GLuint freetypeTextureID;
         juce::gl::glGenTextures(1, &freetypeTextureID);
-        GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true); // TODO: Rename to _
+        GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true); // TODO: Rename to _ when only one ScopedCapability
         juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, freetypeTextureID);
 
         juce::gl::glTexImage2D(juce::gl::GL_TEXTURE_2D,
@@ -114,8 +114,7 @@ int Text::getStringWidthGLPixels(const juce::String& string) const
     for (const auto& character : string)
     {
         const Glyph glyph = alphabet.at((GLchar) character);
-        // TODO: What is magic number 64.0f?
-        width += (int) std::ceil(glyph.advance / 64.0f);
+        width += (int) std::ceil(glyph.advance / 64.0f); // TODO: What is magic number 64.0f?
     }
 
     return width;
@@ -185,7 +184,7 @@ void Text::render(GLResources& resources)
                                    textOrigin.x + (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f,
                                    textOrigin.x - (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f };
 
-            resources.textBuffer.fillVbo(Buffer::vertexBuffer, vertices, sizeof(vertices), Buffer::multipleFill);
+            resources.textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
         }
 
         else
@@ -195,7 +194,7 @@ void Text::render(GLResources& resources)
                                    textOrigin.x + (glyph.bearingX * scale.x) + (glyph.width * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f,
                                    textOrigin.x + (glyph.bearingX * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f };
 
-            resources.textBuffer.fillVbo(Buffer::vertexBuffer, vertices, sizeof(vertices), Buffer::multipleFill);
+            resources.textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
         }
 
         GLfloat UVs[] = { 0.0f, 0.0f,
@@ -207,16 +206,16 @@ void Text::render(GLResources& resources)
                              3, 1, 2 };
 
         resources.textBuffer.linkEbo();
-        resources.textBuffer.linkVbo(resources.textShader.vertexIn.attributeID, Buffer::vertexBuffer, Buffer::Xyz, Buffer::floatingPoint);
-        resources.textBuffer.linkVbo(resources.textShader.textureIn.attributeID, Buffer::textureBuffer, Buffer::UV, Buffer::floatingPoint);
+        resources.textBuffer.linkVbo(resources.textShader.vertexIn.attributeID, TextBuffer::vertexBuffer, TextBuffer::Xyz, TextBuffer::floatingPoint);
+        resources.textBuffer.linkVbo(resources.textShader.textureIn.attributeID, TextBuffer::textureBuffer, TextBuffer::UV, TextBuffer::floatingPoint);
 
-        resources.textBuffer.fillEbo(indices, sizeof(indices), Buffer::multipleFill);
-        resources.textBuffer.fillVbo(Buffer::textureBuffer, UVs, sizeof(UVs), Buffer::multipleFill);
+        resources.textBuffer.fillEbo(indices, sizeof(indices), TextBuffer::multipleFill);
+        resources.textBuffer.fillVbo(TextBuffer::textureBuffer, UVs, sizeof(UVs), TextBuffer::multipleFill);
 
         {
             GLUtil::ScopedCapability scopedTexture2D(juce::gl::GL_TEXTURE_2D, true);
             juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, glyph.textureID);
-            resources.textBuffer.render(Buffer::triangles);
+            resources.textBuffer.render(TextBuffer::triangles);
         }
 
         textOrigin.x += (glyph.advance * scale.x) / 64.0f;

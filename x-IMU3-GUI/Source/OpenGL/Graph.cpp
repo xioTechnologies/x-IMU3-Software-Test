@@ -68,13 +68,6 @@ void Graph::render()
         static constexpr auto xTickMargin = 2;
         static constexpr auto yTickMargin = 5;
 
-        // TODO: This was a bug: renderer.getResources().getGraphAxisValuesText().getFontSize() is using OpenGL font size pixels
-        // but here, we are still working in JUCE coordinates (virtualized pixels), so we actually want to use the font size WITHOUT
-        // OpenGLContext::getRenderingScale(). Replaced temporarily below . . .
-        //auto xTicksBounds = plotBounds.removeFromBottom((int) renderer.getResources().getGraphAxisValuesText().getFontSize()); // font height
-        // TODO: Refactor Text to handle both JUCE and GL font sizes
-        // TODO: Refactor GLResources getGraphAxisValuesText to return ONE Text object that was created at GL startup.
-        //  The Text object should handle knowing both JUCE and GL font sizes instead of requiring reconstruction
         auto xTicksBounds = bounds.removeFromBottom(13); // font height
         bounds.removeFromBottom(xTickMargin);
 
@@ -213,8 +206,8 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
     // Draw lines
     GLUtil::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
 
-    auto& newGraphGridShader = renderer.getResources().newGraphGridShader;
-    newGraphGridShader.use();
+    auto& graphGridShader = renderer.getResources().graphGridShader;
+    graphGridShader.use();
 
     auto& gridBuffer = renderer.getResources().graphGridBuffer;
     gridBuffer.fillBuffers(lines);
@@ -229,7 +222,7 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
         return;
     }
 
-    renderer.getResources().newGraphDataShader.use(); // TODO: define local variable for most renderer.getResources() use cases
+    renderer.getResources().graphDataShader.use(); // TODO: define local variable for most renderer.getResources() use cases
 
     for (size_t index = 0; index < channelBuffers.size(); index++)
     {
@@ -248,9 +241,9 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
             lines.insert(lines.end(), { xNDC, yNDC });
         }
 
-        renderer.getResources().newGraphDataShader.colour.setRGBA(colours[index]);
-        renderer.getResources().newGraphDataBuffer.fillBuffers(lines);
-        renderer.getResources().newGraphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
+        renderer.getResources().graphDataShader.colour.setRGBA(colours[index]);
+        renderer.getResources().graphDataBuffer.fillBuffers(lines);
+        renderer.getResources().graphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
     }
 }
 
@@ -268,7 +261,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
 
     auto& text = renderer.getResources().getGraphAxisValuesText();
     const int distanceOfPlotAxis = isXTicks ? glPlotBounds.getWidth() : glPlotBounds.getHeight();
-    const int plotStartOffset = isXTicks ? glPlotBounds.getX() - glDrawBounds.getX() : glPlotBounds.getY() - glDrawBounds.getY();
+    const int plotStartOffset = isXTicks ? (glPlotBounds.getX() - glDrawBounds.getX()) : (glPlotBounds.getY() - glDrawBounds.getY());
     auto labelsToDraw = ticks.labels;
 
     // For X-axis, hide tick labels that extend out of bounds or overlap

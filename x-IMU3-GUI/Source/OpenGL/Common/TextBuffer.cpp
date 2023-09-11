@@ -1,8 +1,8 @@
-#include "Buffer.h"
+#include "TextBuffer.h"
 
 using namespace ::juce::gl;
 
-Buffer::Buffer()
+TextBuffer::TextBuffer()
 {
     vao = 0;
     ebo = 0;
@@ -13,7 +13,7 @@ Buffer::Buffer()
     vbos[normalBuffer] = 0;
 }
 
-Buffer::~Buffer()
+TextBuffer::~TextBuffer()
 {
     glDeleteVertexArrays(1, &vao);
 
@@ -25,7 +25,7 @@ Buffer::~Buffer()
     glDeleteBuffers(totalBuffers, vbos);
 }
 
-void Buffer::create(GLuint totalVertices_, bool hasEbo_)
+void TextBuffer::create(GLuint totalVertices_, bool hasEbo_)
 {
     glGenVertexArrays(1, &vao);
     glGenBuffers(totalBuffers, vbos);
@@ -39,7 +39,7 @@ void Buffer::create(GLuint totalVertices_, bool hasEbo_)
     hasEbo = hasEbo_;
 }
 
-void Buffer::fillVbo(Buffer::VboType vboType, const GLfloat* data, GLsizeiptr bufferSize, FillType fillType)
+void TextBuffer::fillVbo(TextBuffer::VboType vboType, const GLfloat* data, GLsizeiptr bufferSize, FillType fillType)
 {
     glBindVertexArray(vao);
 
@@ -49,7 +49,7 @@ void Buffer::fillVbo(Buffer::VboType vboType, const GLfloat* data, GLsizeiptr bu
     glBindVertexArray(0); // unbind VAO
 }
 
-void Buffer::fillEbo(const GLuint* data, GLsizeiptr bufferSize, FillType fillType)
+void TextBuffer::fillEbo(const GLuint* data, GLsizeiptr bufferSize, FillType fillType)
 {
     glBindVertexArray(vao);
 
@@ -59,7 +59,7 @@ void Buffer::fillEbo(const GLuint* data, GLsizeiptr bufferSize, FillType fillTyp
     glBindVertexArray(0); // unbind VAO
 }
 
-void Buffer::appendVbo(Buffer::VboType vboType, const GLfloat* data, GLsizeiptr size, GLuint offset)
+void TextBuffer::appendVbo(TextBuffer::VboType vboType, const GLfloat* data, GLsizeiptr size, GLuint offset)
 {
     glBindVertexArray(vao);
 
@@ -69,7 +69,7 @@ void Buffer::appendVbo(Buffer::VboType vboType, const GLfloat* data, GLsizeiptr 
     glBindVertexArray(0); // unbind VAO
 }
 
-void Buffer::appendEbo(const GLuint* data, GLsizeiptr size, GLuint offset)
+void TextBuffer::appendEbo(const GLuint* data, GLsizeiptr size, GLuint offset)
 {
     glBindVertexArray(vao);
 
@@ -79,7 +79,7 @@ void Buffer::appendEbo(const GLuint* data, GLsizeiptr size, GLuint offset)
     glBindVertexArray(0); // unbind VAO
 }
 
-void Buffer::linkVbo(GLuint attributeID, Buffer::VboType vboType, Buffer::ComponentType componentType, Buffer::DataType dataType)
+void TextBuffer::linkVbo(GLuint attributeID, TextBuffer::VboType vboType, TextBuffer::ComponentType componentType, TextBuffer::DataType dataType)
 {
     glBindVertexArray(vao);
 
@@ -90,7 +90,7 @@ void Buffer::linkVbo(GLuint attributeID, Buffer::VboType vboType, Buffer::Compon
     glBindVertexArray(0); // unbind VAO
 }
 
-void Buffer::disableAttribute(GLuint attributeID)
+void TextBuffer::disableAttribute(GLuint attributeID)
 {
     glBindVertexArray(vao);
 
@@ -99,7 +99,7 @@ void Buffer::disableAttribute(GLuint attributeID)
     glBindVertexArray(0); // unbind VAO
 }
 
-void Buffer::render(Buffer::DrawType drawType, const int numberOfVertices)
+void TextBuffer::render(TextBuffer::DrawType drawType, const int numberOfVertices)
 {
     glBindVertexArray(vao);
 

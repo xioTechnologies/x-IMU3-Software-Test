@@ -63,7 +63,6 @@ void GLRenderer::newOpenGLContextCreated()
 
 void GLRenderer::renderOpenGL()
 {
-    // TODO: Put contents of resetDefaultOpenGLState inline here
     resetDefaultOpenGLState(); // JUCE paint() modifies OpenGL state, so we must set default state every render loop
 
     // Clear entire OpenGL screen with the background color and clear depth/stencil buffers

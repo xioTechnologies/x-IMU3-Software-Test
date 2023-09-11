@@ -2,10 +2,10 @@
 
 #include <span>
 
-class DataBuffer
+class ChannelBuffers // TODO: Rename usages
 {
 public:
-    DataBuffer(const int numberOfChannels) : channelBuffers((size_t) numberOfChannels)
+    ChannelBuffers(const int numberOfChannels) : channelBuffers((size_t) numberOfChannels)
     {
 
     }

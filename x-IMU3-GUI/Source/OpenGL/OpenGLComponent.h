@@ -14,7 +14,7 @@ public:
 
     void parentHierarchyChanged() override;
 
-    virtual void render() = 0;
+    virtual void render() = 0; // TODO: Add GLResources parameter
 
 protected:
     juce::OpenGLContext& context;

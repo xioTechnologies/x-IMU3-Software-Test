@@ -26,7 +26,6 @@ GLResources::GLResources(juce::OpenGLContext& context_) : context(context_)
 
     compassTexture.loadImage(juce::ImageFileFormat::loadFrom(BinaryData::Compass_png, BinaryData::Compass_pngSize));
 
-    createGraphDataBuffer();
     createTextBuffer();
 }
 
@@ -52,12 +51,6 @@ Text& GLResources::get3DViewAxisText()
     return *axisMarkerText;
 }
 
-void GLResources::createGraphDataBuffer()
-{
-    graphDataBuffer.create(graphBufferSize);
-    graphDataBuffer.fillVbo(Buffer::vertexBuffer, nullptr, graphBufferSize * sizeof(juce::Point<GLfloat>), Buffer::multipleFill);
-}
-
 void GLResources::createTextBuffer()
 {
     // Oriented parallel to the screen on the XY plane of OpenGL's default coordinate system
@@ -76,7 +69,7 @@ void GLResources::createTextBuffer()
                          3, 1, 2 }; // second triangle
 
     textBuffer.create(6, true);
-    textBuffer.fillEbo(indices, sizeof(indices), Buffer::multipleFill);
-    textBuffer.fillVbo(Buffer::vertexBuffer, vertices, sizeof(vertices), Buffer::multipleFill);
-    textBuffer.fillVbo(Buffer::textureBuffer, UVs, sizeof(UVs), Buffer::multipleFill);
+    textBuffer.fillEbo(indices, sizeof(indices), TextBuffer::multipleFill);
+    textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
+    textBuffer.fillVbo(TextBuffer::textureBuffer, UVs, sizeof(UVs), TextBuffer::multipleFill);
 }

@@ -3,7 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_opengl/juce_opengl.h>
 
-class Buffer
+class TextBuffer
 {
 public:
     enum VboType
@@ -49,9 +49,9 @@ public:
         UV = 2
     };
 
-    explicit Buffer();
+    explicit TextBuffer();
 
-    ~Buffer();
+    ~TextBuffer();
 
     void create(GLuint totalVertices_, bool hasEbo_ = false);
 
@@ -81,5 +81,5 @@ private:
     GLuint totalVertices;
     GLuint vbos[totalBuffers];
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Buffer)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TextBuffer)
 };

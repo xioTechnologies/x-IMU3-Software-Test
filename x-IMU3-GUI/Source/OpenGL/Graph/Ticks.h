@@ -12,24 +12,9 @@ struct Ticks
     unsigned int minorPerMajor;
     std::vector<Label> labels;
 
-    static Ticks getDefault() // TODO: Remove getDefault
-    {
-        Ticks ticks;
-        ticks.major = 1.0f;
-        ticks.minorPerMajor = 5;
-        return ticks;
-    }
-
     static Ticks createTicks(const int lengthPixels, const AxisLimits& limits)
     {
         const float range = limits.getRange();
-
-        // Prevent undefined log calculation or division by 0
-        if (range <= 0.0 || lengthPixels <= 0) // TODO: Remove redundant range <= 0.0
-        {
-            jassertfalse;
-            return Ticks::getDefault();
-        }
 
         // Determine order of magnitude power ( 10^-1 [0.1s], 10^0 [1s], 10^1 [10s], 10^2 [100s], etc) of the range.
         const int oomPowerOfRange = (int) std::floor(std::log10(range));
@@ -47,7 +32,7 @@ struct Ticks
 
         auto toPixels = [=](float dataUnits)
         {
-            return dataUnits / range * (float) lengthPixels; // TODO: Add paranthesis
+            return (dataUnits / range) * (float) lengthPixels;
         };
 
         if (toPixels(previousOOMDouble) >= minimumMajorTickLengthPixels)

@@ -4,7 +4,7 @@
 #include "Common/GLRenderer.h"
 #include "Common/GLUtil.h"
 #include "Graph/AxesLimits.h"
-#include "Graph/DataBuffer.h"
+#include "Graph/ChannelBuffers.h"
 #include "Graph/Ticks.h"
 #include "OpenGLComponent.h"
 
@@ -35,7 +35,6 @@ public:
 
     void write(const uint64_t timestamp, const std::vector<float>& values);
 
-    // Plot size info for NewGraphWindow mouse drag functionality
     std::atomic<float> plotWidthJUCEPixels = 0.0f;
     std::atomic<float> plotHeightJUCEPixels = 0.0f;
 
@@ -48,7 +47,7 @@ private:
     mutable std::mutex settingsMutex;
     Settings settings;
 
-    DataBuffer buffer { (int) colours.size() };
+    ChannelBuffers buffer { (int) colours.size() };
 
     std::atomic<bool> ticksEnabled { false };
 
@@ -73,7 +72,7 @@ private:
 
     void drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks);
 
-    void drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks); // TODO: remove isXTicks
+    void drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Graph)
 };

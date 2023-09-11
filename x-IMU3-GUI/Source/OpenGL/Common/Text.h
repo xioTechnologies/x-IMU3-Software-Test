@@ -3,8 +3,7 @@
 #include "glm/mat4x4.hpp"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <map>
-#include "OpenGL/Common/Shader.h"
-#include "OpenGL/Graph/Buffer.h"
+#include "Shader.h"
 #include <string>
 
 class GLResources;
@@ -41,6 +40,8 @@ public:
 
     void renderScreenSpace(GLResources& resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform);
 
+    // TODO: getFontSizeInJUCEPixels
+
 private:
     class Initializer
     {
@@ -57,12 +58,12 @@ private:
 
     struct Glyph
     {
-        GLuint textureID; //texture freetypeTextureID for each letter
-        GLuint width; //width of the letter
-        GLuint height; //height of the letter
-        GLint bearingX; //distance from the y-axis origin
-        GLint bearingY; //distance from the x-axis baseline
-        GLint advance; //offset to advance to next glyph
+        GLuint textureID; // texture freetypeTextureID for each letter
+        GLuint width; // width of the letter
+        GLuint height; // height of the letter
+        GLint bearingX; // distance from the y-axis origin
+        GLint bearingY; // distance from the x-axis baseline
+        GLint advance; // offset to advance to next glyph
     };
 
     juce::Vector3D<GLfloat> position;
