@@ -124,9 +124,9 @@ void GraphWindow::mouseDrag(const juce::MouseEvent& mouseEvent)
 
     if (settings.horizontalAutoscale == false)
     {
-        // TODO: Clamp to 0
         auto limits = graphSettingsMouseCache.axesLimits.x;
-        const auto offset = -1.0f * (dragOffsetPixels.x * (limits.getRange() / plotWidthJUCEPixelsMouseCache));
+        auto offset = -1.0f * (dragOffsetPixels.x * (limits.getRange() / plotWidthJUCEPixelsMouseCache));
+        offset = std::min(offset, -limits.max); // prevent dragging past 0 into the positive range
         limits.min += offset;
         limits.max += offset;
         settings.axesLimits.x = limits;
