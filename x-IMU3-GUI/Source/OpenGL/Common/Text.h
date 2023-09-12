@@ -21,9 +21,9 @@ public:
 
     GLuint getTotalWidth();
 
-    [[nodiscard]] int getStringWidthGLPixels(const juce::String& string) const; // TODO: Remove [[nodiscard]]
+    int getStringWidthGLPixels(const juce::String& string) const;
 
-    [[nodiscard]] int getStringWidthJucePixels(const juce::String& string) const;
+    int getStringWidthJucePixels(const juce::String& string) const;
 
     float getDescender() const;
 

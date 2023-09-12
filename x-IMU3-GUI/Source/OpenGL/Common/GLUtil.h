@@ -33,7 +33,7 @@ namespace GLHelpers
             assertUniformExistsInShaderProgram();
         }
 
-        [[nodiscard]] bool isValid() const noexcept
+        bool isValid() const noexcept
         {
             return uniformID >= 0;
         }
