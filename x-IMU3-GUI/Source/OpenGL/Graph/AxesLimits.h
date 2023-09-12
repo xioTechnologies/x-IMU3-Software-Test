@@ -20,10 +20,22 @@ public:
         min = juce::jlimit(-maximumValue, maximumValue, min);
         max = juce::jlimit(-maximumValue, maximumValue, max);
 
-        if (juce::exactlyEqual(min, max)) // TODO: Fix jassert (! approximatelyEqual (sourceRangeMax, sourceRangeMin)); in juce::jmap
+        // If range is 0, expand range to minimum representable
+        if (juce::exactlyEqual(min, max))
         {
-            max = std::nextafter(max, std::numeric_limits<float>::max());
+            // Prevent expanding past range bounds: +maximumValue, -maximumValue, or 0 for x-axis
+            bool expandTowardNegative = std::nextafter(max, std::numeric_limits<float>::max()) > 0;
+            if (expandTowardNegative)
+            {
+                min = std::nextafter(min, std::numeric_limits<float>::lowest());
+            }
+            else
+            {
+                max = std::nextafter(max, std::numeric_limits<float>::max());
+            }
         }
+
+        jassert(max > min);
     }
 };
 

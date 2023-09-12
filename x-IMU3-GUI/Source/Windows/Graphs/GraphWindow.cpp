@@ -126,7 +126,7 @@ void GraphWindow::mouseDrag(const juce::MouseEvent& mouseEvent)
     {
         auto limits = graphSettingsMouseCache.axesLimits.x;
         auto offset = -1.0f * (dragOffsetPixels.x * (limits.getRange() / plotWidthJUCEPixelsMouseCache));
-        offset = std::min(offset, -limits.max); // prevent dragging past 0 into the positive range
+        offset = juce::jlimit(-AxisLimits::maximumValue - limits.min, -limits.max, offset); // constrain drag from -AxisLimits::maximumValue to 0 but keep range
         limits.min += offset;
         limits.max += offset;
         settings.axesLimits.x = limits;
@@ -135,6 +135,7 @@ void GraphWindow::mouseDrag(const juce::MouseEvent& mouseEvent)
     {
         auto limits = graphSettingsMouseCache.axesLimits.y;
         auto offset = dragOffsetPixels.y * (limits.getRange() / plotHeightJUCEPixelsMouseCache);
+        offset = juce::jlimit(-AxisLimits::maximumValue - limits.min, AxisLimits::maximumValue - limits.max, offset); // constrain drag from -AxisLimits::maximumValue to +AxisLimits::maximumValue but keep range
         limits.min += offset;
         limits.max += offset;
         settings.axesLimits.y = limits;
