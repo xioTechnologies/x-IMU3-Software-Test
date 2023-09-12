@@ -184,7 +184,7 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
     }
 
     // Draw lines
-    GLHelpers::ScopedCapability scopedLineSmooth(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
+    GLHelpers::ScopedCapability _(juce::gl::GL_LINE_SMOOTH, false); // provides sharper horizontal/vertical lines
 
     resources->graphGridShader.use();
     auto& gridBuffer = resources->graphGridBuffer;

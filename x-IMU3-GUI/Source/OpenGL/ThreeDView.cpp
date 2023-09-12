@@ -64,7 +64,7 @@ void ThreeDView::render()
     }
 
     // Draw scene
-    GLHelpers::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+    GLHelpers::ScopedCapability _(juce::gl::GL_SCISSOR_TEST, true);
     GLHelpers::viewportAndScissor(bounds); // clip drawing to bounds
     juce::OpenGLHelpers::clear(UIColours::backgroundDark);
 

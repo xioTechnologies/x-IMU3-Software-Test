@@ -236,7 +236,7 @@ namespace GLHelpers
 
     static inline void clear(const juce::Colour& colour, const juce::Rectangle<int>& bounds)
     {
-        GLHelpers::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
+        GLHelpers::ScopedCapability _(juce::gl::GL_SCISSOR_TEST, true);
         GLHelpers::viewportAndScissor(bounds);
         juce::OpenGLHelpers::clear(colour);
     }
