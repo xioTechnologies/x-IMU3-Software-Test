@@ -292,16 +292,18 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
             return false;
         };
 
-        // TODO: It is possible for this to infinite loop in extreme cases!
-        //  Example: After iterating this loop a few times, 2 labels are shown and "0" is the second element. If these two labels overlap: infinite loop
-        // If labels are too close, remove every other label until no overlaps
-        while (labelsToDraw.size() > 1 && areAnyLabelsTooClose())
+        if (labelsToDraw.size() > 1)
         {
-            // Erase every other element, except for "0" if it is displayed
-            labelsToDraw.erase(std::remove_if(labelsToDraw.begin(), labelsToDraw.end(), [&](auto& label)
+            // If labels are too close, remove every other label (halve the number of labels) until there are no overlaps
+            const auto halvingCount = static_cast<int> (std::ceil(std::log2(labelsToDraw.size())));
+            for (int i = 0; (i < halvingCount) && areAnyLabelsTooClose(); i++)
             {
-                return ((&label - &*labelsToDraw.begin()) % 2) && label.label != "0";
-            }), labelsToDraw.end());
+                // Erase every other element (odd indices), except for "0" if it is displayed
+                labelsToDraw.erase(std::remove_if(labelsToDraw.begin(), labelsToDraw.end(), [&](auto& tick)
+                {
+                    return ((&tick - &*labelsToDraw.begin()) % 2) && tick.label != "0";
+                }), labelsToDraw.end());
+            }
         }
     }
 
