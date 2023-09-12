@@ -44,7 +44,7 @@ void Graph::render()
         auto xTicksBounds = bounds.removeFromBottom(13); // font height
         bounds.removeFromBottom(xTickMargin);
 
-        const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.y);
+        const auto yTicks = createYTicks(bounds.getHeight(), settings.axesLimits.y);
 
         const auto yTicksWidth = getMaximumStringWidth(yTicks, resources->getGraphAxisValuesText());
         const auto yTicksBounds = bounds.removeFromLeft(yTicksWidth);
@@ -53,7 +53,7 @@ void Graph::render()
         xTicksBounds.removeFromLeft(yTicksWidth);
         xTicksBounds.removeFromLeft(yTickMargin);
 
-        const auto xTicks = Ticks::createXTicks(bounds.getWidth(), settings.axesLimits.x);
+        const auto xTicks = createXTicks(bounds.getWidth(), settings.axesLimits.x);
 
         drawXTicks(xTicksBounds, yTicksBounds.getX(), settings.axesLimits.x, xTicks);
         drawYTicks(yTicksBounds, settings.axesLimits.y, yTicks);
@@ -61,8 +61,8 @@ void Graph::render()
     }
     else
     {
-        const auto xTicks = Ticks::createXTicks(bounds.getWidth(), settings.axesLimits.x);
-        const auto yTicks = Ticks::createYTicks(bounds.getHeight(), settings.axesLimits.y);
+        const auto xTicks = createXTicks(bounds.getWidth(), settings.axesLimits.x);
+        const auto yTicks = createYTicks(bounds.getHeight(), settings.axesLimits.y);
         drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channelBuffers, settings.enabledChannels);
     }
 
@@ -105,9 +105,9 @@ float Graph::engineeringValueToNDC(float value, const AxisLimits& axisLimits)
 int Graph::getMaximumStringWidth(const Ticks& ticks, const Text& text)
 {
     int maxStringWidth = 0;
-    for (const auto& label : ticks.labels)
+    for (const auto& tick : ticks)
     {
-        maxStringWidth = std::max(maxStringWidth, text.getStringWidthJucePixels(label.text));
+        maxStringWidth = std::max(maxStringWidth, text.getStringWidthJucePixels(tick.label));
     }
     return maxStringWidth;
 }
@@ -146,12 +146,6 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
 {
     auto addGridLines = [](std::vector<GLfloat>& linesToAddTo, bool areVertical, const Ticks& ticks, const AxisLimits& axisLimits)
     {
-        if (ticks.major <= 0.0 || ticks.minorPerMajor <= 0)
-        {
-            jassertfalse;
-            return;
-        }
-
         // Add line to grid based on position in graph units
         auto addLine = [&](float position, bool isMajorTick)
         {
@@ -167,41 +161,9 @@ void Graph::drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks&
             }
         };
 
-        const float minorDistance = ticks.major / (float) ticks.minorPerMajor;
-
-        // Major and minor ticks from first major position and greater
-        const float firstMajorPosition = GLHelpers::roundUpToNearestMultiple(axisLimits.min, ticks.major);
-        const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(axisLimits.getRange() / ticks.major)) + 1;
-        for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
+        for (auto& tick : ticks)
         {
-            const float majorPosition = firstMajorPosition + (float) majorTickIndex * ticks.major;
-            if (majorPosition > axisLimits.max)
-            {
-                break;
-            }
-
-            addLine(majorPosition, true);
-
-            for (unsigned int minorTickIndex = 1; minorTickIndex < ticks.minorPerMajor; minorTickIndex++)
-            {
-                const float minorPosition = majorPosition + (float) minorTickIndex * minorDistance;
-                if (minorPosition > axisLimits.max)
-                {
-                    break;
-                }
-                addLine(minorPosition, false);
-            }
-        }
-
-        // Minor ticks prior to first major position
-        for (unsigned int minorTickIndex = 1; minorTickIndex < ticks.minorPerMajor; minorTickIndex++)
-        {
-            const float minorPosition = firstMajorPosition - (float) minorTickIndex * minorDistance;
-            if (minorPosition < axisLimits.min)
-            {
-                break;
-            }
-            addLine(minorPosition, false);
+            addLine(tick.value, tick.isMajor);
         }
     };
 
@@ -287,23 +249,29 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     auto& text = resources->getGraphAxisValuesText();
     const int distanceOfPlotAxis = isXTicks ? glPlotBounds.getWidth() : glPlotBounds.getHeight();
     const int plotStartOffset = isXTicks ? (glPlotBounds.getX() - glDrawBounds.getX()) : (glPlotBounds.getY() - glDrawBounds.getY());
-    auto labelsToDraw = ticks.labels;
+
+    // Collect only text labels from Ticks
+    auto labelsToDraw = ticks;
+    labelsToDraw.erase(std::remove_if(labelsToDraw.begin(), labelsToDraw.end(), [&](auto& tick)
+    {
+        return tick.label.isEmpty();
+    }), labelsToDraw.end());
 
     // For X-axis, hide tick labels that extend out of bounds or overlap
     if (isXTicks)
     {
-        auto getLabelEdges = [&](const Ticks::Label& label) -> std::tuple<float, float>
+        auto getLabelEdges = [&](const Tick& tick) -> std::tuple<float, float>
         {
-            const auto centreX = juce::jmap<float>(label.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset + (float) glDrawBounds.getX();
-            const auto leftEdgeX = centreX - ((float) text.getStringWidthGLPixels(label.text) / 2.0f);
-            const auto rightEdgeX = centreX + ((float) text.getStringWidthGLPixels(label.text) / 2.0f);
+            const auto centreX = juce::jmap<float>(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset + (float) glDrawBounds.getX();
+            const auto leftEdgeX = centreX - ((float) text.getStringWidthGLPixels(tick.label) / 2.0f);
+            const auto rightEdgeX = centreX + ((float) text.getStringWidthGLPixels(tick.label) / 2.0f);
             return { leftEdgeX, rightEdgeX };
         };
 
         // Remove any tick text which would extend past the edges of the drawing bounds
-        labelsToDraw.erase(std::remove_if(labelsToDraw.begin(), labelsToDraw.end(), [&](auto& label)
+        labelsToDraw.erase(std::remove_if(labelsToDraw.begin(), labelsToDraw.end(), [&](auto& tick)
         {
-            auto [leftEdgeX, rightEdgeX] = getLabelEdges(label);
+            auto [leftEdgeX, rightEdgeX] = getLabelEdges(tick);
             return leftEdgeX < (float) glDrawBounds.getX() || rightEdgeX > (float) glDrawBounds.getRight();
         }), labelsToDraw.end());
 
@@ -324,27 +292,29 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
             return false;
         };
 
+        // TODO: It is possible for this to infinite loop in extreme cases!
+        //  Example: After iterating this loop a few times, 2 labels are shown and "0" is the second element. If these two labels overlap: infinite loop
         // If labels are too close, remove every other label until no overlaps
         while (labelsToDraw.size() > 1 && areAnyLabelsTooClose())
         {
             // Erase every other element, except for "0" if it is displayed
             labelsToDraw.erase(std::remove_if(labelsToDraw.begin(), labelsToDraw.end(), [&](auto& label)
             {
-                return ((&label - &*labelsToDraw.begin()) % 2) && label.text != "0";
+                return ((&label - &*labelsToDraw.begin()) % 2) && label.label != "0";
             }), labelsToDraw.end());
         }
     }
 
     // Draw each text string
-    for (const auto& label : labelsToDraw)
+    for (const auto& tick : labelsToDraw)
     {
-        const auto offsetAlongAxis = juce::jmap<float>(label.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
+        const auto offsetAlongAxis = juce::jmap<float>(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
         const auto offsetTowardsAxis = isXTicks ? (float) (glDrawBounds.getHeight() - (int) text.getFontSize()) : (float) glDrawBounds.getWidth();
 
         const auto x = isXTicks ? offsetAlongAxis : offsetTowardsAxis;
         const auto y = isXTicks ? offsetTowardsAxis : offsetAlongAxis;
 
-        drawText(glDrawBounds, text, label.text, juce::Colours::grey, x, y, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
+        drawText(glDrawBounds, text, tick.label, juce::Colours::grey, x, y, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
     }
 }
 

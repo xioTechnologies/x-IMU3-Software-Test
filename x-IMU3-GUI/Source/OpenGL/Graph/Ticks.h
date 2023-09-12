@@ -1,111 +1,128 @@
 #pragma once
 
-struct Ticks
+struct Tick
 {
-    struct Label
+    bool isMajor;
+    float value;
+    juce::String label;
+};
+
+typedef std::vector<Tick> Ticks;
+
+static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits)
+{
+    const float range = limits.getRange();
+
+    // Determine order of magnitude's exponent ( 10^-1 [0.1s], 10^0 [1s], 10^1 [10s], 10^2 [100s], etc) of the range.
+    const int oomExponent = (int) std::floor(std::log10(range));
+
+    // Calculate possible divisions of the order of magnitude to display as major grid divisions.
+    float previousOomDouble = std::pow(10.0f, (float) (oomExponent - 1)) * 2.0f;
+    float oomFull = std::pow(10.0f, (float) oomExponent);
+    float oomHalf = oomFull / 2.0f;
+    float oomDouble = oomFull * 2.0f;
+
+    // For the major tick length, choose the smallest division which is at least a minimum pixel length.
+    constexpr float minimumMajorDistancePixels = 25.0f;
+    float majorDistance = previousOomDouble;
+    bool minorDivisionsUsesFourths = false;
+
+    auto toPixels = [=](float dataUnits)
     {
-        juce::String text;
-        float value;
+        return (dataUnits / range) * (float) lengthPixels;
     };
 
-    float major;
-    unsigned int minorPerMajor;
-    std::vector<Label> labels;
-
-    static Ticks createTicks(const int lengthPixels, const AxisLimits& limits)
+    if (toPixels(previousOomDouble) >= minimumMajorDistancePixels)
     {
-        const float range = limits.getRange();
+        majorDistance = previousOomDouble;
+        minorDivisionsUsesFourths = true;
+    }
+    else if (toPixels(oomHalf) >= minimumMajorDistancePixels)
+    {
+        majorDistance = oomHalf;
+    }
+    else if (toPixels(oomFull) >= minimumMajorDistancePixels)
+    {
+        majorDistance = oomFull;
+    }
+    else if (toPixels(oomDouble) >= minimumMajorDistancePixels)
+    {
+        majorDistance = oomDouble;
+        minorDivisionsUsesFourths = true;
+    }
+    else
+    {
+        // If we hit this jassert, we have chosen a minimumMajorTickLengthPixels which is too large and cannot contain
+        // any of the possible divisions. Consider changing the value of minimumMajorTickLengthPixels to be smaller.
+        // It is also possible we hit this assert due to our oom values reaching +Inf or our range being NaN
+        jassertfalse;
+    }
 
-        // Determine order of magnitude power ( 10^-1 [0.1s], 10^0 [1s], 10^1 [10s], 10^2 [100s], etc) of the range.
-        const int oomPowerOfRange = (int) std::floor(std::log10(range));
+    const unsigned int minorPerMajorDivisions = minorDivisionsUsesFourths ? 4 : 5;
+    const float minorDistance = majorDistance / (float) minorPerMajorDivisions;
 
-        // Calculate possible divisions of the order of magnitude to display as major grid divisions.
-        float previousOOMDouble = std::pow(10.0f, (float) (oomPowerOfRange - 1)) * 2.0f;
-        float ooMFull = std::pow(10.0f, (float) oomPowerOfRange);
-        float ooMHalf = ooMFull / 2.0f;
-        float ooMDouble = ooMFull * 2.0f;
+    // Prevent divide by 0 when adding text labels
+    if (majorDistance <= 0.0 || minorPerMajorDivisions <= 0)
+    {
+        jassertfalse;
+        return {};
+    }
 
-        // For the major tick length, choose the smallest division which is at least a minimum pixel length.
-        constexpr float minimumMajorTickLengthPixels = 25.0f;
-        float majorTickLengthDataUnits = previousOOMDouble;
-        bool minorDivisionsUsesFourths = false;
+    // Fill in tick data
+    Ticks ticks;
+    const float firstMajorPosition = GLHelpers::roundUpToNearestMultiple(limits.min, majorDistance); // TODO: Avoid OpenGL knowledge
+    const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(limits.getRange() / majorDistance)) + 1;
+    for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
+    {
+        const float majorPosition = firstMajorPosition + (float) majorTickIndex * majorDistance;
 
-        auto toPixels = [=](float dataUnits)
+        if (majorPosition > limits.max)
         {
-            return (dataUnits / range) * (float) lengthPixels;
-        };
-
-        if (toPixels(previousOOMDouble) >= minimumMajorTickLengthPixels)
-        {
-            majorTickLengthDataUnits = previousOOMDouble;
-            minorDivisionsUsesFourths = true;
+            break;
         }
-        else if (toPixels(ooMHalf) >= minimumMajorTickLengthPixels)
+
+        // Major ticks
+        if (GLHelpers::approximatelyEqual(majorPosition, 0.0f, majorDistance / (float) minorPerMajorDivisions)) // TODO: Avoid OpenGL knowledge
         {
-            majorTickLengthDataUnits = ooMHalf;
-        }
-        else if (toPixels(ooMFull) >= minimumMajorTickLengthPixels)
-        {
-            majorTickLengthDataUnits = ooMFull;
-        }
-        else if (toPixels(ooMDouble) >= minimumMajorTickLengthPixels)
-        {
-            majorTickLengthDataUnits = ooMDouble;
-            minorDivisionsUsesFourths = true;
+            ticks.push_back({ true, 0.0f, "0" }); // ensure 0 is written properly with no rounding error
         }
         else
         {
-            // If we hit this jassert, we have chosen a minimumMajorTickLengthPixels which is too large and cannot contain
-            // any of the possible divisions. Consider changing the value of minimumMajorTickLengthPixels to be smaller.
-            // It is also possible we hit this assert due to our oom values reaching +Inf or our range being NaN
-            jassertfalse;
+            ticks.push_back({ true, majorPosition, juce::String(majorPosition) });
         }
 
-        // Setup Tick data
-        Ticks ticks;
-        ticks.major = majorTickLengthDataUnits;
-        ticks.minorPerMajor = minorDivisionsUsesFourths ? 4 : 5;
-
-        // Prevent divide by 0 when adding text labels
-        if (ticks.major <= 0.0 || ticks.minorPerMajor <= 0)
+        // Minor ticks
+        for (unsigned int minorTickIndex = 1; minorTickIndex < minorPerMajorDivisions; minorTickIndex++)
         {
-            jassertfalse;
-            return ticks;
-        }
-
-        // Fill in text labels for major ticks
-        const float firstMajorPosition = GLHelpers::roundUpToNearestMultiple(limits.min, ticks.major); // TODO: Avoid OpenGL knowledge
-        const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(limits.getRange() / ticks.major)) + 1;
-        for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
-        {
-            const float majorPosition = firstMajorPosition + (float) majorTickIndex * ticks.major;
-
-            if (majorPosition > limits.max)
+            const float minorPosition = majorPosition + (float) minorTickIndex * minorDistance;
+            if (minorPosition > limits.max)
             {
                 break;
             }
-
-            // Ensure 0 is written properly with no rounding error
-            if (GLHelpers::approximatelyEqual(majorPosition, 0.0f, ticks.major / (float) ticks.minorPerMajor)) // TODO: Avoid OpenGL knowledge
-            {
-                ticks.labels.push_back({ "0", 0.0f });
-            }
-            else
-            {
-                ticks.labels.push_back({ juce::String(majorPosition), majorPosition });
-            }
+            ticks.push_back({ false, minorPosition, {}});
         }
-
-        return ticks;
     }
 
-    static Ticks createXTicks(const int widthPixels, const AxisLimits& xLimits)
+    // Minor ticks prior to first major position
+    for (unsigned int minorTickIndex = 1; minorTickIndex < minorPerMajorDivisions; minorTickIndex++)
     {
-        return createTicks(widthPixels, xLimits);
+        const float minorPosition = firstMajorPosition - (float) minorTickIndex * minorDistance;
+        if (minorPosition < limits.min)
+        {
+            break;
+        }
+        ticks.insert(ticks.begin(), { false, minorPosition, {}});
     }
 
-    static Ticks createYTicks(const int heightPixels, const AxisLimits& yLimits)
-    {
-        return createTicks(heightPixels, yLimits);
-    }
-};
+    return ticks;
+}
+
+static inline Ticks createXTicks(const int widthPixels, const AxisLimits& xLimits)
+{
+    return createTicks(widthPixels, xLimits);
+}
+
+static inline Ticks createYTicks(const int heightPixels, const AxisLimits& yLimits)
+{
+    return createTicks(heightPixels, yLimits);
+}
