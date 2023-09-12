@@ -2,7 +2,7 @@
 
 #include "../CustomLookAndFeel.h"
 #include "Common/GLRenderer.h"
-#include "Common/GLUtil.h"
+#include "Common/GLHelpers.h"
 #include "Graph/AxesLimits.h"
 #include "Graph/ChannelBuffers.h"
 #include "Graph/Ticks.h"

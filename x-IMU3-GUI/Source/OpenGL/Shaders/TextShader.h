@@ -1,7 +1,7 @@
 #pragma once
 
 #include <BinaryData.h>
-#include "OpenGL/Common/GLUtil.h"
+#include "OpenGL/Common/GLHelpers.h"
 #include "OpenGL/Common/Shader.h"
 
 class TextShader : public Shader
