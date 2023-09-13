@@ -18,9 +18,7 @@ out vec4 fragColour;
 
 uniform vec4 materialColour;
 uniform Light light;
-uniform bool isTextured;
 uniform vec3 cameraPosition;
-uniform sampler2D textureImage;
 
 const float ambientStrength = 0.1;// base world lighting, ranges from 0 to 1
 const float specularStrength = 0.53;// highlights, ranges from 0 to 1, Blender default lighting is close to 0.53
@@ -57,7 +55,7 @@ vec3 calculateLight (const Light light)
     float attenuation = 1.0 / distance * distance;// quadratic attenuation, works well with gamma correction
 
     vec3 lightingColour = vec3 (ambient + diffuse + specular) * attenuation * materialColourClamped;
-    return isTextured ? vec3 (texture(textureImage, textureCoord_frag)) * lightingColour : lightingColour;
+    return lightingColour;
 }
 
 void main()

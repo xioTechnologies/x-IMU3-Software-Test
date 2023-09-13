@@ -22,8 +22,6 @@ public:
     GLHelpers::Uniform lightIntensity { *this, "light.intensity" };
 
     GLHelpers::Uniform materialColour { *this, "materialColour" };
-    GLHelpers::Uniform isTextured { *this, "isTextured" };
-    GLHelpers::Uniform textureImage { *this, "textureImage" };
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LitShader)

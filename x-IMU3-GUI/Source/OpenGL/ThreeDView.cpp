@@ -136,7 +136,6 @@ void ThreeDView::renderModel(const glm::mat4& projectionMatrix, const glm::mat4&
     threeDViewShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(modelMatrix)));
     threeDViewShader.viewMatrix.set(viewMatrix);
     threeDViewShader.projectionMatrix.set(projectionMatrix);
-    threeDViewShader.isTextured.set(false);
     threeDViewShader.lightColour.set({ 1.0f, 1.0f, 1.0f });
     threeDViewShader.lightPosition.set(glm::vec3(glm::vec4(-4.0f, 8.0f, 8.0f, 1.0f) * camera.getRotationMatrix())); // light positions further away increase darkness of shadows
     threeDViewShader.lightIntensity.set(1.0f);
@@ -179,9 +178,8 @@ void ThreeDView::renderCompass(const glm::mat4& projectionMatrix, const glm::mat
     unlitShader.use();
     const auto brightness = 0.8f;
     unlitShader.colour.set(glm::vec4(glm::vec3(brightness), 1.0f)); // tint color to decrease brightness
-    unlitShader.isTextured.set(true);
     unlitShader.modelViewProjectionMatrix.set(projectionMatrix * viewMatrix * compassModelMatrix); // top compass layer above grid
-    resources->compassTexture.bind();
+    unlitShader.setTextureImage(resources->compassTexture);
     resources->plane.render();
     resources->compassTexture.unbind();
 }
@@ -215,7 +213,6 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
 
     screenSpaceShader.use();
     screenSpaceShader.cameraPosition.set(camera.getPosition());
-    screenSpaceShader.isTextured.set(false);
     screenSpaceShader.lightColour.set({ 1.0f, 1.0f, 1.0f });
     screenSpaceShader.lightPosition.set(glm::vec3(glm::vec4(-4.0f, 8.0f, 8.0f, 1.0f) * camera.getRotationMatrix())); // light positions further away increase darkness of shadows
     screenSpaceShader.lightIntensity.set(1.0f);

@@ -214,7 +214,7 @@ void Text::render(GLResources * const resources)
 
         {
             GLHelpers::ScopedCapability _(juce::gl::GL_TEXTURE_2D, true);
-            juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, glyph.textureID);
+            resources->textShader.setTextureImage(juce::gl::GL_TEXTURE_2D, glyph.textureID);
             resources->textBuffer.render(TextBuffer::triangles);
         }
 
