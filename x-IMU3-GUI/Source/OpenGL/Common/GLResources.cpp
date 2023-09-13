@@ -31,7 +31,7 @@ GLResources::GLResources(juce::OpenGLContext& context_) : context(context_)
 
 Text& GLResources::getGraphAxisValuesText()
 {
-    const auto fontSize = (GLuint) juce::roundToInt(12 * context.getRenderingScale());
+    const auto fontSize = (unsigned int) juce::roundToInt(12 * context.getRenderingScale());
     if (axisValuesText == nullptr || axisValuesText->getFontSize() != fontSize)
     {
         axisValuesText = std::make_unique<Text>(false);
@@ -42,7 +42,7 @@ Text& GLResources::getGraphAxisValuesText()
 
 Text& GLResources::get3DViewAxisText()
 {
-    const auto fontSize = (GLuint) juce::roundToInt(30 * context.getRenderingScale());
+    const auto fontSize = (unsigned int) juce::roundToInt(30 * context.getRenderingScale());
     if (axisMarkerText == nullptr || axisMarkerText->getFontSize() != fontSize)
     {
         axisMarkerText = std::make_unique<Text>(true);

@@ -18,64 +18,66 @@ Text::Text(const bool isFirstLetterCentered_) : isFirstLetterCentered(isFirstLet
 {
 }
 
-bool Text::loadFont(const char* data, size_t dataSize, GLuint fontSize_)
+bool Text::loadFont(const char* data, size_t dataSize, unsigned int fontSize_)
 {
-    FT_Face freetypeFace = nullptr;
+    using namespace ::juce::gl;
 
-    if (FT_New_Memory_Face(freetypeLibrary, reinterpret_cast<const FT_Byte*>(data), (FT_Long) dataSize, 0, &freetypeFace))
+    fontSize = (GLuint) fontSize_;
+
+    FT_Face face = nullptr;
+    if (FT_New_Memory_Face(freetypeLibrary, reinterpret_cast<const FT_Byte*>(data), (FT_Long) dataSize, 0, &face))
     {
         return false;
     }
 
-    FT_Set_Pixel_Sizes(freetypeFace, (FT_UInt) fontSize_, (FT_UInt) fontSize_);
+    FT_Set_Pixel_Sizes(face, fontSize, fontSize);
 
-    juce::gl::glPixelStorei(juce::gl::GL_UNPACK_ALIGNMENT, 1); // disable OpenGL's default 4-byte alignment restriction
+    descender = (float) face->size->metrics.descender / 64.0f;
 
+
+    // Create OpenGL Textures for every font character that will be used
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable OpenGL default 4-byte alignment restriction since we store grayscale data with 1 byte per pixel
+    glActiveTexture(GL_TEXTURE0); // use first texture unit for all textures bound below because shader only uses 1 texture at a time
     for (int i = 0; i < 256; i++)
     {
-        // If freetype fails to load the current glyph index
-        if (FT_Load_Char(freetypeFace, (FT_ULong) i, FT_LOAD_RENDER))
+        if (FT_Load_Char(face, (FT_ULong) i, FT_LOAD_RENDER)) // if freetype fails to load the current glyph index
         {
             continue;
         }
 
-        GLuint freetypeTextureID;
-        juce::gl::glGenTextures(1, &freetypeTextureID);
-        GLHelpers::ScopedCapability _(juce::gl::GL_TEXTURE_2D, true);
-        juce::gl::glBindTexture(juce::gl::GL_TEXTURE_2D, freetypeTextureID);
-
-        juce::gl::glTexImage2D(juce::gl::GL_TEXTURE_2D,
-                               0,
-                               juce::gl::GL_RED,
-                               (GLsizei) freetypeFace->glyph->bitmap.width,
-                               (GLsizei) freetypeFace->glyph->bitmap.rows,
-                               0,
-                               juce::gl::GL_RED,
-                               juce::gl::GL_UNSIGNED_BYTE,
-                               freetypeFace->glyph->bitmap.buffer);
-
-        // Set mip map filters
-        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_MAG_FILTER, juce::gl::GL_LINEAR);
-        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_MIN_FILTER, juce::gl::GL_LINEAR);
+        // Generate texture
+        GLuint textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RED,
+                     (GLsizei) face->glyph->bitmap.width,
+                     (GLsizei) face->glyph->bitmap.rows,
+                     0,
+                     GL_RED,
+                     GL_UNSIGNED_BYTE,
+                     face->glyph->bitmap.buffer);
 
         // Set texture wrapping preferences
-        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_WRAP_S, juce::gl::GL_CLAMP_TO_EDGE);
-        juce::gl::glTexParameterf(juce::gl::GL_TEXTURE_2D, juce::gl::GL_TEXTURE_WRAP_T, juce::gl::GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        Glyph glyph = { freetypeTextureID,
-                        freetypeFace->glyph->bitmap.width,
-                        freetypeFace->glyph->bitmap.rows,
-                        freetypeFace->glyph->bitmap_left,
-                        freetypeFace->glyph->bitmap_top,
-                        (GLint) freetypeFace->glyph->advance.x };
+        // Set magnification/minification filters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        Glyph glyph = { textureID,
+                        face->glyph->bitmap.width,
+                        face->glyph->bitmap.rows,
+                        face->glyph->bitmap_left,
+                        face->glyph->bitmap_top,
+                        (GLint) face->glyph->advance.x };
 
         alphabet[(GLchar) i] = glyph;
     }
 
-    fontSize = fontSize_;
-    descender = freetypeFace->size->metrics.descender / 64.0f;
-
-    FT_Done_Face(freetypeFace);
+    FT_Done_Face(face);
     return true;
 }
 
@@ -89,14 +91,14 @@ void Text::unloadFont()
     alphabet.clear();
 }
 
-GLuint Text::getFontSize() const
+unsigned int Text::getFontSize() const
 {
     return fontSize;
 }
 
 GLuint Text::getTotalWidth()
 {
-    totalWidth = 0;
+    unsigned int totalWidth = 0;
 
     for (int i = 0; i < text.length(); i++)
     {
@@ -151,7 +153,7 @@ void Text::setPosition(const juce::Vector3D<GLfloat>& position_)
     position = position_;
 }
 
-void Text::renderScreenSpace(GLResources * const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform)
+void Text::renderScreenSpace(GLResources* const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform)
 {
     // Calculate Normalized Device Coordinates (NDC) transformation to place text at position on screen with a constant size
     glm::vec2 ndcCoord = glm::vec2(transform[3][0], transform[3][1]) / transform[3][3]; // get x, y of matrix translation then divide by w of translation for constant size in pixels
@@ -165,9 +167,9 @@ void Text::renderScreenSpace(GLResources * const resources, const juce::String& 
     render(resources);
 }
 
-void Text::render(GLResources * const resources)
+void Text::render(GLResources* const resources)
 {
-    // TODO: Unused consider removing
+    // TODO: Unused textOrigin, remove
     auto textOrigin = position;
 
     for (size_t index = 0; index < (size_t) text.length(); index++)
@@ -213,7 +215,6 @@ void Text::render(GLResources * const resources)
         resources->textBuffer.fillVbo(TextBuffer::textureBuffer, UVs, sizeof(UVs), TextBuffer::multipleFill);
 
         {
-            GLHelpers::ScopedCapability _(juce::gl::GL_TEXTURE_2D, true);
             resources->textShader.setTextureImage(juce::gl::GL_TEXTURE_2D, glyph.textureID);
             resources->textBuffer.render(TextBuffer::triangles);
         }

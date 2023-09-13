@@ -17,9 +17,9 @@ public:
 
     void unloadFont();
 
-    GLuint getFontSize() const;
+    unsigned int getFontSize() const;
 
-    GLuint getTotalWidth();
+    unsigned int getTotalWidth();
 
     int getStringWidthGLPixels(const juce::String& string) const;
 
@@ -72,10 +72,9 @@ private:
 
     juce::Point<GLfloat> scale = juce::Point<GLfloat>(1.0f, 1.0f);
 
-    GLuint fontSize = 0;
-    GLuint totalWidth = 0;
+    unsigned int fontSize = 0;
 
-    GLfloat descender = 0;
+    float descender = 0;
 
     bool isFirstLetterCentered = false;
 
