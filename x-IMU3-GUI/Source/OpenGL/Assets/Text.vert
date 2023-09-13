@@ -3,12 +3,12 @@
 in vec3 vertexIn;
 in vec2 textureIn;
 
-out vec2 textureOut;
+out vec2 textureCoord_frag;
 
-uniform mat4 transformation;
+uniform mat4 transform;
 
-void main(void)
+void main()
 {
-    textureOut = textureIn;
-    gl_Position = transformation * vec4(vertexIn, 1.0);
+    textureCoord_frag = textureIn;
+    gl_Position = transform * vec4(vertexIn, 1.0);
 }

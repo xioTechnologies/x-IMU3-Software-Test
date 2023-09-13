@@ -350,7 +350,7 @@ void Graph::drawText(const juce::Rectangle<int>& openGLBounds, Text& text, const
     // NOTE: Translate position to NDC in -1.0 to 1.0 range
     auto translation = juce::Matrix3D<float>::fromTranslation(juce::Vector3D<float>(-1 + (x * pixelSize.x), -1 + (y * pixelSize.y), 0.0f));
 
-    textShader.transformation.setMatrix4(translation.mat, 1, false);
+    textShader.transform.setMatrix4(translation.mat, 1, false);
 
     text.render(resources);
 }

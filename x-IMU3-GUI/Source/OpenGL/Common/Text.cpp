@@ -161,7 +161,7 @@ void Text::renderScreenSpace(GLResources* const resources, const juce::String& l
     const auto ndcMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(ndcCoord, zTranslation));
 
     resources->textShader.colour.setRGBA(colour);
-    resources->textShader.transformation.set(ndcMatrix);
+    resources->textShader.transform.set(ndcMatrix);
 
     setText(label);
     render(resources);

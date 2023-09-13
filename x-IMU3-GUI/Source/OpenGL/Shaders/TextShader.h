@@ -22,7 +22,7 @@ public:
     }
 
     GLHelpers::Uniform colour { *this, "colour" };
-    GLHelpers::Uniform transformation { *this, "transformation" };
+    GLHelpers::Uniform transform { *this, "transform" };
 
     // TODO: Attribute variables can be removed in refactor
     Attribute vertexIn { *this, "vertexIn" };
