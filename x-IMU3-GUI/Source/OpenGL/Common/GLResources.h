@@ -23,14 +23,12 @@ class GLResources
     juce::OpenGLContext& context;
 
 public:
-    static constexpr int borderThickness = 1;
     static constexpr int graphBufferSize = 1 << 16;
 
     explicit GLResources(juce::OpenGLContext& context_);
 
     // Text
     Text& getGraphAxisValuesText();
-
     Text& get3DViewAxisText();
 
     // Buffers
@@ -62,8 +60,6 @@ public:
     OrbitCamera orbitCamera;
 
 private:
-    void createTextBuffer();
-
     std::unique_ptr<Text> infoText;
     std::unique_ptr<Text> legendText;
     std::unique_ptr<Text> axisValuesText;

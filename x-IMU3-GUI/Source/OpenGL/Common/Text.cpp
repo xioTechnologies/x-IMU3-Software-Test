@@ -32,7 +32,7 @@ bool Text::loadFont(const char* data, size_t dataSize, unsigned int fontSize_)
 
     FT_Set_Pixel_Sizes(face, fontSize, fontSize);
 
-    descender = (float) face->size->metrics.descender / 64.0f;
+    descender = toPixels((float) face->size->metrics.descender);
 
 
     // Create OpenGL Textures for every font character that will be used
@@ -103,7 +103,7 @@ GLuint Text::getTotalWidth()
     for (int i = 0; i < text.length(); i++)
     {
         Glyph glyph = alphabet[(GLchar) text[i]];
-        totalWidth += (GLuint) (glyph.advance / 64.0f);
+        totalWidth += (GLuint) toPixels((float) glyph.advance);
     }
 
     return totalWidth;
@@ -116,7 +116,7 @@ int Text::getStringWidthGLPixels(const juce::String& string) const
     for (const auto& character : string)
     {
         const Glyph glyph = alphabet.at((GLchar) character);
-        width += (int) std::ceil(glyph.advance / 64.0f); // TODO: What is magic number 64.0f?
+        width += (int) std::ceil(toPixels((float) glyph.advance));
     }
 
     return width;
@@ -179,46 +179,36 @@ void Text::render(GLResources* const resources)
         auto halfWidth = glyph.width * 0.5f;
         auto halfBearingY = glyph.bearingY * 0.5f;
 
+        // TODO: I would keep vertices in a static buffer but use matrix scaling to resize that square to the proper width height. Then we only pass uniforms.
+        std::vector<GLfloat> vertices;
         if (isFirstLetterCentered)
         {
-            GLfloat vertices[] = { textOrigin.x - (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y), 0.0f,
-                                   textOrigin.x + (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y), 0.0f,
-                                   textOrigin.x + (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f,
-                                   textOrigin.x - (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f };
-
-            resources->textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
+            vertices = { textOrigin.x - (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y), 0.0f, 0.0f, 0.0f,
+                         textOrigin.x + (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y), 0.0f, 1.0f, 0.0f,
+                         textOrigin.x + (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f, 1.0f, 1.0f,
+                         textOrigin.x - (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f, 0.0f, 1.0f };
         }
-
         else
         {
-            GLfloat vertices[] = { textOrigin.x + (glyph.bearingX * scale.x), textOrigin.y + (glyph.bearingY * scale.y), 0.0f,
-                                   textOrigin.x + (glyph.bearingX * scale.x) + (glyph.width * scale.x), textOrigin.y + (glyph.bearingY * scale.y), 0.0f,
-                                   textOrigin.x + (glyph.bearingX * scale.x) + (glyph.width * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f,
-                                   textOrigin.x + (glyph.bearingX * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f };
-
-            resources->textBuffer.fillVbo(TextBuffer::vertexBuffer, vertices, sizeof(vertices), TextBuffer::multipleFill);
+            vertices = { textOrigin.x + (glyph.bearingX * scale.x), textOrigin.y + (glyph.bearingY * scale.y), 0.0f, 0.0f, 0.0f,
+                         textOrigin.x + (glyph.bearingX * scale.x) + (glyph.width * scale.x), textOrigin.y + (glyph.bearingY * scale.y), 0.0f, 1.0f, 0.0f,
+                         textOrigin.x + (glyph.bearingX * scale.x) + (glyph.width * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f, 1.0f, 1.0f,
+                         textOrigin.x + (glyph.bearingX * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f, 0.0f, 1.0f };
         }
 
-        GLfloat UVs[] = { 0.0f, 0.0f,
-                          1.0f, 0.0f,
-                          1.0f, 1.0f,
-                          0.0f, 1.0f };
+        //        std::vector<GLfloat> UVs = { 0.0f, 0.0f,
+        //                          1.0f, 0.0f,
+        //                          1.0f, 1.0f,
+        //                          0.0f, 1.0f };
 
-        GLuint indices[] = { 0, 1, 3,
-                             3, 1, 2 };
+        std::vector<GLuint> indices = { 0, 1, 3,
+                                        3, 1, 2 };
 
-        resources->textBuffer.linkEbo();
-        resources->textBuffer.linkVbo(resources->textShader.vertexIn.attributeID, TextBuffer::vertexBuffer, TextBuffer::Xyz, TextBuffer::floatingPoint);
-        resources->textBuffer.linkVbo(resources->textShader.textureIn.attributeID, TextBuffer::textureBuffer, TextBuffer::UV, TextBuffer::floatingPoint);
+        //resources->textShader.use(); // TODO: This statement adds extra safety but possibly unneeded because called in higher levels . . .
+        resources->textShader.setTextureImage(juce::gl::GL_TEXTURE_2D, glyph.textureID);
+        resources->textBuffer.fillBuffer(vertices, indices);
+        resources->textBuffer.draw();
 
-        resources->textBuffer.fillEbo(indices, sizeof(indices), TextBuffer::multipleFill);
-        resources->textBuffer.fillVbo(TextBuffer::textureBuffer, UVs, sizeof(UVs), TextBuffer::multipleFill);
-
-        {
-            resources->textShader.setTextureImage(juce::gl::GL_TEXTURE_2D, glyph.textureID);
-            resources->textBuffer.render(TextBuffer::triangles);
-        }
-
-        textOrigin.x += (glyph.advance * scale.x) / 64.0f;
+        textOrigin.x += toPixels((float) glyph.advance * scale.x);
     }
 }

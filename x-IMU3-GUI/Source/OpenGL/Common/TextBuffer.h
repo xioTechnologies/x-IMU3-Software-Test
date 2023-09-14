@@ -1,85 +1,77 @@
 #pragma once
 
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_opengl/juce_opengl.h>
 
 class TextBuffer
 {
 public:
-    enum VboType
+    explicit TextBuffer()
     {
-        vertexBuffer,
-        textureBuffer,
-        normalBuffer,
-        totalBuffers
-    };
-
-    // TODO: Remove this and just use the OpenGL constants
-    // Additionally, I do not know what is meant by single fill vs multiple fill, maybe this is a misunderstanding? Static draw indicates vertices are set once. Dynamic draw indicates they can be set multiple times. There is also GL_STREAM_DRAW
-    enum FillType
-    {
-        singleFill = juce::gl::GL_STATIC_DRAW,
-        multipleFill = juce::gl::GL_DYNAMIC_DRAW
-    };
-
-    // TODO: Remove this and just use the OpenGL constants
-    // theres also others like GL_TRIANGLE_STRIP.
-    enum DrawType
-    {
-        points = juce::gl::GL_POINTS,
-        triangles = juce::gl::GL_TRIANGLES,
-        lines = juce::gl::GL_LINES,
-        lineStrip = juce::gl::GL_LINE_STRIP,
-    };
-
-    // TODO: Remove this and just use the OpenGL constants
-    enum DataType
-    {
-        integer = juce::gl::GL_INT,
-        floatingPoint = juce::gl::GL_FLOAT,
-        unsignedInteger = juce::gl::GL_UNSIGNED_INT
-    };
-
-    enum ComponentType
-    {
-        XY = 2,
-        Xyz = 3,
-        Rgb = 3,
-        Rgba = 4,
-        UV = 2
-    };
-
-    explicit TextBuffer();
-
-    ~TextBuffer();
-
-    void create(GLuint totalVertices_, bool hasEbo_ = false);
-
-    void fillVbo(VboType vboType, const GLfloat* data, GLsizeiptr bufferSize, FillType fillType = singleFill);
-
-    void fillEbo(const GLuint* data, GLsizeiptr bufferSize, FillType fillType = singleFill);
-
-    void appendVbo(VboType vboType, const GLfloat* data, GLsizeiptr size, GLuint offset);
-
-    void appendEbo(const GLuint* data, GLsizeiptr size, GLuint offset);
-
-    // TODO: Unimplemented and used by Text
-    void linkEbo()
-    {
+        using namespace ::juce::gl;
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &ebo);
+        glGenBuffers(1, &vbo);
     }
 
-    void linkVbo(GLuint attributeID, VboType vboType, ComponentType componentType, DataType dataType);
+    ~TextBuffer()
+    {
+        using namespace ::juce::gl;
+        glDeleteVertexArrays(1, &vao);
+        glDeleteBuffers(1, &ebo);
+        glDeleteBuffers(1, &vbo);
+    }
 
-    void disableAttribute(GLuint attributeID);
+    void fillBuffer(const std::vector<GLfloat>& vertices, const std::vector<GLuint>& indices)
+    {
+        using namespace ::juce::gl;
 
-    void render(DrawType drawType, const int numberOfVertices = -1);
+        glBindVertexArray(vao); // bind VAO to cache all VBO, EBO, and vertex attribute state
+
+        // Fill EBO buffer with indices array
+        indicesCount = (GLuint) indices.size();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(sizeof(GLuint) * (unsigned long) indicesCount), indices.data(), GL_DYNAMIC_DRAW); // TODO: Use GL_STATIC_DRAW
+
+        // Fill VBO buffer with vertices array
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, GLsizeiptr(sizeof(GLfloat) * vertices.size()), vertices.data(), GL_DYNAMIC_DRAW); // TODO: Use GL_STATIC_DRAW
+
+        // Define that our vertices are laid out as groups of 5 GLfloats (3 for position (XYZ), 2 for texture coordinate (UV))
+        const GLsizei positionDimension = 3;
+        const GLsizei textureCoordDimension = 2;
+        const GLsizei totalDimensions = positionDimension + textureCoordDimension;
+        const GLsizei vertexDataLength = totalDimensions * sizeof(GLfloat);
+
+        // Position attribute (3 floats)
+        const GLuint positionIndex = 0;
+        glVertexAttribPointer(positionIndex, positionDimension, GL_FLOAT, GL_FALSE, vertexDataLength, nullptr);
+        glEnableVertexAttribArray(positionIndex);
+
+        // Texture coordinate attribute (2 float)
+        const GLuint textureCoordIndex = 1;
+        glVertexAttribPointer(textureCoordIndex, textureCoordDimension, GL_FLOAT, GL_FALSE, vertexDataLength, (void*) (positionDimension * sizeof(GLfloat)));
+        glEnableVertexAttribArray(textureCoordIndex);
+
+        // Unbind buffers
+        glBindVertexArray(0); // unbind VAO first since it remembers last bound VBO
+        glBindBuffer(GL_ARRAY_BUFFER, 0); // unbind VBO
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind EBO
+    }
+
+    void draw() const
+    {
+        using namespace ::juce::gl;
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, (GLsizei) indicesCount, GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
+    }
 
 private:
-    GLuint vao;
-    bool hasEbo;
-    GLuint ebo;
-    GLuint totalVertices;
-    GLuint vbos[totalBuffers];
+    GLuint vao {};
+    GLuint ebo {};
+    GLuint vbo {};
+
+    GLuint indicesCount = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TextBuffer)
 };

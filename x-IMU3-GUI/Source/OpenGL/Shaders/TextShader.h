@@ -7,7 +7,7 @@
 class TextShader : public Shader
 {
 public:
-    TextShader(juce::OpenGLContext& context_) : Shader("Text", context_, BinaryData::Text_vert, BinaryData::Text_frag)
+    explicit TextShader(juce::OpenGLContext& context_) : Shader("Text", context_, BinaryData::Text_vert, BinaryData::Text_frag)
     {
         // Init texture uniform to always be associated with texture unit 0 (GL_TEXTURE0)
         use();
@@ -24,12 +24,8 @@ public:
     GLHelpers::Uniform colour { *this, "colour" };
     GLHelpers::Uniform transform { *this, "transform" };
 
-    // TODO: Attribute variables can be removed in refactor
-    Attribute vertexIn { *this, "vertexIn" };
-    Attribute textureIn { *this, "textureIn" };
-
 private:
-    Uniform textureImage { *this, "textureImage" };
+    GLHelpers::Uniform textureImage { *this, "textureImage" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TextShader)
 };
