@@ -23,7 +23,7 @@ public:
 
         if (juce::exactlyEqual(min, max))
         {
-            if (min == minValue)
+            if (juce::exactlyEqual(min, minValue))
             {
                 max = std::nextafter(max, std::numeric_limits<float>::max()); // increase max to prevent min from exceeding minValue
             }
