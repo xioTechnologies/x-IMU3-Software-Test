@@ -13,18 +13,18 @@ static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits
 {
     const float range = limits.getRange();
 
-    // Determine order of magnitude's exponent ( 10^-1 [0.1s], 10^0 [1s], 10^1 [10s], 10^2 [100s], etc) of the range.
-    const int oomExponent = (int) std::floor(std::log10(range));
+    const int oomExponent = (int) std::floor(std::log10(range)); // order of magnitude's exponent ( 10^-1 [0.1s], 10^0 [1s], 10^1 [10s], 10^2 [100s], etc)
 
-    // Calculate possible divisions of the order of magnitude to display as major grid divisions.
-    float previousOomDouble = std::pow(10.0f, (float) (oomExponent - 1)) * 2.0f;
-    float oomFull = std::pow(10.0f, (float) oomExponent);
-    float oomHalf = oomFull / 2.0f;
-    float oomDouble = oomFull * 2.0f;
+    // Calculate possible divisions of order of magnitude to display as major grid divisions.
+    const auto previousOomDouble = std::pow(10.0f, (float) (oomExponent - 1)) * 2.0f;
+    const auto oomFull = std::pow(10.0f, (float) oomExponent);
+    const auto oomHalf = oomFull / 2.0f;
+    const auto oomDouble = oomFull * 2.0f;
+    const auto nextOomHalf = std::pow(10.0f, (float) (oomExponent + 1)) / 2.0f;
 
-    // For the major tick length, choose the smallest division which is at least a minimum pixel length.
-    constexpr float minimumMajorDistancePixels = 25.0f;
-    float majorDistance = previousOomDouble;
+    // Set major tick distance by finding smallest oom division which is at least a minimum pixel length.
+    constexpr auto minimumMajorDistancePixels = 25.0f;
+    auto majorDistance = nextOomHalf;
     bool minorDivisionsUsesFourths = false;
 
     auto toPixels = [=](float dataUnits)
@@ -50,13 +50,6 @@ static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits
         majorDistance = oomDouble;
         minorDivisionsUsesFourths = true;
     }
-    else
-    {
-        // If we hit this jassert, we have chosen a minimumMajorTickLengthPixels which is too large and cannot contain
-        // any of the possible divisions. Consider changing the value of minimumMajorTickLengthPixels to be smaller.
-        // It is also possible we hit this assert due to our oom values reaching +Inf or our range being NaN
-        jassertfalse;
-    }
 
     const unsigned int minorPerMajorDivisions = minorDivisionsUsesFourths ? 4 : 5;
     const float minorDistance = majorDistance / (float) minorPerMajorDivisions;
@@ -68,7 +61,7 @@ static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits
         return {};
     }
 
-    // Fill in tick data
+    // Create tick data from determined major and minor division distances
     Ticks ticks;
 
     auto roundUpToNearestMultiple = [](float valueToRound, float multiple)
