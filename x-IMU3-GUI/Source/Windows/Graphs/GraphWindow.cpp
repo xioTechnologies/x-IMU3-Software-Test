@@ -146,9 +146,7 @@ void GraphWindow::mouseDrag(const juce::MouseEvent& mouseEvent)
 
 void GraphWindow::mouseDoubleClick([[maybe_unused]] const juce::MouseEvent& mouseEvent)
 {
-    auto settings = graph.getSettings();
-    settings.axesLimits.setDefault();
-    writeToValueTree(settings);
+    graph.scaleToFit();
 }
 
 void GraphWindow::write(const uint64_t timestamp, const std::vector<float>& arguments)

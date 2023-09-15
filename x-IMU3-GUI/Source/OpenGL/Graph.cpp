@@ -25,12 +25,14 @@ void Graph::render()
 
     const auto channelBuffers = buffer.read();
 
-    // Remove dissbaled from  channelBuffers
+    if (scaleToFitPending.exchange(false))
+    {
+        settings.axesLimits.autoscale(true, true, channelBuffers, settings.enabledChannels);
+    }
 
     settings.axesLimits.autoscale(settings.horizontalAutoscale, settings.verticalAutoscale, channelBuffers, settings.enabledChannels);
 
-    // Paint graph background color
-    GLHelpers::clear(UIColours::backgroundLight, toOpenGLBounds(bounds));
+    GLHelpers::clear(UIColours::backgroundLight, toOpenGLBounds(bounds)); // paint graph background color
 
     if (ticksEnabled)
     {
@@ -85,6 +87,11 @@ Graph::Settings Graph::getSettings() const
 void Graph::setTicksEnabled(const bool enabled)
 {
     ticksEnabled = enabled;
+}
+
+void Graph::scaleToFit()
+{
+    scaleToFitPending = true;
 }
 
 void Graph::clear()

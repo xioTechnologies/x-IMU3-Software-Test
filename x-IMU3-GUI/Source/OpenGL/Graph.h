@@ -31,6 +31,8 @@ public:
 
     void setTicksEnabled(const bool enabled);
 
+    void scaleToFit();
+
     void clear();
 
     void write(const uint64_t timestamp, const std::vector<float>& values);
@@ -46,6 +48,8 @@ private:
 
     mutable std::mutex settingsMutex;
     Settings settings;
+
+    std::atomic<bool> scaleToFitPending { false };
 
     ChannelBuffers buffer { (int) colours.size() };
 
