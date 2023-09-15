@@ -17,8 +17,8 @@ GraphWindow::GraphWindow(const juce::ValueTree& windowLayout_, const juce::Ident
           defaultHorizontalAutoscale(defaultHorizontalAutoscale_),
           settingsTree(settingsTree_),
           graph(glRenderer, legendColours_, labelHeight, rightMargin),
-          xLabel("Time (s)", UIFonts::getSmallFont(), juce::Justification::centred),
-          yLabel(yAxis, UIFonts::getSmallFont(), juce::Justification::centred)
+          xLabel("Time (s)", UIFonts::getDefaultFont(), juce::Justification::centred),
+          yLabel(yAxis, UIFonts::getDefaultFont(), juce::Justification::centred)
 {
     jassert(legendStrings.size() == legendColours.size());
 

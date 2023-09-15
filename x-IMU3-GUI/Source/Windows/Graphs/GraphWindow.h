@@ -34,7 +34,7 @@ protected:
     static const juce::String degreeSymbol;
 
 private:
-    static constexpr int labelHeight = 20;
+    static constexpr int labelHeight = 22;
     static constexpr int rightMargin = 10;
 
     const std::vector<juce::String> legendStrings;
