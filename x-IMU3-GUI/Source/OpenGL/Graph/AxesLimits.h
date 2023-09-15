@@ -5,7 +5,8 @@
 class AxisLimits
 {
 public:
-    static constexpr auto maximumValue = 1e15f;
+    static constexpr auto maxValue = 1e15f;
+    static constexpr auto minValue = -maxValue;
 
     float min = 0.0f;
     float max = 1.0f;
@@ -17,21 +18,18 @@ public:
 
     void limitRange()
     {
-        min = juce::jlimit(-maximumValue, maximumValue, min);
-        max = juce::jlimit(-maximumValue, maximumValue, max);
+        min = juce::jlimit(minValue, maxValue, min);
+        max = juce::jlimit(minValue, maxValue, max);
 
-        // If range is 0, expand range to minimum representable
         if (juce::exactlyEqual(min, max))
         {
-            // Prevent expanding past range bounds: +maximumValue, -maximumValue, or 0 for x-axis
-            bool expandTowardNegative = std::nextafter(max, std::numeric_limits<float>::max()) > 0;
-            if (expandTowardNegative)
+            if (min == minValue)
             {
-                min = std::nextafter(min, std::numeric_limits<float>::lowest());
+                max = std::nextafter(max, std::numeric_limits<float>::max()); // increase max to prevent min from exceeding minValue
             }
             else
             {
-                max = std::nextafter(max, std::numeric_limits<float>::max());
+                min = std::nextafter(min, std::numeric_limits<float>::lowest()); // decrease min to prevent min from exceeding minValue and avoid max exceeding 0 for x-axis
             }
         }
 
@@ -128,8 +126,9 @@ public:
 
             if (newY.min < newY.max)
             {
-                y.min = newY.min;
-                y.max = newY.max;
+                const auto margin = 0.01f * y.getRange(); // add 1% margin
+                y.min = newY.min - margin;
+                y.max = newY.max + margin;
             }
         }
 
