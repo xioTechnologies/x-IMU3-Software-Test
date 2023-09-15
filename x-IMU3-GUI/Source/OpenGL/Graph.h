@@ -77,5 +77,13 @@ private:
 
     void drawText(const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification);
 
+    // Copy of juce::jmap with assertion for exactlyEqual instead of approximatelyEqual
+    template<typename Type>
+    Type mapRange(Type sourceValue, Type sourceRangeMin, Type sourceRangeMax, Type targetRangeMin, Type targetRangeMax)
+    {
+        jassert (!juce::exactlyEqual(sourceRangeMax, sourceRangeMin)); // mapping from a range of zero will produce NaN!
+        return targetRangeMin + ((targetRangeMax - targetRangeMin) * (sourceValue - sourceRangeMin)) / (sourceRangeMax - sourceRangeMin);
+    }
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Graph)
 };

@@ -269,7 +269,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     {
         auto getLabelEdges = [&](const Tick& tick) -> std::tuple<float, float>
         {
-            const auto centreX = GLHelpers::mapRange(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset + (float) glDrawBounds.getX();
+            const auto centreX = mapRange(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset + (float) glDrawBounds.getX();
             const auto leftEdgeX = centreX - ((float) text.getStringWidthGLPixels(tick.label) / 2.0f);
             const auto rightEdgeX = centreX + ((float) text.getStringWidthGLPixels(tick.label) / 2.0f);
             return { leftEdgeX, rightEdgeX };
@@ -317,7 +317,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     // Draw each text string
     for (const auto& tick : labelsToDraw)
     {
-        const auto offsetAlongAxis = GLHelpers::mapRange<float>(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
+        const auto offsetAlongAxis = mapRange(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
         const auto offsetTowardsAxis = isXTicks ? (float) (glDrawBounds.getHeight() - (int) text.getFontSize()) : (float) glDrawBounds.getWidth();
 
         const auto x = isXTicks ? offsetAlongAxis : offsetTowardsAxis;

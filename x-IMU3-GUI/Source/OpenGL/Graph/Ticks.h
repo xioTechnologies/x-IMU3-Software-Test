@@ -70,7 +70,15 @@ static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits
 
     // Fill in tick data
     Ticks ticks;
-    const float firstMajorPosition = GLHelpers::roundUpToNearestMultiple(limits.min, majorDistance); // TODO: Avoid OpenGL knowledge
+
+    auto roundUpToNearestMultiple = [](float valueToRound, float multiple)
+    {
+        float remainderToClosestMultiple = std::fmod(std::abs(valueToRound), multiple);
+        bool nearestMultipleIsLessThanValue = valueToRound > 0.0f;
+        return valueToRound + ((nearestMultipleIsLessThanValue) ? (multiple - remainderToClosestMultiple) : remainderToClosestMultiple);
+    };
+
+    const float firstMajorPosition = roundUpToNearestMultiple(limits.min, majorDistance);
     const auto maxPossibleMajorTickCount = static_cast<unsigned int> (std::floor(limits.getRange() / majorDistance)) + 1;
     for (unsigned int majorTickIndex = 0; majorTickIndex < maxPossibleMajorTickCount; majorTickIndex++)
     {
@@ -81,8 +89,13 @@ static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits
             break;
         }
 
+        auto approximatelyEqual = [](float a, float b, float epsilon)
+        {
+            return std::fabs(a - b) <= epsilon;
+        };
+
         // Major ticks
-        if (GLHelpers::approximatelyEqual(majorPosition, 0.0f, majorDistance / (float) minorPerMajorDivisions)) // TODO: Avoid OpenGL knowledge
+        if (approximatelyEqual(majorPosition, 0.0f, majorDistance / (float) minorPerMajorDivisions))
         {
             ticks.push_back({ true, 0.0f, "0" }); // ensure 0 is written properly with no rounding error
         }

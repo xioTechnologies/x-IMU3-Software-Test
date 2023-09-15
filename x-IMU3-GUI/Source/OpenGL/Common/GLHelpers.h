@@ -241,27 +241,6 @@ namespace GLHelpers
         juce::OpenGLHelpers::clear(colour);
     }
 
-    template<typename Type>
-    static inline constexpr bool approximatelyEqual(Type a, Type b, Type epsilon)
-    {
-        return std::fabs(a - b) <= epsilon;
-    }
-
-    static inline float roundUpToNearestMultiple(float valueToRound, float multiple)
-    {
-        float remainderToClosestMultiple = std::fmod(std::abs(valueToRound), multiple);
-        bool nearestMultipleIsLessThanValue = valueToRound > 0.0f;
-        return valueToRound + ((nearestMultipleIsLessThanValue) ? (multiple - remainderToClosestMultiple) : remainderToClosestMultiple);
-    }
-
-    /** Remaps a value from a source range to a target range. */
-    template<typename Type>
-    Type mapRange(Type sourceValue, Type sourceRangeMin, Type sourceRangeMax, Type targetRangeMin, Type targetRangeMax)
-    {
-        jassert (!juce::exactlyEqual(sourceRangeMax, sourceRangeMin)); // mapping from a range of zero will produce NaN!
-        return targetRangeMin + ((targetRangeMax - targetRangeMin) * (sourceValue - sourceRangeMin)) / (sourceRangeMax - sourceRangeMin);
-    }
-
     // Keeping around in case we need this for later potential refactor
     /*
     static juce::Matrix3D<GLfloat> toJUCEMatrix(const glm::mat4 & matrix)
