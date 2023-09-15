@@ -32,8 +32,11 @@ juce::Rectangle<int> OpenGLComponent::getBoundsInMainWindow() const
 
 juce::Rectangle<int> OpenGLComponent::toOpenGLBounds(const juce::Rectangle<int>& bounds) const
 {
-    auto glBounds = bounds.withY(topLevelHeight - bounds.getBottom()).toDouble() * context.getRenderingScale();
-    return glBounds.getSmallestIntegerContainer();
+    const auto desktopScale = context.getRenderingScale();
+    return juce::Rectangle<decltype(desktopScale)>(bounds.getX() * desktopScale,
+                                                   (topLevelHeight - bounds.getBottom()) * desktopScale,
+                                                   bounds.getWidth() * desktopScale,
+                                                   bounds.getHeight() * desktopScale).toNearestInt();
 }
 
 void OpenGLComponent::unregisterParents()
