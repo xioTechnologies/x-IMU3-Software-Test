@@ -3,7 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <memory>
 #include "Text.h"
-#include "TextBuffer.h"
+#include "TextQuad.h"
 #include "OpenGL/Graph/LineBuffer.h"
 #include "OpenGL/Shaders/GraphDataShader.h"
 #include "OpenGL/Shaders/GraphGridShader.h"
@@ -31,18 +31,16 @@ public:
     Text& getGraphAxisValuesText();
     Text& get3DViewAxisText();
 
-    // Buffers
-    TextBuffer textBuffer;
-
     LineBuffer graphGridBuffer { true };
     LineBuffer graphDataBuffer { false };
 
-    // Models
+    // Geometry
     Model arrow { context };
     Model board { context };
     Model housing { context };
     Model custom { context };
     PlaneModel plane;
+    TextQuad textQuad;
 
     // Shaders
     const GraphDataShader graphDataShader { context };

@@ -34,13 +34,14 @@ bool Text::loadFont(const char* data, size_t dataSize, unsigned int fontSize_)
 
     descender = toPixels((float) face->size->metrics.descender);
 
+    // TODO: Optionally generate textures ONLY for the characters we need for graph & axes: numbers 0-9, -, x, y, z, E
 
     // Create OpenGL Textures for every font character that will be used
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable OpenGL default 4-byte alignment restriction since we store grayscale data with 1 byte per pixel
     glActiveTexture(GL_TEXTURE0); // use first texture unit for all textures bound below because shader only uses 1 texture at a time
-    for (int i = 0; i < 256; i++)
+    for (unsigned char c = 0; c < 128; c++) // TODO: Was originally first 256 characters
     {
-        if (FT_Load_Char(face, (FT_ULong) i, FT_LOAD_RENDER)) // if freetype fails to load the current glyph index
+        if (FT_Load_Char(face, (FT_ULong) c, FT_LOAD_RENDER)) // if freetype fails to load the current glyph index
         {
             continue;
         }
@@ -68,13 +69,10 @@ bool Text::loadFont(const char* data, size_t dataSize, unsigned int fontSize_)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
         Glyph glyph = { textureID,
-                        face->glyph->bitmap.width,
-                        face->glyph->bitmap.rows,
-                        face->glyph->bitmap_left,
-                        face->glyph->bitmap_top,
-                        (GLint) face->glyph->advance.x };
-
-        alphabet[(GLchar) i] = glyph;
+                        glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                        glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+                        toPixels((float) face->glyph->advance.x) };
+        alphabet[c] = glyph;
     }
 
     FT_Done_Face(face);
@@ -96,17 +94,17 @@ unsigned int Text::getFontSize() const
     return fontSize;
 }
 
-GLuint Text::getTotalWidth()
+float Text::getTotalWidth()
 {
-    unsigned int totalWidth = 0;
+    float width = 0.0f;
 
-    for (int i = 0; i < text.length(); i++)
+    for (auto character : text)
     {
-        Glyph glyph = alphabet[(GLchar) text[i]];
-        totalWidth += (GLuint) toPixels((float) glyph.advance);
+        Glyph glyph = alphabet[(unsigned char) character];
+        width += glyph.advance;
     }
 
-    return totalWidth;
+    return width;
 }
 
 int Text::getStringWidthGLPixels(const juce::String& string) const
@@ -115,8 +113,8 @@ int Text::getStringWidthGLPixels(const juce::String& string) const
 
     for (const auto& character : string)
     {
-        const Glyph glyph = alphabet.at((GLchar) character);
-        width += (int) std::ceil(toPixels((float) glyph.advance));
+        const Glyph glyph = alphabet.at(static_cast<unsigned char> (character));
+        width += (int) std::ceil(glyph.advance);
     }
 
     return width;
@@ -144,7 +142,7 @@ void Text::setText(const juce::String& text_)
 
 void Text::setScale(const juce::Point<GLfloat>& scale_)
 {
-    scale = scale_;
+    scale_old = scale_;
 }
 
 // TODO: Unused consider removing
@@ -167,33 +165,107 @@ void Text::renderScreenSpace(GLResources* const resources, const juce::String& l
     render(resources);
 }
 
+void Text::render(GLResources* const resources, const juce::String& text_, glm::vec2 screenPosition, juce::Rectangle<int> viewport, const juce::Colour& colour, juce::Justification justification)
+{
+    setText(text_);
+
+    if (justification.testFlags(juce::Justification::horizontallyCentred))
+    {
+        screenPosition.x -= getTotalWidth() / 2.0f;
+    }
+    else if (justification.testFlags(juce::Justification::right))
+    {
+        screenPosition.x -= getTotalWidth();
+    }
+
+    if (justification.testFlags(juce::Justification::verticallyCentred))
+    {
+        const auto offset = (GLfloat) getFontSize() / 2.0f + getDescender();
+        screenPosition.y -= offset;
+    }
+
+    auto projection = glm::ortho((float) viewport.getX(), (float) viewport.getRight(), (float) viewport.getY(), (float) viewport.getY() + (float) viewport.getHeight());
+
+    auto& textShader = resources->textShader;
+    textShader.use();
+    textShader.colour.setRGBA(colour);
+    auto textOrigin = screenPosition;
+    for (size_t index = 0; index < (size_t) text.length(); index++)
+    {
+        Glyph glyph = alphabet[static_cast<unsigned char>(text[(int) index])];
+
+        // TODO: Add back this functionality, but make it a parameter instead
+        //  Basically only difference is, isFirstLetterCentered translates all letters back to reach the center of the first letter.
+        /*
+        if (isFirstLetterCentered)
+        {
+
+        }
+        else
+        {
+
+        }
+         */
+
+        // NOTE: The following is for when NOT isFirstLetterCentered
+
+        auto scale = glm::scale(glm::mat4(1.0), glm::vec3(glyph.size, 0.0f));
+        auto glyphCentre = glm::vec2((float) glyph.bearing.x + (0.5f * (float) glyph.size.x), (0.5f * (float) glyph.size.y) - ((float)glyph.size.y - (float) glyph.bearing.y));
+        auto translation = glm::translate(glm::mat4(1.0), glm::vec3(textOrigin + glyphCentre, 0.0f));
+        glm::mat4 transform = projection * translation * scale;
+        textShader.transform.set(transform);
+
+        textShader.setTextureImage(juce::gl::GL_TEXTURE_2D, glyph.textureID);
+        resources->textQuad.draw();
+
+        textOrigin.x += glyph.advance; // move origin to next character
+    }
+}
+
 void Text::render(GLResources* const resources)
 {
     // TODO: Unused textOrigin, remove
+    // ACTUALLY NO, it is used, it is iterated every loop, BUT it begins at 0.0 because position is never modified!
     auto textOrigin = position;
+    //  Translation is already accomplished via the transformation uniform in TextShader, so this is redundant.
+    //  Let's also move the scale variable into the matrix as a scale matrix. Just scaling on X and Y
+    //  For uniforms we may also need to pass glyph.width, glyph.height, and glyph.bearing to get proper results.
+    //  It would also be possible to batch render the text glyphs in one draw call using an array of uniforms
+
+    // From what I can tell,
+    // isFirstLetterCentered == true
+    //      X values are multiplied (scaled) by     glyph.width * 0.5f * scale.x
+    //      Y values are multiplied (scaled) by     halfBearingY * scale.y
+    //      THEN
+    //      Y values of specific vertices are subtracted (translated) by  - (glyph.height * scale.y)
+    //      XY values are all translated by  textOrigin.x
+    // else
+    //
 
     for (size_t index = 0; index < (size_t) text.length(); index++)
     {
-        Glyph glyph = alphabet[(GLchar) text[(int) index]];
+        Glyph glyph = alphabet[static_cast<unsigned char>(text[(int) index])];
 
-        auto halfWidth = glyph.width * 0.5f;
-        auto halfBearingY = glyph.bearingY * 0.5f;
+        //auto sizeScaled = glyph.size * scale.x 
+
+        auto halfWidth = (float) glyph.size.x * 0.5f;
+        auto halfBearingY = (float) glyph.bearing.y * 0.5f;
 
         // TODO: I would keep vertices in a static buffer but use matrix scaling to resize that square to the proper width height. Then we only pass uniforms.
         std::vector<GLfloat> vertices;
         if (isFirstLetterCentered)
         {
-            vertices = { textOrigin.x - (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y), 0.0f, 0.0f, 0.0f,
-                         textOrigin.x + (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y), 0.0f, 1.0f, 0.0f,
-                         textOrigin.x + (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f, 1.0f, 1.0f,
-                         textOrigin.x - (halfWidth * scale.x), textOrigin.y + (halfBearingY * scale.y) - (glyph.height * scale.y), 0.0f, 0.0f, 1.0f };
+            vertices = { textOrigin.x - (halfWidth * scale_old.x), textOrigin.y + (halfBearingY * scale_old.y), 0.0f, 0.0f, 0.0f,
+                         textOrigin.x + (halfWidth * scale_old.x), textOrigin.y + (halfBearingY * scale_old.y), 0.0f, 1.0f, 0.0f,
+                         textOrigin.x + (halfWidth * scale_old.x), textOrigin.y + (halfBearingY * scale_old.y) - (glyph.size.y * scale_old.y), 0.0f, 1.0f, 1.0f,
+                         textOrigin.x - (halfWidth * scale_old.x), textOrigin.y + (halfBearingY * scale_old.y) - (glyph.size.y * scale_old.y), 0.0f, 0.0f, 1.0f };
         }
         else
         {
-            vertices = { textOrigin.x + (glyph.bearingX * scale.x), textOrigin.y + (glyph.bearingY * scale.y), 0.0f, 0.0f, 0.0f,
-                         textOrigin.x + (glyph.bearingX * scale.x) + (glyph.width * scale.x), textOrigin.y + (glyph.bearingY * scale.y), 0.0f, 1.0f, 0.0f,
-                         textOrigin.x + (glyph.bearingX * scale.x) + (glyph.width * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f, 1.0f, 1.0f,
-                         textOrigin.x + (glyph.bearingX * scale.x), textOrigin.y + (glyph.bearingY * scale.y) - (glyph.height * scale.y), 0.0f, 0.0f, 1.0f };
+            vertices = { textOrigin.x + (glyph.bearing.x * scale_old.x), textOrigin.y + (glyph.bearing.y * scale_old.y), 0.0f, 0.0f, 0.0f, // Top left
+                         textOrigin.x + (glyph.bearing.x * scale_old.x) + (glyph.size.x * scale_old.x), textOrigin.y + (glyph.bearing.y * scale_old.y), 0.0f, 1.0f, 0.0f, // Top right
+                         textOrigin.x + (glyph.bearing.x * scale_old.x) + (glyph.size.x * scale_old.x), textOrigin.y + (glyph.bearing.y * scale_old.y) - (glyph.size.y * scale_old.y), 0.0f, 1.0f, 1.0f, // Bottom right
+                         textOrigin.x + (glyph.bearing.x * scale_old.x), textOrigin.y + (glyph.bearing.y * scale_old.y) - (glyph.size.y * scale_old.y), 0.0f, 0.0f, 1.0f }; // Bottom left
         }
 
         //        std::vector<GLfloat> UVs = { 0.0f, 0.0f,
@@ -206,9 +278,8 @@ void Text::render(GLResources* const resources)
 
         //resources->textShader.use(); // TODO: This statement adds extra safety but possibly unneeded because called in higher levels . . .
         resources->textShader.setTextureImage(juce::gl::GL_TEXTURE_2D, glyph.textureID);
-        resources->textBuffer.fillBuffer(vertices, indices);
-        resources->textBuffer.draw();
+        resources->textQuad.draw();
 
-        textOrigin.x += toPixels((float) glyph.advance * scale.x);
+        textOrigin.x += glyph.advance * scale_old.x;
     }
 }

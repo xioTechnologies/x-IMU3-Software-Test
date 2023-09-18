@@ -319,45 +319,8 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     {
         const auto offsetAlongAxis = mapRange(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
         const auto offsetTowardsAxis = isXTicks ? (float) (glDrawBounds.getHeight() - (int) text.getFontSize()) : (float) glDrawBounds.getWidth();
-
-        const auto x = isXTicks ? offsetAlongAxis : offsetTowardsAxis;
-        const auto y = isXTicks ? offsetTowardsAxis : offsetAlongAxis;
-
-        drawText(glDrawBounds, text, tick.label, juce::Colours::grey, x, y, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
+        const auto positionRelative = isXTicks ? glm::vec2(offsetAlongAxis, offsetTowardsAxis) : glm::vec2(offsetTowardsAxis, offsetAlongAxis);
+        const auto screenPosition = positionRelative + glm::vec2(glDrawBounds.getX(), glDrawBounds.getY());
+        text.render(resources, tick.label, screenPosition, glDrawBounds, juce::Colours::grey, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
     }
-}
-
-void Graph::drawText(const juce::Rectangle<int>& openGLBounds, Text& text, const juce::String& label, const juce::Colour& colour, float x, float y, juce::Justification justification)
-{
-    auto& textShader = resources->textShader;
-    textShader.use();
-    textShader.colour.setRGBA(colour);
-    text.setText(label);
-
-    // NOTE: The 2.0 / width here and -1.0 offset in the translation matrix below are specifically translating to NDC coordinates via math
-    // computed in the shader. We could consider moving this math to one place here, not in the shader, so it is more obvious.
-    const juce::Point<GLfloat> pixelSize(2.0f / (GLfloat) openGLBounds.getWidth(), 2.0f / (GLfloat) openGLBounds.getHeight());
-    text.setScale({ pixelSize.x, pixelSize.y });
-
-    if (justification.testFlags(juce::Justification::horizontallyCentred))
-    {
-        x -= (GLfloat) text.getTotalWidth() / 2.0f;
-    }
-    else if (justification.testFlags(juce::Justification::right))
-    {
-        x -= (GLfloat) text.getTotalWidth();
-    }
-
-    if (justification.testFlags(juce::Justification::verticallyCentred))
-    {
-        const auto offset = (GLfloat) text.getFontSize() / 2.0f + text.getDescender();
-        y -= offset;
-    }
-
-    // NOTE: Translate position to NDC in -1.0 to 1.0 range
-    auto translation = juce::Matrix3D<float>::fromTranslation(juce::Vector3D<float>(-1 + (x * pixelSize.x), -1 + (y * pixelSize.y), 0.0f));
-
-    textShader.transform.setMatrix4(translation.mat, 1, false);
-
-    text.render(resources);
 }
