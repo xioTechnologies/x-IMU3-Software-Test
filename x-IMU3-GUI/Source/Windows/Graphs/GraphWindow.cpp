@@ -79,7 +79,7 @@ void GraphWindow::resized()
         yLabel.setTransform({}); // prevent glitch on subsequent resize
         yLabel.setSize(yLabelBounds.getHeight(), yLabelBounds.getWidth()); // invert width/height
         yLabel.setCentrePosition(0, 0);
-        yLabel.setTransform(juce::AffineTransform::rotation(-juce::MathConstants<float>::halfPi).translated(yLabelBounds.getCentreX(), yLabelBounds.getCentreY()));
+        yLabel.setTransform(juce::AffineTransform::rotation(-juce::MathConstants<float>::halfPi).translated((float) yLabelBounds.getCentreX(), (float) yLabelBounds.getCentreY()));
     }
 
     graph.setBounds(graphArea);
