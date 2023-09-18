@@ -2,18 +2,20 @@
 
 #include <juce_opengl/juce_opengl.h>
 
-class TextBuffer
+class TextQuad
 {
 public:
-    explicit TextBuffer()
+    explicit TextQuad()
     {
         using namespace ::juce::gl;
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &ebo);
         glGenBuffers(1, &vbo);
+
+        loadVertices();
     }
 
-    ~TextBuffer()
+    ~TextQuad()
     {
         using namespace ::juce::gl;
         glDeleteVertexArrays(1, &vao);
@@ -21,20 +23,46 @@ public:
         glDeleteBuffers(1, &vbo);
     }
 
-    void fillBuffer(const std::vector<GLfloat>& vertices, const std::vector<GLuint>& indices)
+    void draw() const
     {
         using namespace ::juce::gl;
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, (GLsizei) indicesCount, GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
+    }
+
+private:
+    void loadVertices()
+    {
+        using namespace ::juce::gl;
+
+        // Make quad geometry on the XY plane of OpenGL's default coordinate system
+        constexpr float extent = 0.5f;
+
+        // 3 floats for position, 2 floats for UV
+        const std::vector<GLfloat> vertices = {
+                extent, -extent, 0.0f, 1.0f, 1.0f, // bottom right
+                extent, extent, 0.0f, 1.0f, 0.0f, // top right
+                -extent, extent, 0.0f, 0.0f, 0.0f, // top left
+                -extent, -extent, 0.0f, 0.0f, 1.0f // bottom left
+        };
+
+        // Triangles have counter-clockwise winding order to be front-facing
+        const std::vector<GLuint> indices = {
+                0, 1, 3, // first triangle
+                1, 2, 3 // second triangle
+        };
 
         glBindVertexArray(vao); // bind VAO to cache all VBO, EBO, and vertex attribute state
 
         // Fill EBO buffer with indices array
         indicesCount = (GLuint) indices.size();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(sizeof(GLuint) * (unsigned long) indicesCount), indices.data(), GL_DYNAMIC_DRAW); // TODO: Use GL_STATIC_DRAW
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(sizeof(GLuint) * (unsigned long) indicesCount), indices.data(), GL_STATIC_DRAW);
 
         // Fill VBO buffer with vertices array
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, GLsizeiptr(sizeof(GLfloat) * vertices.size()), vertices.data(), GL_DYNAMIC_DRAW); // TODO: Use GL_STATIC_DRAW
+        glBufferData(GL_ARRAY_BUFFER, GLsizeiptr(sizeof(GLfloat) * vertices.size()), vertices.data(), GL_STATIC_DRAW);
 
         // Define that our vertices are laid out as groups of 5 GLfloats (3 for position (XYZ), 2 for texture coordinate (UV))
         const GLsizei positionDimension = 3;
@@ -58,20 +86,11 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // unbind EBO
     }
 
-    void draw() const
-    {
-        using namespace ::juce::gl;
-        glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, (GLsizei) indicesCount, GL_UNSIGNED_INT, nullptr);
-        glBindVertexArray(0);
-    }
-
-private:
     GLuint vao {};
     GLuint ebo {};
     GLuint vbo {};
 
     GLuint indicesCount = 0;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TextBuffer)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TextQuad)
 };
