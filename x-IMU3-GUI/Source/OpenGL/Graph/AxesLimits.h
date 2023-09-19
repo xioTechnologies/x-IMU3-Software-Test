@@ -126,7 +126,7 @@ public:
 
             if (newY.min != std::numeric_limits<float>::max())
             {
-                const auto margin = juce::exactlyEqual(newY.min, newY.max) ? 1.0f : (0.01f * y.getRange()); // add 1% margin
+                const auto margin = juce::exactlyEqual(newY.min, newY.max) ? 1.0f : (0.02f * y.getRange()); // add 5% margin
                 y.min = newY.min - margin;
                 y.max = newY.max + margin;
             }
