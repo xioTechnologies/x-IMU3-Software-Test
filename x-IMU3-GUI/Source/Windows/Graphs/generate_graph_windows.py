@@ -174,7 +174,7 @@ windows = [
            ),
     Window(name="RssiPercentage",
            callback_declarations="    std::function<void(ximu3::XIMU3_RssiMessage)> rssiCallback;",
-           horizontal_autoscale="false",
+           horizontal_autoscale="true",
            y_axis="Percentage (%)",
            legend_strings="{ \"\" }",
            legend_colours="{ juce::Colours::yellow }",

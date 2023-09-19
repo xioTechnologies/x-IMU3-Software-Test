@@ -13,7 +13,7 @@ RssiPercentageGraphWindow::RssiPercentageGraphWindow(const juce::ValueTree& wind
                       { "" },
                       { juce::Colours::yellow },
                       settingsTree_,
-                      false)
+                      true)
 {
     callbackIDs.push_back(devicePanel.getConnection()->addRssiCallback(rssiCallback = [&](auto message)
     {
