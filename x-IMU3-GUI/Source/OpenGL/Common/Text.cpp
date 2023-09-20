@@ -15,12 +15,16 @@ Text::Initializer::~Initializer()
 }
 
 Text::Text(const bool isFirstLetterCentered_) : isFirstLetterCentered(isFirstLetterCentered_)
+Text::~Text()
 {
+    unloadFont();
 }
 
 bool Text::loadFont(const char* data, size_t dataSize, unsigned int fontSize_)
 {
     using namespace ::juce::gl;
+
+    unloadFont();
 
     fontSize = (GLuint) fontSize_;
 

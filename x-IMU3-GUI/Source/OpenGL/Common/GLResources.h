@@ -28,11 +28,8 @@ public:
     explicit GLResources(juce::OpenGLContext& context_);
 
     // Text
-    Text& getGraphAxisValuesText();
-    Text& get3DViewAxisText();
-
-    LineBuffer graphGridBuffer { true };
-    LineBuffer graphDataBuffer { false };
+    Text& getGraphTickText();
+    Text& get3DViewAxesText();
 
     // Geometry
     Model arrow { context };
@@ -41,6 +38,8 @@ public:
     Model custom { context };
     PlaneModel plane;
     TextQuad textQuad;
+    LineBuffer graphGridBuffer { true };
+    LineBuffer graphDataBuffer { false };
 
     // Shaders
     const GraphDataShader graphDataShader { context };
@@ -58,11 +57,8 @@ public:
     OrbitCamera orbitCamera;
 
 private:
-    std::unique_ptr<Text> infoText;
-    std::unique_ptr<Text> legendText;
-    std::unique_ptr<Text> axisValuesText;
-    std::unique_ptr<Text> axisLabelText;
-    std::unique_ptr<Text> axisMarkerText;
+    std::unique_ptr<Text> graphTickText;
+    std::unique_ptr<Text> threeDViewAxesText;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GLResources)
 };

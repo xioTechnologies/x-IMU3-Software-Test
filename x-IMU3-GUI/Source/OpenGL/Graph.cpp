@@ -48,7 +48,7 @@ void Graph::render()
 
         const auto yTicks = createYTicks(bounds.getHeight(), settings.axesLimits.y);
 
-        const auto yTicksWidth = getMaximumStringWidth(yTicks, resources->getGraphAxisValuesText());
+        const auto yTicksWidth = getMaximumStringWidth(yTicks, resources->getGraphTickText());
         const auto yTicksBounds = bounds.removeFromLeft(yTicksWidth);
         bounds.removeFromLeft(yTickMargin);
 
@@ -253,7 +253,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     GLHelpers::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false); // TODO: Why is this necessary??
     GLHelpers::ScopedCapability scopedDepthTest(juce::gl::GL_DEPTH_TEST, false); // do not hide text based on depth
 
-    auto& text = resources->getGraphAxisValuesText();
+    auto& text = resources->getGraphTickText();
     const int distanceOfPlotAxis = isXTicks ? glPlotBounds.getWidth() : glPlotBounds.getHeight();
     const int plotStartOffset = isXTicks ? (glPlotBounds.getX() - glDrawBounds.getX()) : (glPlotBounds.getY() - glDrawBounds.getY());
 
