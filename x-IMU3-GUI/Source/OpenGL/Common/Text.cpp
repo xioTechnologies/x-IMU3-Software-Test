@@ -20,13 +20,14 @@ Text::~Text()
     unloadFont();
 }
 
-bool Text::loadFont(const char* data, size_t dataSize, unsigned int fontSize_)
+bool Text::loadFont(const char* data, size_t dataSize, int fontSizeJucePixels_)
 {
     using namespace ::juce::gl;
 
     unloadFont();
 
-    fontSize = (GLuint) fontSize_;
+    fontSizeJucePixels = fontSizeJucePixels_;
+    fontSizeGLPixels = (GLuint) toGLPixels(fontSizeJucePixels);
 
     FT_Face face = nullptr;
     if (FT_New_Memory_Face(freetypeLibrary, reinterpret_cast<const FT_Byte*>(data), (FT_Long) dataSize, 0, &face))
@@ -34,7 +35,7 @@ bool Text::loadFont(const char* data, size_t dataSize, unsigned int fontSize_)
         return false;
     }
 
-    FT_Set_Pixel_Sizes(face, fontSize, fontSize);
+    FT_Set_Pixel_Sizes(face, fontSizeGLPixels, fontSizeGLPixels);
 
     descender = toPixels((float) face->size->metrics.descender);
 
@@ -93,9 +94,14 @@ void Text::unloadFont()
     alphabet.clear();
 }
 
-unsigned int Text::getFontSize() const
+int Text::getFontSizeGLPixels() const
 {
-    return fontSize;
+    return (int) fontSizeGLPixels;
+}
+
+int Text::getFontSizeJucePixels() const
+{
+   return fontSizeJucePixels;
 }
 
 float Text::getTotalWidth()
@@ -228,7 +234,7 @@ void Text::render(GLResources* const resources, const juce::String& text_, glm::
 
     if (justification.testFlags(juce::Justification::verticallyCentred))
     {
-        const auto offset = (GLfloat) getFontSize() / 2.0f + getDescender();
+        const auto offset = (GLfloat) getFontSizeGLPixels() / 2.0f + getDescender();
         screenPosition.y -= offset;
     }
 
@@ -335,4 +341,10 @@ void Text::render(GLResources* const resources)
 
         textOrigin.x += glyph.advance * scale_old.x;
     }
+}
+
+int Text::toGLPixels(int jucePixels)
+{
+    auto context = juce::OpenGLContext::getCurrentContext();
+    return juce::roundToInt((double) jucePixels * (context ? context->getRenderingScale() : 1.0));
 }

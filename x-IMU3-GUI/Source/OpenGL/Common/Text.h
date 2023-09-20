@@ -14,11 +14,11 @@ public:
     explicit Text(const bool isFirstLetterCentered_);
     virtual ~Text();
 
-    bool loadFont(const char* data, size_t dataSize, GLuint fontSize_);
-
+    bool loadFont(const char* data, size_t dataSize, int fontSizeJucePixels_);
     void unloadFont();
 
-    unsigned int getFontSize() const;
+    int getFontSizeGLPixels() const;
+    int getFontSizeJucePixels() const;
 
     float getTotalWidth();
 
@@ -43,7 +43,7 @@ public:
 
     void renderScreenSpace(GLResources* const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform, juce::Rectangle<int> viewportBounds);
 
-    // TODO: getFontSizeInJUCEPixels
+    static int toGLPixels(int jucePixels);
 
 private:
 
@@ -82,7 +82,8 @@ private:
 
     juce::Point<GLfloat> scale_old = juce::Point<GLfloat>(1.0f, 1.0f);
 
-    unsigned int fontSize = 0;
+    unsigned int fontSizeGLPixels = 0;
+    int fontSizeJucePixels = 0;
 
     float descender = 0;
 
