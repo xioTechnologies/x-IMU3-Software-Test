@@ -161,18 +161,52 @@ void Text::setPosition(const juce::Vector3D<GLfloat>& position_)
     position = position_;
 }
 
-void Text::renderScreenSpace(GLResources* const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform)
+void Text::renderScreenSpace(GLResources* const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform, juce::Rectangle<int> viewportBounds)
 {
+    setText(label);
+
     // Calculate Normalized Device Coordinates (NDC) transformation to place text at position on screen with a constant size
     glm::vec2 ndcCoord = glm::vec2(transform[3][0], transform[3][1]) / transform[3][3]; // get x, y of matrix translation then divide by w of translation for constant size in pixels
     const auto zTranslation = transform[3][2]; // use z of matrix translation so 2D elements have proper layering
     const auto ndcMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(ndcCoord, zTranslation));
 
-    resources->textShader.colour.setRGBA(colour);
-    resources->textShader.transform.set(ndcMatrix);
+    auto& textShader = resources->textShader;
+    textShader.use();
+    textShader.colour.setRGBA(colour);
+    auto textOrigin = juce::Point<float>(0.0f, 0.0f);
+    for (size_t index = 0; index < (size_t) text.length(); index++)
+    {
+        auto glyphSearch = alphabet.find(static_cast<unsigned char>(text[(int) index]));
+        if (glyphSearch == alphabet.end())
+        {
+            continue;
+        }
+        const Glyph glyph = glyphSearch->second;
 
-    setText(label);
-    render(resources);
+        // TODO: Add back this functionality, but make it a parameter instead
+        //  Basically only difference is, isFirstLetterCentered translates all letters back to reach the center of the first letter.
+//        if (isFirstLetterCentered)
+//        {
+//
+//        }
+//        else
+//        {
+//
+//        }
+
+        auto scaleFactor = glm::vec2 ((float) glyph.size.x / (float) viewportBounds.getWidth(), (float) glyph.size.y / (float) viewportBounds.getHeight());
+        auto scale = glm::scale(glm::mat4(1.0), glm::vec3(scaleFactor, 1.0f));
+        auto newTransform = ndcMatrix * scale;
+        //auto glyphCentre = glm::vec2((float) glyph.bearing.x + (0.5f * (float) glyph.size.x), (0.5f * (float) glyph.size.y) - ((float)glyph.size.y - (float) glyph.bearing.y));
+        //auto translation = glm::translate(glm::mat4(1.0), glm::vec3(textOrigin + glyphCentre, 0.0f));
+        //glm::mat4 newTransform = ndcMatrix * translation * scale;
+        textShader.transform.set(newTransform);
+
+        textShader.setTextureImage(juce::gl::GL_TEXTURE_2D, glyph.textureID);
+        resources->textQuad.draw();
+
+        textOrigin.x += glyph.advance; // move origin to next character
+    }
 }
 
 void Text::render(GLResources* const resources, const juce::String& text_, glm::vec2 screenPosition, juce::Rectangle<int> viewport, const juce::Colour& colour, juce::Justification justification)
