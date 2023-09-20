@@ -100,7 +100,12 @@ float Text::getTotalWidth()
 
     for (auto character : text)
     {
-        Glyph glyph = alphabet[(unsigned char) character];
+        auto glyphSearch = alphabet.find(static_cast<unsigned char>(character));
+        if (glyphSearch == alphabet.end())
+        {
+            continue;
+        }
+        const Glyph glyph = glyphSearch->second;
         width += glyph.advance;
     }
 
@@ -113,7 +118,12 @@ int Text::getStringWidthGLPixels(const juce::String& string) const
 
     for (const auto& character : string)
     {
-        const Glyph glyph = alphabet.at(static_cast<unsigned char> (character));
+        auto glyphSearch = alphabet.find(static_cast<unsigned char>(character));
+        if (glyphSearch == alphabet.end())
+        {
+            continue;
+        }
+        const Glyph glyph = glyphSearch->second;
         width += (int) std::ceil(glyph.advance);
     }
 
@@ -192,7 +202,12 @@ void Text::render(GLResources* const resources, const juce::String& text_, glm::
     auto textOrigin = screenPosition;
     for (size_t index = 0; index < (size_t) text.length(); index++)
     {
-        Glyph glyph = alphabet[static_cast<unsigned char>(text[(int) index])];
+        auto glyphSearch = alphabet.find(static_cast<unsigned char>(text[(int) index]));
+        if (glyphSearch == alphabet.end())
+        {
+            continue;
+        }
+        const Glyph glyph = glyphSearch->second;
 
         // TODO: Add back this functionality, but make it a parameter instead
         //  Basically only difference is, isFirstLetterCentered translates all letters back to reach the center of the first letter.
