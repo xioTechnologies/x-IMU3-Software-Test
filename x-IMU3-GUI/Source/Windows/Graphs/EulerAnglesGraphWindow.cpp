@@ -11,7 +11,7 @@ EulerAnglesGraphWindow::EulerAnglesGraphWindow(const juce::ValueTree& windowLayo
                       glRenderer,
                       "Angle (" + degreeSymbol + ")",
                       { "Roll", "Pitch", "Yaw" },
-                      { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                      { UIColours::graphX, UIColours::graphY, UIColours::graphZ },
                       settingsTree_,
                       false)
 {

@@ -11,7 +11,7 @@ TemperatureGraphWindow::TemperatureGraphWindow(const juce::ValueTree& windowLayo
                       glRenderer,
                       "Temperature (" + degreeSymbol + "C)",
                       { "" },
-                      { juce::Colours::yellow },
+                      { UIColours::graphChannel1 },
                       settingsTree_,
                       true)
 {

@@ -11,7 +11,7 @@ AccelerometerGraphWindow::AccelerometerGraphWindow(const juce::ValueTree& window
                       glRenderer,
                       "Acceleration (g)",
                       { "X", "Y", "Z" },
-                      { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                      { UIColours::graphX, UIColours::graphY, UIColours::graphZ },
                       settingsTree_,
                       false)
 {

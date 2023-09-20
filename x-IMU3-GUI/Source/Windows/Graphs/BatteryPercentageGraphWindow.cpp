@@ -11,7 +11,7 @@ BatteryPercentageGraphWindow::BatteryPercentageGraphWindow(const juce::ValueTree
                       glRenderer,
                       "Percentage (%)",
                       { "" },
-                      { juce::Colours::yellow },
+                      { UIColours::graphChannel1 },
                       settingsTree_,
                       true)
 {

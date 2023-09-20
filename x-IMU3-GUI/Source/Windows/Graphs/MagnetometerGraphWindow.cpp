@@ -11,7 +11,7 @@ MagnetometerGraphWindow::MagnetometerGraphWindow(const juce::ValueTree& windowLa
                       glRenderer,
                       "Intensity (a.u.)",
                       { "X", "Y", "Z" },
-                      { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                      { UIColours::graphX, UIColours::graphY, UIColours::graphZ },
                       settingsTree_,
                       false)
 {

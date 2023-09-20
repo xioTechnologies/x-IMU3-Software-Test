@@ -223,7 +223,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     // X-Axis in x-io coordinate space aligns with OpenGL +X axis
     const glm::mat4 xRotate = glm::mat4(1.0f);
     const glm::mat4 xModel = modelMatrix * xRotate;
-    screenSpaceShader.materialColour.setRGBA(UIColours::graphRed);
+    screenSpaceShader.materialColour.setRGBA(UIColours::graphX);
     screenSpaceShader.inverseScreenScale.set(inverseScreenScale);
     screenSpaceShader.modelMatrix.set(xModel);
     screenSpaceShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(xModel)));
@@ -232,7 +232,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     // Y-Axis in x-io coordinate space aligns with OpenGL -Z axis
     const glm::mat4 yRotate = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     const glm::mat4 yModel = modelMatrix * yRotate;
-    screenSpaceShader.materialColour.setRGBA(UIColours::graphGreen);
+    screenSpaceShader.materialColour.setRGBA(UIColours::graphY);
     screenSpaceShader.inverseScreenScale.set(inverseScreenScale);
     screenSpaceShader.modelMatrix.set(yModel);
     screenSpaceShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(yModel)));
@@ -241,7 +241,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     // Z-Axis in x-io coordinate space aligns with OpenGL +Y axis
     const glm::mat4 zRotate = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     const glm::mat4 zModel = modelMatrix * zRotate;
-    screenSpaceShader.materialColour.setRGBA(UIColours::graphBlue);
+    screenSpaceShader.materialColour.setRGBA(UIColours::graphZ);
     screenSpaceShader.inverseScreenScale.set(inverseScreenScale);
     screenSpaceShader.modelMatrix.set(zModel);
     screenSpaceShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(zModel)));
@@ -265,9 +265,9 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
         const auto textTransform = projectionMatrix * viewMatrix * modelMatrix;
 
         auto& text = resources->get3DViewAxisText();
-        text.renderScreenSpace(resources, "X", UIColours::graphRed, textTransform * xTranslate);
-        text.renderScreenSpace(resources, "Y", UIColours::graphGreen, textTransform * yTranslate);
-        text.renderScreenSpace(resources, "Z", UIColours::graphBlue, textTransform * zTranslate);
+        text.renderScreenSpace(resources, "X", UIColours::graphX, textTransform * xTranslate);
+        text.renderScreenSpace(resources, "Y", UIColours::graphY, textTransform * yTranslate);
+        text.renderScreenSpace(resources, "Z", UIColours::graphZ, textTransform * zTranslate);
     }
 }
 

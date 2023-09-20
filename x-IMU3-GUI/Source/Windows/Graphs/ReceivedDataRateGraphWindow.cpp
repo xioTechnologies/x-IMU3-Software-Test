@@ -11,7 +11,7 @@ ReceivedDataRateGraphWindow::ReceivedDataRateGraphWindow(const juce::ValueTree& 
                       glRenderer,
                       "Receive rate (kB/s)",
                       { "" },
-                      { juce::Colours::yellow },
+                      { UIColours::graphChannel1 },
                       settingsTree_,
                       true)
 {

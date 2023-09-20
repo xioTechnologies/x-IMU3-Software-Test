@@ -11,7 +11,7 @@ RssiPercentageGraphWindow::RssiPercentageGraphWindow(const juce::ValueTree& wind
                       glRenderer,
                       "Percentage (%)",
                       { "" },
-                      { juce::Colours::yellow },
+                      { UIColours::graphChannel1 },
                       settingsTree_,
                       true)
 {

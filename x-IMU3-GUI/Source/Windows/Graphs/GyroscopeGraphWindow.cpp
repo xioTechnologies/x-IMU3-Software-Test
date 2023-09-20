@@ -11,7 +11,7 @@ GyroscopeGraphWindow::GyroscopeGraphWindow(const juce::ValueTree& windowLayout, 
                       glRenderer,
                       "Angular velocity (" + degreeSymbol + "/s)",
                       { "X", "Y", "Z" },
-                      { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                      { UIColours::graphX, UIColours::graphY, UIColours::graphZ },
                       settingsTree_,
                       false)
 {

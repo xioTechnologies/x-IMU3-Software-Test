@@ -11,7 +11,7 @@ BatteryVoltageGraphWindow::BatteryVoltageGraphWindow(const juce::ValueTree& wind
                       glRenderer,
                       "Voltage (V)",
                       { "" },
-                      { juce::Colours::yellow },
+                      { UIColours::graphChannel1 },
                       settingsTree_,
                       true)
 {

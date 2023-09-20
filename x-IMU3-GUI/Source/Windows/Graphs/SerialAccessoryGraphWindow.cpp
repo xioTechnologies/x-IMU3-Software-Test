@@ -11,7 +11,7 @@ SerialAccessoryGraphWindow::SerialAccessoryGraphWindow(const juce::ValueTree& wi
                       glRenderer,
                       "CSV",
                       { "1", "2", "3", "4", "5", "6", "7", "8" },
-                      { UIColours::tags[1], UIColours::tags[2], UIColours::tags[3], UIColours::tags[4], UIColours::tags[5], UIColours::tags[6], UIColours::tags[7], UIColours::tags[8] },
+                      { UIColours::graphChannel1, UIColours::graphChannel2, UIColours::graphChannel3, UIColours::graphChannel4, UIColours::graphChannel5, UIColours::graphChannel6, UIColours::graphChannel7, UIColours::graphChannel8 },
                       settingsTree_,
                       false)
 {

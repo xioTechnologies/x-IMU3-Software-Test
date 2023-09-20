@@ -11,7 +11,7 @@ RssiPowerGraphWindow::RssiPowerGraphWindow(const juce::ValueTree& windowLayout, 
                       glRenderer,
                       "Power (dBm)",
                       { "" },
-                      { juce::Colours::yellow },
+                      { UIColours::graphChannel1 },
                       settingsTree_,
                       true)
 {

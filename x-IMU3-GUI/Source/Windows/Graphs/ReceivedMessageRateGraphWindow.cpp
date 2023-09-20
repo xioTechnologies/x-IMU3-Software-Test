@@ -11,7 +11,7 @@ ReceivedMessageRateGraphWindow::ReceivedMessageRateGraphWindow(const juce::Value
                       glRenderer,
                       "Receive rate (messages/s)",
                       { "" },
-                      { juce::Colours::yellow },
+                      { UIColours::graphChannel1 },
                       settingsTree_,
                       true)
 {

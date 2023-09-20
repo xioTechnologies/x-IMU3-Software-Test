@@ -11,7 +11,7 @@ EarthAccelerationGraphWindow::EarthAccelerationGraphWindow(const juce::ValueTree
                       glRenderer,
                       "Acceleration (g)",
                       { "X", "Y", "Z" },
-                      { UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue },
+                      { UIColours::graphX, UIColours::graphY, UIColours::graphZ },
                       settingsTree_,
                       false)
 {

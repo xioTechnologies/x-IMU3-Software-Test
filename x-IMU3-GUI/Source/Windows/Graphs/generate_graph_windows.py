@@ -25,7 +25,7 @@ windows = [
         horizontal_autoscale="false",
         y_axis="Angular velocity (\" + degreeSymbol + \"/s)",
         legend_strings="{ \"X\", \"Y\", \"Z\" }",
-        legend_colours="{ UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue }",
+        legend_colours="{ UIColours::graphX, UIColours::graphY, UIColours::graphZ }",
         callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addInertialCallback(inertialCallback = [&](auto message)\n\
     {\n\
@@ -37,7 +37,7 @@ windows = [
            horizontal_autoscale="false",
            y_axis="Acceleration (g)",
            legend_strings="{ \"X\", \"Y\", \"Z\" }",
-           legend_colours="{ UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue }",
+           legend_colours="{ UIColours::graphX, UIColours::graphY, UIColours::graphZ }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addInertialCallback(inertialCallback = [&](auto message)\n\
     {\n\
@@ -49,7 +49,7 @@ windows = [
            horizontal_autoscale="false",
            y_axis="Intensity (a.u.)",
            legend_strings="{ \"X\", \"Y\", \"Z\" }",
-           legend_colours="{ UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue }",
+           legend_colours="{ UIColours::graphX, UIColours::graphY, UIColours::graphZ }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addMagnetometerCallback(magnetometerCallback = [&](auto message)\n\
     {\n\
@@ -66,7 +66,7 @@ windows = [
            horizontal_autoscale="false",
            y_axis="Angle (\" + degreeSymbol + \")",
            legend_strings="{ \"Roll\", \"Pitch\", \"Yaw\" }",
-           legend_colours="{ UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue }",
+           legend_colours="{ UIColours::graphX, UIColours::graphY, UIColours::graphZ }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addQuaternionCallback(quaternionCallback = [&](auto message)\n\
     {\n\
@@ -105,7 +105,7 @@ windows = [
            horizontal_autoscale="false",
            y_axis="Acceleration (g)",
            legend_strings="{ \"X\", \"Y\", \"Z\" }",
-           legend_colours="{ UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue }",
+           legend_colours="{ UIColours::graphX, UIColours::graphY, UIColours::graphZ }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addLinearAccelerationCallback(linearAccelerationCallback = [&](auto message)\n\
     {\n\
@@ -117,7 +117,7 @@ windows = [
            horizontal_autoscale="false",
            y_axis="Acceleration (g)",
            legend_strings="{ \"X\", \"Y\", \"Z\" }",
-           legend_colours="{ UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue }",
+           legend_colours="{ UIColours::graphX, UIColours::graphY, UIColours::graphZ }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addEarthAccelerationCallback(earthAccelerationCallback = [&](auto message)\n\
     {\n\
@@ -129,7 +129,7 @@ windows = [
            horizontal_autoscale="false",
            y_axis="Acceleration (g)",
            legend_strings="{ \"X\", \"Y\", \"Z\" }",
-           legend_colours="{ UIColours::graphRed, UIColours::graphGreen, UIColours::graphBlue }",
+           legend_colours="{ UIColours::graphX, UIColours::graphY, UIColours::graphZ }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addHighGAccelerometerCallback(highGAccelerometerCallback = [&](auto message)\n\
     {\n\
@@ -141,7 +141,7 @@ windows = [
            horizontal_autoscale="true",
            y_axis="Temperature (\" + degreeSymbol + \"C)",
            legend_strings="{ \"\" }",
-           legend_colours="{ juce::Colours::yellow }",
+           legend_colours="{ UIColours::graphChannel1 }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addTemperatureCallback(temperatureCallback = [&](auto message)\n\
     {\n\
@@ -153,7 +153,7 @@ windows = [
            horizontal_autoscale="true",
            y_axis="Percentage (%)",
            legend_strings="{ \"\" }",
-           legend_colours="{ juce::Colours::yellow }",
+           legend_colours="{ UIColours::graphChannel1 }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addBatteryCallback(batteryCallback = [&](auto message)\n\
     {\n\
@@ -165,7 +165,7 @@ windows = [
            horizontal_autoscale="true",
            y_axis="Voltage (V)",
            legend_strings="{ \"\" }",
-           legend_colours="{ juce::Colours::yellow }",
+           legend_colours="{ UIColours::graphChannel1 }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addBatteryCallback(batteryCallback = [&](auto message)\n\
     {\n\
@@ -177,7 +177,7 @@ windows = [
            horizontal_autoscale="true",
            y_axis="Percentage (%)",
            legend_strings="{ \"\" }",
-           legend_colours="{ juce::Colours::yellow }",
+           legend_colours="{ UIColours::graphChannel1 }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addRssiCallback(rssiCallback = [&](auto message)\n\
     {\n\
@@ -189,7 +189,7 @@ windows = [
            horizontal_autoscale="true",
            y_axis="Power (dBm)",
            legend_strings="{ \"\" }",
-           legend_colours="{ juce::Colours::yellow }",
+           legend_colours="{ UIColours::graphChannel1 }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addRssiCallback(rssiCallback = [&](auto message)\n\
     {\n\
@@ -201,7 +201,7 @@ windows = [
            horizontal_autoscale="false",
            y_axis="CSV",
            legend_strings="{ \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"7\", \"8\" }",
-           legend_colours="{ UIColours::tags[1], UIColours::tags[2], UIColours::tags[3], UIColours::tags[4], UIColours::tags[5], UIColours::tags[6], UIColours::tags[7], UIColours::tags[8] }",
+           legend_colours="{ UIColours::graphChannel1, UIColours::graphChannel2, UIColours::graphChannel3, UIColours::graphChannel4, UIColours::graphChannel5, UIColours::graphChannel6, UIColours::graphChannel7, UIColours::graphChannel8 }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addSerialAccessoryCallback(serialAccessoryCallback = [&](auto message)\n\
     {\n\
@@ -218,7 +218,7 @@ windows = [
            horizontal_autoscale="true",
            y_axis="Receive rate (messages/s)",
            legend_strings="{ \"\" }",
-           legend_colours="{ juce::Colours::yellow }",
+           legend_colours="{ UIColours::graphChannel1 }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addStatisticsCallback(statisticsCallback = [&](auto message)\n\
     {\n\
@@ -230,7 +230,7 @@ windows = [
            horizontal_autoscale="true",
            y_axis="Receive rate (kB/s)",
            legend_strings="{ \"\" }",
-           legend_colours="{ juce::Colours::yellow }",
+           legend_colours="{ UIColours::graphChannel1 }",
            callback_implementations="\
     callbackIDs.push_back(devicePanel.getConnection()->addStatisticsCallback(statisticsCallback = [&](auto message)\n\
     {\n\
