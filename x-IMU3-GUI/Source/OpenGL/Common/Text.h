@@ -12,6 +12,7 @@ class Text
 {
 public:
     explicit Text(const bool isFirstLetterCentered_);
+    virtual ~Text();
 
     bool loadFont(const char* data, size_t dataSize, GLuint fontSize_);
 

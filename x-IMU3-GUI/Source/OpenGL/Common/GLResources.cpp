@@ -25,26 +25,27 @@ GLResources::GLResources(juce::OpenGLContext& context_) : context(context_)
     arrow.setModel(BinaryData::Arrow_obj, "");
 
     compassTexture.loadImage(juce::ImageFileFormat::loadFrom(BinaryData::Compass_png, BinaryData::Compass_pngSize));
+
+    graphTickText = std::make_unique<Text>();
+    threeDViewAxesText = std::make_unique<Text>();
 }
 
-Text& GLResources::getGraphAxisValuesText()
+Text& GLResources::getGraphTickText()
 {
     const auto fontSize = (unsigned int) juce::roundToInt(12 * context.getRenderingScale());
-    if (axisValuesText == nullptr || axisValuesText->getFontSize() != fontSize)
+    if (graphTickText->getFontSize() != fontSize)
     {
-        axisValuesText = std::make_unique<Text>(false);
-        axisValuesText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
+        graphTickText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
     }
-    return *axisValuesText;
+    return *graphTickText;
 }
 
-Text& GLResources::get3DViewAxisText()
+Text& GLResources::get3DViewAxesText()
 {
     const auto fontSize = (unsigned int) juce::roundToInt(30 * context.getRenderingScale());
-    if (axisMarkerText == nullptr || axisMarkerText->getFontSize() != fontSize)
+    if (threeDViewAxesText->getFontSize() != fontSize)
     {
-        axisMarkerText = std::make_unique<Text>(true);
-        axisMarkerText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
+        threeDViewAxesText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
     }
-    return *axisMarkerText;
+    return *threeDViewAxesText;
 }

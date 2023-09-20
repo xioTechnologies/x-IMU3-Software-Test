@@ -186,9 +186,6 @@ void ThreeDView::renderCompass(const glm::mat4& projectionMatrix, const glm::mat
 
 void ThreeDView::renderAxes(const juce::Rectangle<int>& viewportBounds, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const
 {
-    auto& text = resources->get3DViewAxisText();
-    text.setScale({ 1.0f / (float) viewportBounds.getWidth(), 1.0f / (float) viewportBounds.getHeight() }); // sets text scale to the normalized size of a screen pixel
-
     renderAxesForDeviceOrientation(deviceRotation, axesConventionRotation); // attached to model
     renderAxesForWorldOrientation(axesConventionRotation); // in HUD top right
 }
