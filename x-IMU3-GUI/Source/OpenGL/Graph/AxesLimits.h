@@ -124,7 +124,7 @@ public:
                 }
             }
 
-            if (newY.min != std::numeric_limits<float>::max())
+            if (juce::exactlyEqual(newY.min, std::numeric_limits<float>::max()) == false)
             {
                 const auto margin = juce::exactlyEqual(newY.min, newY.max) ? 1.0f : (0.02f * y.getRange()); // add 5% margin
                 y.min = newY.min - margin;
