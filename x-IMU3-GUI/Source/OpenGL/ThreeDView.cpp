@@ -245,27 +245,23 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     resources->arrow.render();
 
     // Text labels XYZ
-    {
-        GLHelpers::ScopedCapability _(juce::gl::GL_CULL_FACE, false); // TODO: why does Text need culling disabled?
+    resources->textShader.use();
 
-        resources->textShader.use();
+    const auto textDistanceFromOrigin = 1.3f;
+    const auto textDistanceFromOriginZ = textDistanceFromOrigin * inverseScreenScale;
+    const auto paddingOffset = 0.06f; // account for distance of glyph from render square edge
+    const auto textDistanceFromOriginXY = (textDistanceFromOrigin - paddingOffset) * inverseScreenScale;
 
-        const auto textDistanceFromOrigin = 1.3f;
-        const auto textDistanceFromOriginZ = textDistanceFromOrigin * inverseScreenScale;
-        const auto paddingOffset = 0.06f; // account for distance of glyph from render square edge
-        const auto textDistanceFromOriginXY = (textDistanceFromOrigin - paddingOffset) * inverseScreenScale;
+    const auto xTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(textDistanceFromOriginXY, 0.0f, 0.0f)); // X-Axis in x-io coordinate space aligns with OpenGL +X axis
+    const auto yTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -textDistanceFromOriginXY)); // Y-Axis in x-io coordinate space aligns with OpenGL -Z axis
+    const auto zTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, textDistanceFromOriginZ, 0.0f)); // Z-Axis in x-io coordinate space aligns with OpenGL +Y axis
 
-        const auto xTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(textDistanceFromOriginXY, 0.0f, 0.0f)); // X-Axis in x-io coordinate space aligns with OpenGL +X axis
-        const auto yTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -textDistanceFromOriginXY)); // Y-Axis in x-io coordinate space aligns with OpenGL -Z axis
-        const auto zTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, textDistanceFromOriginZ, 0.0f)); // Z-Axis in x-io coordinate space aligns with OpenGL +Y axis
+    const auto textTransform = projectionMatrix * viewMatrix * modelMatrix;
 
-        const auto textTransform = projectionMatrix * viewMatrix * modelMatrix;
-
-        auto& text = resources->get3DViewAxesText();
-        text.renderScreenSpace(resources, "X", UIColours::graphRed, textTransform * xTranslate, bounds);
-        text.renderScreenSpace(resources, "Y", UIColours::graphGreen, textTransform * yTranslate, bounds);
-        text.renderScreenSpace(resources, "Z", UIColours::graphBlue, textTransform * zTranslate, bounds);
-    }
+    auto& text = resources->get3DViewAxesText();
+    text.renderScreenSpace(resources, "X", UIColours::graphRed, textTransform * xTranslate, bounds);
+    text.renderScreenSpace(resources, "Y", UIColours::graphGreen, textTransform * yTranslate, bounds);
+    text.renderScreenSpace(resources, "Z", UIColours::graphBlue, textTransform * zTranslate, bounds);
 }
 
 void ThreeDView::renderAxesForDeviceOrientation(const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const

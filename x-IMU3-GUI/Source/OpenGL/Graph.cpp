@@ -249,10 +249,6 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     GLHelpers::ScopedCapability scopedScissor(juce::gl::GL_SCISSOR_TEST, true);
     GLHelpers::viewportAndScissor(glDrawBounds);
 
-    // Setup OpenGL state
-    GLHelpers::ScopedCapability scopedCull(juce::gl::GL_CULL_FACE, false); // TODO: Why is this necessary??
-    GLHelpers::ScopedCapability scopedDepthTest(juce::gl::GL_DEPTH_TEST, false); // do not hide text based on depth
-
     auto& text = resources->getGraphTickText();
     const int distanceOfPlotAxis = isXTicks ? glPlotBounds.getWidth() : glPlotBounds.getHeight();
     const int plotStartOffset = isXTicks ? (glPlotBounds.getX() - glDrawBounds.getX()) : (glPlotBounds.getY() - glDrawBounds.getY());
