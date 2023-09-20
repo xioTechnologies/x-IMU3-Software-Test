@@ -40,7 +40,7 @@ public:
 
     void render(GLResources* const resources, const juce::String& text_, glm::vec2 screenPosition, juce::Rectangle<int> viewport, const juce::Colour& colour, juce::Justification justification);
 
-    void renderScreenSpace(GLResources* const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform);
+    void renderScreenSpace(GLResources* const resources, const juce::String& label, const juce::Colour& colour, const glm::mat4& transform, juce::Rectangle<int> viewportBounds);
 
     // TODO: getFontSizeInJUCEPixels
 

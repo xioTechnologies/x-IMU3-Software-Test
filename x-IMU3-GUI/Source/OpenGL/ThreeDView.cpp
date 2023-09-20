@@ -265,9 +265,9 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
         const auto textTransform = projectionMatrix * viewMatrix * modelMatrix;
 
         auto& text = resources->get3DViewAxisText();
-        text.renderScreenSpace(resources, "X", UIColours::graphRed, textTransform * xTranslate);
-        text.renderScreenSpace(resources, "Y", UIColours::graphGreen, textTransform * yTranslate);
-        text.renderScreenSpace(resources, "Z", UIColours::graphBlue, textTransform * zTranslate);
+        text.renderScreenSpace(resources, "X", UIColours::graphRed, textTransform * xTranslate, bounds);
+        text.renderScreenSpace(resources, "Y", UIColours::graphGreen, textTransform * yTranslate, bounds);
+        text.renderScreenSpace(resources, "Z", UIColours::graphBlue, textTransform * zTranslate, bounds);
     }
 }
 
