@@ -32,20 +32,22 @@ GLResources::GLResources(juce::OpenGLContext& context_) : context(context_)
 
 Text& GLResources::getGraphTickText()
 {
-    const auto fontSize = (unsigned int) juce::roundToInt(12 * context.getRenderingScale());
-    if (graphTickText->getFontSize() != fontSize)
+    // Handles font reload if window moved between low and high DPI monitors because GL pixel size will differ
+    const auto fontSizeJucePixels = 12;
+    if (graphTickText->getFontSizeGLPixels() != Text::toGLPixels(fontSizeJucePixels))
     {
-        graphTickText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
+        graphTickText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSizeJucePixels);
     }
     return *graphTickText;
 }
 
 Text& GLResources::get3DViewAxesText()
 {
-    const auto fontSize = (unsigned int) juce::roundToInt(30 * context.getRenderingScale());
-    if (threeDViewAxesText->getFontSize() != fontSize)
+    // Handles font reload if window moved between low and high DPI monitors because GL pixel size will differ
+    const auto fontSizeJucePixels = 30;
+    if (threeDViewAxesText->getFontSizeGLPixels() != Text::toGLPixels(fontSizeJucePixels))
     {
-        threeDViewAxesText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSize);
+        threeDViewAxesText->loadFont(BinaryData::MontserratMedium_ttf, BinaryData::MontserratMedium_ttfSize, fontSizeJucePixels);
     }
     return *threeDViewAxesText;
 }

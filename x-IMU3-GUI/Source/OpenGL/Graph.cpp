@@ -43,7 +43,7 @@ void Graph::render()
         static constexpr auto xTickMargin = 2;
         static constexpr auto yTickMargin = 5;
 
-        auto xTicksBounds = bounds.removeFromBottom(13); // font height
+        auto xTicksBounds = bounds.removeFromBottom(resources->getGraphTickText().getFontSizeJucePixels() + 1); // font height
         bounds.removeFromBottom(xTickMargin);
 
         const auto yTicks = createYTicks(bounds.getHeight(), settings.axesLimits.y);
@@ -318,7 +318,7 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
     for (const auto& tick : labelsToDraw)
     {
         const auto offsetAlongAxis = mapRange(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset;
-        const auto offsetTowardsAxis = isXTicks ? (float) (glDrawBounds.getHeight() - (int) text.getFontSize()) : (float) glDrawBounds.getWidth();
+        const auto offsetTowardsAxis = isXTicks ? (float) (glDrawBounds.getHeight() - (int) text.getFontSizeGLPixels()) : (float) glDrawBounds.getWidth();
         const auto positionRelative = isXTicks ? glm::vec2(offsetAlongAxis, offsetTowardsAxis) : glm::vec2(offsetTowardsAxis, offsetAlongAxis);
         const auto screenPosition = positionRelative + glm::vec2(glDrawBounds.getX(), glDrawBounds.getY());
         text.render(resources, tick.label, screenPosition, glDrawBounds, juce::Colours::grey, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
