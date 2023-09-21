@@ -224,6 +224,7 @@ juce::PopupMenu GraphWindow::getMenu()
         settings.horizontalAutoscale = defaultHorizontalAutoscale;
         settings.enabledChannels.resize((size_t) numberOfChannels, true);
         writeToValueTree(settings);
+        repaint(); // refresh legend text color
     });
     menu.addItem("Clear", true, false, [this]
     {
