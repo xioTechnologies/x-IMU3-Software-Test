@@ -63,7 +63,7 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, 0); // unbind VBO
     }
 
-    void draw(GLenum glDrawMode)
+    void draw(GLenum glDrawMode) const
     {
         using namespace ::juce::gl;
         glBindVertexArray(vao);

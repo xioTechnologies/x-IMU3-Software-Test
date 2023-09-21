@@ -29,6 +29,7 @@ public:
 
     // Text
     Text& getGraphTickText();
+
     Text& get3DViewAxesText();
 
     // Geometry
