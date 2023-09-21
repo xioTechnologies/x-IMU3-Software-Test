@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "Shader.h"
 #include <string>
+#include "freetype/freetype.h"
 
 class GLResources;
 
@@ -55,18 +56,21 @@ private:
         return f26Dot6Units / 64.0f;
     }
 
-    class Initializer
+    class FreeTypeLibrary
     {
     public:
-        Initializer();
+        FreeTypeLibrary();
 
-        ~Initializer();
+        ~FreeTypeLibrary();
+
+        FT_Library get();
 
     private:
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Initializer)
+        FT_Library freetypeLibrary = nullptr;
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FreeTypeLibrary)
     };
 
-    juce::SharedResourcePointer<Initializer> initializer;
+    juce::SharedResourcePointer<FreeTypeLibrary> freeTypeLibrary;
 
     struct Glyph
     {

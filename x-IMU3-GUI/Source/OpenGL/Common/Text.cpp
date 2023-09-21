@@ -1,20 +1,22 @@
-#include "freetype/freetype.h"
 #include "OpenGL/Common/GLResources.h"
 #include "Text.h"
 
-static FT_Library freetypeLibrary; // TODO: Make member of Initializer and rename Initializer
-
-Text::Initializer::Initializer()
+Text::FreeTypeLibrary::FreeTypeLibrary()
 {
     FT_Init_FreeType(&freetypeLibrary);
 }
 
-Text::Initializer::~Initializer()
+Text::FreeTypeLibrary::~FreeTypeLibrary()
 {
     FT_Done_FreeType(freetypeLibrary);
 }
 
 Text::Text(const bool isFirstLetterCentered_) : isFirstLetterCentered(isFirstLetterCentered_)
+FT_Library Text::FreeTypeLibrary::get()
+{
+    return freetypeLibrary;
+}
+
 Text::~Text()
 {
     unloadFont();
@@ -30,7 +32,7 @@ bool Text::loadFont(const char* data, size_t dataSize, int fontSizeJucePixels_)
     fontSizeGLPixels = (GLuint) toGLPixels(fontSizeJucePixels);
 
     FT_Face face = nullptr;
-    if (FT_New_Memory_Face(freetypeLibrary, reinterpret_cast<const FT_Byte*>(data), (FT_Long) dataSize, 0, &face))
+    if (FT_New_Memory_Face(freeTypeLibrary->get(), reinterpret_cast<const FT_Byte*>(data), (FT_Long) dataSize, 0, &face))
     {
         return false;
     }
