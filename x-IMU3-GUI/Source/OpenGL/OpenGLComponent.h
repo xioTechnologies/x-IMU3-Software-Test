@@ -20,7 +20,7 @@ public:
 protected:
     juce::OpenGLContext& context;
 
-    GLResources * resources = nullptr;
+    GLResources* resources = nullptr;
 
     juce::Rectangle<int> getBoundsInMainWindow() const;
 

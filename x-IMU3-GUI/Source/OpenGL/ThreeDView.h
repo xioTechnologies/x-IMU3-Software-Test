@@ -63,7 +63,7 @@ private:
 
     void renderCompass(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix, const float floorHeight);
 
-    void renderAxes(const juce::Rectangle<int>& viewportBounds, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const;
+    void renderAxes(const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const;
 
     void renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat4& projectionMatrix) const;
 

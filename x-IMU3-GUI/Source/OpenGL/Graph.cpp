@@ -114,7 +114,7 @@ int Graph::getMaximumStringWidth(const Ticks& ticks, const Text& text)
     int maxStringWidth = 0;
     for (const auto& tick : ticks)
     {
-        maxStringWidth = std::max(maxStringWidth, text.getStringWidthJucePixels(tick.label));
+        maxStringWidth = std::max(maxStringWidth, (int) std::ceil(text.getStringWidthJucePixels(tick.label)));
     }
     return maxStringWidth;
 }
@@ -266,8 +266,8 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
         auto getLabelEdges = [&](const Tick& tick) -> std::tuple<float, float>
         {
             const auto centreX = mapRange(tick.value, limits.min, limits.max, 0.0f, (float) distanceOfPlotAxis) + (float) plotStartOffset + (float) glDrawBounds.getX();
-            const auto leftEdgeX = centreX - ((float) text.getStringWidthGLPixels(tick.label) / 2.0f);
-            const auto rightEdgeX = centreX + ((float) text.getStringWidthGLPixels(tick.label) / 2.0f);
+            const auto leftEdgeX = centreX - (text.getStringWidthGLPixels(tick.label) / 2.0f);
+            const auto rightEdgeX = centreX + (text.getStringWidthGLPixels(tick.label) / 2.0f);
             return { leftEdgeX, rightEdgeX };
         };
 
@@ -317,6 +317,6 @@ void Graph::drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, con
         const auto offsetTowardsAxis = isXTicks ? (float) (glDrawBounds.getHeight() - (int) text.getFontSizeGLPixels()) : (float) glDrawBounds.getWidth();
         const auto positionRelative = isXTicks ? glm::vec2(offsetAlongAxis, offsetTowardsAxis) : glm::vec2(offsetTowardsAxis, offsetAlongAxis);
         const auto screenPosition = positionRelative + glm::vec2(glDrawBounds.getX(), glDrawBounds.getY());
-        text.render(resources, tick.label, screenPosition, glDrawBounds, juce::Colours::grey, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight);
+        text.draw(resources, tick.label, juce::Colours::grey, isXTicks ? juce::Justification::horizontallyCentred : juce::Justification::centredRight, screenPosition, glDrawBounds);
     }
 }

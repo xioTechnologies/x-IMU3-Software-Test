@@ -91,7 +91,7 @@ void ThreeDView::render()
 
     if (settings.axesEnabled)
     {
-        renderAxes(bounds, deviceRotation, axesConventionRotation);
+        renderAxes(deviceRotation, axesConventionRotation);
     }
 }
 
@@ -184,7 +184,7 @@ void ThreeDView::renderCompass(const glm::mat4& projectionMatrix, const glm::mat
     resources->compassTexture.unbind();
 }
 
-void ThreeDView::renderAxes(const juce::Rectangle<int>& viewportBounds, const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const
+void ThreeDView::renderAxes(const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const
 {
     renderAxesForDeviceOrientation(deviceRotation, axesConventionRotation); // attached to model
     renderAxesForWorldOrientation(axesConventionRotation); // in HUD top right
@@ -258,10 +258,10 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
 
     const auto textTransform = projectionMatrix * viewMatrix * modelMatrix;
 
-    auto& text = resources->get3DViewAxisText();
-    text.renderScreenSpace(resources, "X", UIColours::graphX, textTransform * xTranslate, bounds);
-    text.renderScreenSpace(resources, "Y", UIColours::graphY, textTransform * yTranslate, bounds);
-    text.renderScreenSpace(resources, "Z", UIColours::graphZ, textTransform * zTranslate, bounds);
+    auto& text = resources->get3DViewAxesText();
+    text.drawChar3D(resources, 'X', UIColours::graphX, textTransform * xTranslate, bounds);
+    text.drawChar3D(resources, 'Y', UIColours::graphY, textTransform * yTranslate, bounds);
+    text.drawChar3D(resources, 'Z', UIColours::graphZ, textTransform * zTranslate, bounds);
 }
 
 void ThreeDView::renderAxesForDeviceOrientation(const glm::mat4& deviceRotation, const glm::mat4& axesConventionRotation) const
