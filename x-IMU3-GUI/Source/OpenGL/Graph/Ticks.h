@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Keep as is, or put createTicks inside for consistency within project?
+
 struct Tick
 {
     bool isMajor;
@@ -119,14 +121,4 @@ static inline std::vector<Tick> createTicks(const int numberOfPixels, const Axis
     }
 
     return ticks;
-}
-
-static inline std::vector<Tick> createXTicks(const int widthPixels, const AxisLimits& xLimits)
-{
-    return createTicks(widthPixels, xLimits);
-}
-
-static inline std::vector<Tick> createYTicks(const int heightPixels, const AxisLimits& yLimits)
-{
-    return createTicks(heightPixels, yLimits);
 }

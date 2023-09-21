@@ -57,22 +57,22 @@ public:
         y.max = 1.0f;
     }
 
-    void autoscale(const bool horizontal, const bool vertical, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
+    void autoscale(const bool horizontal, const bool vertical, const std::vector<std::span<const juce::Point<GLfloat>>>& channels, const std::vector<bool>& enabledChannels)
     {
         x.limitRange();
         y.limitRange();
 
-        if (channelBuffers.empty())
+        if (channels.empty())
         {
             return;
         }
 
-        if (channelBuffers[0].size() < 2)
+        if (channels[0].size() < 2)
         {
             return;
         }
 
-        if (channelBuffers.size() != enabledChannels.size())
+        if (channels.size() != enabledChannels.size())
         {
             jassertfalse;
             return;
@@ -90,8 +90,8 @@ public:
         }
 
         // Horizontal autoscale
-        const float oldestTimestamp = channelBuffers[0].front().x;
-        const float newestTimestamp = channelBuffers[0].back().x;
+        const float oldestTimestamp = channels[0].front().x;
+        const float newestTimestamp = channels[0].back().x;
         if (horizontal)
         {
             x.min = oldestTimestamp;
@@ -103,13 +103,13 @@ public:
         {
             AxisLimits newY { std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest() };
 
-            for (size_t index = 0; index < channelBuffers.size(); index++)
+            for (size_t index = 0; index < channels.size(); index++)
             {
                 if (enabledChannels[index] == false)
                 {
                     continue;
                 }
-                for (const auto& point : channelBuffers[index])
+                for (const auto& point : channels[index])
                 {
                     if (point.x < x.min)
                     {

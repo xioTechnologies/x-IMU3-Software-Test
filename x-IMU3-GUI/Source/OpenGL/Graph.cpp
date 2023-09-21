@@ -23,14 +23,14 @@ void Graph::render()
 
     auto bounds = getBoundsInMainWindow();
 
-    const auto channelBuffers = buffer.read();
+    const auto channels = buffer.read();
 
     if (scaleToFitPending.exchange(false))
     {
-        settings.axesLimits.autoscale(true, true, channelBuffers, settings.enabledChannels);
+        settings.axesLimits.autoscale(true, true, channels, settings.enabledChannels);
     }
 
-    settings.axesLimits.autoscale(settings.horizontalAutoscale, settings.verticalAutoscale, channelBuffers, settings.enabledChannels);
+    settings.axesLimits.autoscale(settings.horizontalAutoscale, settings.verticalAutoscale, channels, settings.enabledChannels);
 
     GLHelpers::clear(UIColours::backgroundLight, toOpenGLBounds(bounds)); // paint graph background color
 
@@ -46,7 +46,7 @@ void Graph::render()
         auto xTicksBounds = bounds.removeFromBottom(resources->getGraphTickText().getFontSizeJucePixels() + 1); // font height
         bounds.removeFromBottom(xTickMargin);
 
-        const auto yTicks = createYTicks(bounds.getHeight(), settings.axesLimits.y);
+        const auto yTicks = createTicks(bounds.getHeight(), settings.axesLimits.y);
 
         const auto yTicksWidth = getMaximumStringWidth(yTicks, resources->getGraphTickText());
         const auto yTicksBounds = bounds.removeFromLeft(yTicksWidth);
@@ -55,17 +55,17 @@ void Graph::render()
         xTicksBounds.removeFromLeft(yTicksWidth);
         xTicksBounds.removeFromLeft(yTickMargin);
 
-        const auto xTicks = createXTicks(bounds.getWidth(), settings.axesLimits.x);
+        const auto xTicks = createTicks(bounds.getWidth(), settings.axesLimits.x);
 
         drawXTicks(xTicksBounds, yTicksBounds.getX(), settings.axesLimits.x, xTicks);
         drawYTicks(yTicksBounds, settings.axesLimits.y, yTicks);
-        drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channelBuffers, settings.enabledChannels);
+        drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channels, settings.enabledChannels);
     }
     else
     {
-        const auto xTicks = createXTicks(bounds.getWidth(), settings.axesLimits.x);
-        const auto yTicks = createYTicks(bounds.getHeight(), settings.axesLimits.y);
-        drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channelBuffers, settings.enabledChannels);
+        const auto xTicks = createTicks(bounds.getWidth(), settings.axesLimits.x);
+        const auto yTicks = createTicks(bounds.getHeight(), settings.axesLimits.y);
+        drawPlot(bounds, settings.axesLimits, xTicks, yTicks, channels, settings.enabledChannels);
     }
 
     plotWidthJUCEPixels = (float) bounds.getWidth();
@@ -119,7 +119,7 @@ int Graph::getMaximumStringWidth(const std::vector<Tick>& ticks, const Text& tex
     return maxStringWidth;
 }
 
-void Graph::drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const std::vector<Tick>& xTicks, const std::vector<Tick>& yTicks, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
+void Graph::drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const std::vector<Tick>& xTicks, const std::vector<Tick>& yTicks, const std::vector<std::span<const juce::Point<GLfloat>>>& channels, const std::vector<bool>& enabledChannels)
 {
     // Set rendering bounds
     auto glBounds = toOpenGLBounds(bounds);
@@ -146,7 +146,7 @@ void Graph::drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limit
 
     // Draw
     drawGrid(limits, xTicks, yTicks);
-    drawData(limits, channelBuffers, enabledChannels);
+    drawData(limits, channels, enabledChannels);
 }
 
 void Graph::drawGrid(const AxesLimits& limits, const std::vector<Tick>& xTicks, const std::vector<Tick>& yTicks)
@@ -199,9 +199,9 @@ void Graph::drawGrid(const AxesLimits& limits, const std::vector<Tick>& xTicks, 
     gridBuffer.draw(juce::gl::GL_LINES);
 }
 
-void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels)
+void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const juce::Point<GLfloat>>>& channels, const std::vector<bool>& enabledChannels)
 {
-    if ((channelBuffers.size() != enabledChannels.size()) || (channelBuffers.size() != colours.size()))
+    if ((channels.size() != enabledChannels.size()) || (channels.size() != colours.size()))
     {
         jassertfalse;
         return;
@@ -213,7 +213,7 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
     graphDataShader.axisLimitsRange.set({ limits.x.getRange(), limits.y.getRange() });
     graphDataShader.axisLimitsMin.set({ limits.x.min, limits.y.min });
 
-    for (size_t index = 0; index < channelBuffers.size(); index++)
+    for (size_t index = 0; index < channels.size(); index++)
     {
         if (enabledChannels[index] == false)
         {
@@ -221,7 +221,7 @@ void Graph::drawData(const AxesLimits& limits, const std::vector<std::span<const
         }
 
         graphDataShader.colour.setRGBA(colours[index]);
-        graphDataBuffer.fillBuffers(channelBuffers[index]);
+        graphDataBuffer.fillBuffers(channels[index]);
         graphDataBuffer.draw(juce::gl::GL_LINE_STRIP);
     }
 }

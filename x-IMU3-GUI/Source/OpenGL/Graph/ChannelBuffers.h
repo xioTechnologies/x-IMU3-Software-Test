@@ -2,7 +2,7 @@
 
 #include <span>
 
-class ChannelBuffers // TODO: Rename usages
+class ChannelBuffers
 {
 public:
     ChannelBuffers(const int numberOfChannels) : channelBuffers((size_t) numberOfChannels)
@@ -19,12 +19,12 @@ public:
     {
         updateChannelBuffers();
 
-        std::vector<std::span<const juce::Point<GLfloat>>> channelBuffers_;
-        for (auto& channelBuffer : channelBuffers)
+        std::vector<std::span<const juce::Point<GLfloat>>> channels;
+        for (auto& channel : channelBuffers)
         {
-            channelBuffers_.push_back({ channelBuffer.cbegin(), channelBuffer.cbegin() + numberAvailable });
+            channels.push_back({ channel.cbegin(), channel.cbegin() + numberAvailable });
         }
-        return channelBuffers_;
+        return channels;
     }
 
     void write(const uint64_t timestamp, const std::vector<float>& values)
@@ -39,7 +39,7 @@ public:
         juce::AbstractFifo::ScopedWrite(fifo, 1).forEach([&](auto index)
                                                          {
                                                              fifoData[(size_t) index] = { timestamp, values };
-                                                             fifoData[(size_t) index].values.resize( channelBuffers.size());
+                                                             fifoData[(size_t) index].values.resize(channelBuffers.size());
                                                          });
     }
 
