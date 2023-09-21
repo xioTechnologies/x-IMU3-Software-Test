@@ -7,9 +7,7 @@ struct Tick
     juce::String label;
 };
 
-typedef std::vector<Tick> Ticks;
-
-static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits)
+static inline std::vector<Tick> createTicks(const int numberOfPixels, const AxisLimits& limits)
 {
     const float range = limits.getRange();
 
@@ -29,7 +27,7 @@ static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits
 
     auto toPixels = [=](float dataUnits)
     {
-        return (dataUnits / range) * (float) lengthPixels;
+        return (dataUnits / range) * (float) numberOfPixels;
     };
 
     if (toPixels(previousOomDouble) >= minimumMajorDistancePixels)
@@ -62,7 +60,7 @@ static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits
     }
 
     // Create tick data from determined major and minor division distances
-    Ticks ticks;
+    std::vector<Tick> ticks;
 
     auto roundUpToNearestMultiple = [](float valueToRound, float multiple)
     {
@@ -123,12 +121,12 @@ static inline Ticks createTicks(const int lengthPixels, const AxisLimits& limits
     return ticks;
 }
 
-static inline Ticks createXTicks(const int widthPixels, const AxisLimits& xLimits)
+static inline std::vector<Tick> createXTicks(const int widthPixels, const AxisLimits& xLimits)
 {
     return createTicks(widthPixels, xLimits);
 }
 
-static inline Ticks createYTicks(const int heightPixels, const AxisLimits& yLimits)
+static inline std::vector<Tick> createYTicks(const int heightPixels, const AxisLimits& yLimits)
 {
     return createTicks(heightPixels, yLimits);
 }

@@ -61,19 +61,19 @@ private:
 
     static float engineeringValueToNDC(float value, const AxisLimits& axisLimits); // map to OpenGL Normalized Device Coordinates (NDC) with values ranging from -1.0 to 1.0
 
-    static int getMaximumStringWidth(const Ticks& ticks, const Text& text);
+    static int getMaximumStringWidth(const std::vector<Tick>& ticks, const Text& text);
 
-    void drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels);
+    void drawPlot(const juce::Rectangle<int>& bounds, const AxesLimits& limits, const std::vector<Tick>& xTicks, const std::vector<Tick>& yTicks, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels);
 
-    void drawGrid(const AxesLimits& limits, const Ticks& xTicks, const Ticks& yTicks);
+    void drawGrid(const AxesLimits& limits, const std::vector<Tick>& xTicks, const std::vector<Tick>& yTicks);
 
     void drawData(const AxesLimits& limits, const std::vector<std::span<const juce::Point<GLfloat>>>& channelBuffers, const std::vector<bool>& enabledChannels);
 
-    void drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const Ticks& ticks);
+    void drawXTicks(const juce::Rectangle<int>& bounds, int yTicksLeftEdge, const AxisLimits& limits, const std::vector<Tick>& ticks);
 
-    void drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const Ticks& ticks);
+    void drawYTicks(const juce::Rectangle<int>& bounds, const AxisLimits& limits, const std::vector<Tick>& ticks);
 
-    void drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const Ticks& ticks);
+    void drawTicks(bool isXTicks, const juce::Rectangle<int>& plotBounds, const juce::Rectangle<int>& drawBounds, const AxisLimits& limits, const std::vector<Tick>& ticks);
 
     // Copy of juce::jmap with assertion for exactlyEqual instead of approximatelyEqual
     template<typename Type>
