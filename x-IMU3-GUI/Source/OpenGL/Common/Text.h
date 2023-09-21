@@ -3,6 +3,7 @@
 #include "glm/mat4x4.hpp"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <unordered_map>
+#include <unordered_set>
 #include "Shader.h"
 #include <string>
 #include "freetype/freetype.h"
@@ -12,7 +13,7 @@ class GLResources;
 class Text
 {
 public:
-    Text() = default;
+    Text(std::unordered_set<unsigned char> charactersToLoad_);
 
     virtual ~Text();
 
@@ -73,7 +74,8 @@ private:
     int fontSizeJucePixels = 0;
     float descender = 0;
 
-    std::unordered_map<unsigned char, Glyph> alphabet;
+    std::unordered_set<unsigned char> charactersToLoad;
+    std::unordered_map<unsigned char, Glyph> glyphs;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Text)
 };

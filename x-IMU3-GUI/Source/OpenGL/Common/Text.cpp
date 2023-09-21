@@ -1,6 +1,10 @@
 #include "OpenGL/Common/GLResources.h"
 #include "Text.h"
 
+Text::Text(std::unordered_set<unsigned char> charactersToLoad_) : charactersToLoad(charactersToLoad_)
+{
+}
+
 Text::~Text()
 {
     unloadFont();
@@ -25,15 +29,12 @@ bool Text::loadFont(const char* data, size_t dataSize, int fontSizeJucePixels_)
 
     descender = toPixels((float) face->size->metrics.descender);
 
-    // TODO: Optionally generate textures ONLY for the characters we need for graph & axes: numbers 0-9, -, x, y, z, E
-    //  this would save GPU memory space.
-
     // Create OpenGL Textures for every font character that will be used
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable OpenGL default 4-byte alignment restriction since we store grayscale data with 1 byte per pixel
     glActiveTexture(GL_TEXTURE0); // use first texture unit for all textures bound below because shader only uses 1 texture at a time
-    for (unsigned char c = 0; c < 128; c++)
+    for (const auto& character : charactersToLoad)
     {
-        if (FT_Load_Char(face, (FT_ULong) c, FT_LOAD_RENDER)) // if freetype fails to load the current glyph index
+        if (FT_Load_Char(face, (FT_ULong) character, FT_LOAD_RENDER)) // if freetype fails to load the current glyph index
         {
             continue;
         }
@@ -64,7 +65,7 @@ bool Text::loadFont(const char* data, size_t dataSize, int fontSizeJucePixels_)
                         glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
                         glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
                         toPixels((float) face->glyph->advance.x) };
-        alphabet[c] = glyph;
+        glyphs[character] = glyph;
     }
 
     FT_Done_Face(face);
@@ -73,12 +74,12 @@ bool Text::loadFont(const char* data, size_t dataSize, int fontSizeJucePixels_)
 
 void Text::unloadFont()
 {
-    for (auto& glyph : alphabet)
+    for (auto& glyph : glyphs)
     {
         juce::gl::glDeleteTextures(1, &(glyph.second.textureID));
     }
 
-    alphabet.clear();
+    glyphs.clear();
 }
 
 int Text::getFontSizeGLPixels() const
@@ -97,8 +98,8 @@ float Text::getStringWidthGLPixels(const juce::String& string) const
 
     for (const auto& character : string)
     {
-        auto glyphSearch = alphabet.find(static_cast<unsigned char>(character));
-        if (glyphSearch == alphabet.end())
+        auto glyphSearch = glyphs.find(static_cast<unsigned char>(character));
+        if (glyphSearch == glyphs.end())
         {
             continue;
         }
@@ -140,8 +141,8 @@ void Text::draw(GLResources* const resources, const juce::String& text, const ju
     auto textOrigin = screenPosition;
     for (size_t index = 0; index < (size_t) text.length(); index++)
     {
-        auto glyphSearch = alphabet.find(static_cast<unsigned char>(text[(int) index]));
-        if (glyphSearch == alphabet.end())
+        auto glyphSearch = glyphs.find(static_cast<unsigned char>(text[(int) index]));
+        if (glyphSearch == glyphs.end())
         {
             continue;
         }
@@ -161,8 +162,8 @@ void Text::draw(GLResources* const resources, const juce::String& text, const ju
 
 void Text::drawChar3D(GLResources* const resources, unsigned char character, const juce::Colour& colour, const glm::mat4& transform, juce::Rectangle<int> viewportBounds)
 {
-    auto glyphSearch = alphabet.find(character);
-    if (glyphSearch == alphabet.end())
+    auto glyphSearch = glyphs.find(character);
+    if (glyphSearch == glyphs.end())
     {
         return;
     }
