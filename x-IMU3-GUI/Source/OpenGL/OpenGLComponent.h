@@ -1,9 +1,9 @@
 #pragma once
 
+#include "Common/GLResources.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_opengl/juce_opengl.h>
 #include <mutex>
-#include "Common/GLResources.h"
 
 class OpenGLComponent : public juce::Component,
                         private juce::ComponentListener

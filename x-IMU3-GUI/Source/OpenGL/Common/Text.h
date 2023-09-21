@@ -1,12 +1,12 @@
 #pragma once
 
+#include "freetype/freetype.h"
 #include "glm/mat4x4.hpp"
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <unordered_map>
-#include <unordered_set>
 #include "Shader.h"
 #include <string>
-#include "freetype/freetype.h"
+#include <unordered_map>
+#include <unordered_set>
 
 class GLResources;
 

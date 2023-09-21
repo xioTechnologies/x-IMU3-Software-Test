@@ -2,9 +2,9 @@
 
 #pragma once
 
+#include "../../OpenGL/Common/GLRenderer.h"
 #include "GraphWindow.h"
 #include "Ximu3.hpp"
-#include "../../OpenGL/Common/GLRenderer.h"
 
 class SerialAccessoryGraphWindow : public GraphWindow
 {
