@@ -40,7 +40,7 @@ void ThreeDView::render()
     const auto projectionMatrix = camera.getPerspectiveProjectionMatrix();
     const auto viewMatrix = camera.getViewMatrix();
 
-    // Convert device rotation from x-io coordinate space into OpenGL coordinate space where OpenGL X == x-io X, OpenGL Y == x-io Z, OpenGL Z == z-io -Y
+    // Convert device rotation to OpenGL coordinate space where OpenGL +X+Y+Z = Earth +X+Z-Y
     const auto deviceRotation = glm::mat4_cast(glm::quat(quaternionW.load(), quaternionX.load(), quaternionZ.load(), -1.0f * quaternionY.load()));
 
     // Calculations to ensure model does not pass through floor at any orientation
@@ -217,7 +217,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     screenSpaceShader.viewMatrix.set(viewMatrix);
     screenSpaceShader.projectionMatrix.set(projectionMatrix);
 
-    // X-Axis in x-io coordinate space aligns with OpenGL +X axis
+    // Earth x-axis (aligned with OpenGL +x-axis)
     const glm::mat4 xRotate = glm::mat4(1.0f);
     const glm::mat4 xModel = modelMatrix * xRotate;
     screenSpaceShader.materialColour.setRGBA(UIColours::graphX);
@@ -226,7 +226,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     screenSpaceShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(xModel)));
     resources->arrow.render();
 
-    // Y-Axis in x-io coordinate space aligns with OpenGL -Z axis
+    // Earth y-axis (aligned with OpenGL -z-axis)
     const glm::mat4 yRotate = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     const glm::mat4 yModel = modelMatrix * yRotate;
     screenSpaceShader.materialColour.setRGBA(UIColours::graphY);
@@ -235,7 +235,7 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     screenSpaceShader.modelMatrixInverseTranspose.set(glm::mat3(glm::inverseTranspose(yModel)));
     resources->arrow.render();
 
-    // Z-Axis in x-io coordinate space aligns with OpenGL +Y axis
+    // Earth z-axis (aligned with OpenGL +y-axis)
     const glm::mat4 zRotate = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     const glm::mat4 zModel = modelMatrix * zRotate;
     screenSpaceShader.materialColour.setRGBA(UIColours::graphZ);
@@ -252,9 +252,9 @@ void ThreeDView::renderAxesInstance(const glm::mat4& modelMatrix, const glm::mat
     const auto paddingOffset = 0.06f; // account for distance of glyph from render square edge
     const auto textDistanceFromOriginXY = (textDistanceFromOrigin - paddingOffset) * inverseScreenScale;
 
-    const auto xTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(textDistanceFromOriginXY, 0.0f, 0.0f)); // X-Axis in x-io coordinate space aligns with OpenGL +X axis
-    const auto yTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -textDistanceFromOriginXY)); // Y-Axis in x-io coordinate space aligns with OpenGL -Z axis
-    const auto zTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, textDistanceFromOriginZ, 0.0f)); // Z-Axis in x-io coordinate space aligns with OpenGL +Y axis
+    const auto xTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(textDistanceFromOriginXY, 0.0f, 0.0f)); // Earth x-axis aligns with OpenGL +x-axis
+    const auto yTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -textDistanceFromOriginXY)); // Earth y-axis aligns with OpenGL -z-axis
+    const auto zTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, textDistanceFromOriginZ, 0.0f)); // Earth z-axis aligns with OpenGL +y-axis
 
     const auto textTransform = projectionMatrix * viewMatrix * modelMatrix;
 
