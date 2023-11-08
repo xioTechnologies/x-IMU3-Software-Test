@@ -1,6 +1,6 @@
-#include "../ApplicationSettings.h"
-#include "../Firmware/Firmware.h"
+#include "ApplicationSettings.h"
 #include <filesystem>
+#include "Firmware/Firmware.h"
 #include "UpdateFirmwareDialog.h"
 
 UpdateFirmwareDialog::UpdateFirmwareDialog() : Dialog(BinaryData::tools_svg, "Update Firmware", "Update")
@@ -26,7 +26,7 @@ UpdateFirmwareDialog::UpdateFirmwareDialog() : Dialog(BinaryData::tools_svg, "Up
 
     deviceValue.onChange = fileNameValue.onTextChange = [&]
     {
-        setOkButton(getConnectionInfo() != nullptr && std::filesystem::exists(fileNameValue.getText().toStdString()));
+        setOkButton(getConnectionInfo() != nullptr && std::filesystem::is_regular_file(fileNameValue.getText().toStdString()));
     };
     setOkButton(false);
 

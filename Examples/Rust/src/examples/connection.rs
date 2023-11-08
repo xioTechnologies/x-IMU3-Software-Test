@@ -21,6 +21,7 @@ pub fn run(connection_info: ConnectionInfo) {
         connection.add_euler_angles_closure(Box::new(euler_angles_closure));
         connection.add_linear_acceleration_closure(Box::new(linear_acceleration_closure));
         connection.add_earth_acceleration_closure(Box::new(earth_acceleration_closure));
+        connection.add_ahrs_status_closure(Box::new(ahrs_status_closure));
         connection.add_high_g_accelerometer_closure(Box::new(high_g_accelerometer_closure));
         connection.add_temperature_closure(Box::new(temperature_closure));
         connection.add_battery_closure(Box::new(battery_closure));
@@ -86,34 +87,34 @@ pub fn inertial_closure(message: InertialMessage) {
 pub fn magnetometer_closure(message: MagnetometerMessage) {
     println!(concat!(timestamp_format!(), float_format!(), " a.u.", float_format!(), " a.u.", float_format!(), " a.u."),
              message.timestamp,
-             message.x_axis,
-             message.y_axis,
-             message.z_axis);
+             message.x,
+             message.y,
+             message.z);
     // println!("{}", message); // alternative to above
 }
 
 pub fn quaternion_closure(message: QuaternionMessage) {
     println!(concat!(timestamp_format!(), float_format!(), float_format!(), float_format!(), float_format!()),
              message.timestamp,
-             message.w_element,
-             message.x_element,
-             message.y_element,
-             message.z_element);
+             message.w,
+             message.x,
+             message.y,
+             message.z);
     // println!("{}", message); // alternative to above
 }
 
 pub fn rotation_matrix_closure(message: RotationMatrixMessage) {
     println!(concat!(timestamp_format!(), float_format!(), float_format!(), float_format!(), float_format!(), float_format!(), float_format!(), float_format!(), float_format!(), float_format!()),
              message.timestamp,
-             message.xx_element,
-             message.xy_element,
-             message.xz_element,
-             message.yx_element,
-             message.yy_element,
-             message.yz_element,
-             message.zx_element,
-             message.zy_element,
-             message.zz_element);
+             message.xx,
+             message.xy,
+             message.xz,
+             message.yx,
+             message.yy,
+             message.yz,
+             message.zx,
+             message.zy,
+             message.zz);
     // println!("{}", message); // alternative to above
 }
 
@@ -129,35 +130,45 @@ pub fn euler_angles_closure(message: EulerAnglesMessage) {
 pub fn linear_acceleration_closure(message: LinearAccelerationMessage) {
     println!(concat!(timestamp_format!(), float_format!(), float_format!(), float_format!(), float_format!(), float_format!(), " g", float_format!(), " g", float_format!(), " g"),
              message.timestamp,
-             message.w_element,
-             message.x_element,
-             message.y_element,
-             message.z_element,
-             message.x_axis,
-             message.y_axis,
-             message.z_axis);
+             message.quaternion_w,
+             message.quaternion_x,
+             message.quaternion_y,
+             message.quaternion_z,
+             message.acceleration_x,
+             message.acceleration_y,
+             message.acceleration_z);
     // println!("{}", message); // alternative to above
 }
 
 pub fn earth_acceleration_closure(message: EarthAccelerationMessage) {
     println!(concat!(timestamp_format!(), float_format!(), float_format!(), float_format!(), float_format!(), float_format!(), " g", float_format!(), " g", float_format!(), " g"),
              message.timestamp,
-             message.w_element,
-             message.x_element,
-             message.y_element,
-             message.z_element,
-             message.x_axis,
-             message.y_axis,
-             message.z_axis);
+             message.quaternion_w,
+             message.quaternion_x,
+             message.quaternion_y,
+             message.quaternion_z,
+             message.acceleration_x,
+             message.acceleration_y,
+             message.acceleration_z);
+    // println!("{}", message); // alternative to above
+}
+
+pub fn ahrs_status_closure(message: AhrsStatusMessage) {
+    println!(concat!(timestamp_format!(), float_format!(), float_format!(), float_format!(), float_format!()),
+             message.timestamp,
+             message.initialising,
+             message.angular_rate_recovery,
+             message.acceleration_recovery,
+             message.magnetic_recovery);
     // println!("{}", message); // alternative to above
 }
 
 pub fn high_g_accelerometer_closure(message: HighGAccelerometerMessage) {
     println!(concat!(timestamp_format!(), float_format!(), " g", float_format!(), " g", float_format!(), " g"),
              message.timestamp,
-             message.x_axis,
-             message.y_axis,
-             message.z_axis);
+             message.x,
+             message.y,
+             message.z);
     // println!("{}", message); // alternative to above
 }
 

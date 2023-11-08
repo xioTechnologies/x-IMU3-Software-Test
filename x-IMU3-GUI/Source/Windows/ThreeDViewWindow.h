@@ -1,19 +1,20 @@
 #pragma once
 
-#include "../DevicePanel/DevicePanel.h"
-#include "../OpenGL/Common/GLRenderer.h"
-#include "../OpenGL/ThreeDView.h"
-#include "../Widgets/PopupMenuHeader.h"
-#include "../Widgets/SimpleLabel.h"
+#include "DevicePanel/DevicePanel.h"
 #include <juce_gui_basics/juce_gui_basics.h>
+#include "OpenGL/Common/GLRenderer.h"
+#include "OpenGL/ThreeDView.h"
+#include "Widgets/PopupMenuHeader.h"
+#include "Widgets/SimpleLabel.h"
 #include "Window.h"
 #include "Ximu3.hpp"
 
 class ThreeDViewWindow : public Window,
-                         private juce::Timer
+                         private juce::Timer,
+                         private juce::ValueTree::Listener
 {
 public:
-    ThreeDViewWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type, DevicePanel& devicePanel_, GLRenderer& glRenderer);
+    ThreeDViewWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type, DevicePanel& devicePanel_, GLRenderer& glRenderer, juce::ValueTree settingsTree_);
 
     ~ThreeDViewWindow() override;
 
@@ -23,12 +24,13 @@ public:
 
     void mouseDrag(const juce::MouseEvent& mouseEvent) override;
 
+    void mouseDoubleClick(const juce::MouseEvent& mouseEvent) override;
+
     void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails& wheel) override;
 
 private:
     ThreeDView threeDView;
-    static ThreeDView::Settings settings;
-    static bool eulerAnglesEnabled;
+    juce::ValueTree settingsTree;
 
     SimpleLabel rollLabel { "Roll:", UIFonts::getDefaultFont(), juce::Justification::topLeft },
             rollValue { "", UIFonts::getDefaultFont(), juce::Justification::topLeft },
@@ -58,11 +60,34 @@ private:
     std::function<void(ximu3::XIMU3_EarthAccelerationMessage)> earthAccelerationCallback;
     uint64_t earthAccelerationCallbackID;
 
+    std::function<void(ximu3::XIMU3_AhrsStatusMessage)> ahrsStatusMessageCallback;
+    uint64_t ahrsStatusMessageCallbackID;
+
+    bool compactView = false;
+
+    std::atomic<bool> angularRateRecoveryState { false };
+    std::atomic<bool> accelerationRecoveryState { false };
+    std::atomic<bool> magneticRecoveryState { false };
+
+    Icon angularRateRecoveryIcon { BinaryData::speed_grey_svg, "Angular Rate Recovery" };
+    Icon accelerationRecoveryIcon { BinaryData::vibration_grey_svg, "Acceleration Recovery" };
+    Icon magneticRecoveryIcon { BinaryData::magnet_grey_svg, "Magnetic Recovery" };
+
+    static float wrapAngle(float angle);
+
+    void writeToValueTree(const ThreeDView::Settings& settings);
+
+    ThreeDView::Settings readFromValueTree() const;
+
+    void updateEulerAnglesVisibilities();
+
+    void updateAhrsStatusVisibilities();
+
     juce::PopupMenu getMenu();
 
     void timerCallback() override;
 
-    static float wrapAngle(float angle);
+    void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier& property) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ThreeDViewWindow)
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ApplicationSettings.h"
+#include "ApplicationSettings.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Widgets/CustomComboBox.h"
 #include "Widgets/CustomTextEditor.h"
@@ -19,10 +19,12 @@ public:
 
     void resized() override;
 
+    void mouseDown(const juce::MouseEvent& mouseEvent) override;
+
 private:
     SerialAccessoryTerminal serialAccessoryTerminal;
     CustomComboBox sendValue;
-    IconButton sendButton { BinaryData::send_svg, "Send", nullptr, false, BinaryData::send_warning_svg, "Send (Failed)" };
+    IconButton sendButton { BinaryData::send_svg, "Send" };
 
     juce::ValueTree serialHistory;
     const juce::File file = ApplicationSettings::getDirectory().getChildFile("Serial History.xml");

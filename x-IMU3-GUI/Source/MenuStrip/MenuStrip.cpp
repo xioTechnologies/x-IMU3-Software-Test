@@ -408,23 +408,33 @@ juce::PopupMenu MenuStrip::getWindowMenu() const
             windowLayout.getRoot().appendChild({ id, {{ WindowIDs::size, newSize }}}, nullptr);
         });
     };
+
     addWindowItem(WindowIDs::DeviceSettings);
-    addWindowItem(WindowIDs::ThreeDView);
-    addWindowItem(WindowIDs::SerialAccessoryTerminal);
     menu.addSeparator();
-    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("GRAPHS"), nullptr);
+    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("SENSORS"), nullptr);
     addWindowItem(WindowIDs::Gyroscope);
     addWindowItem(WindowIDs::Accelerometer);
     addWindowItem(WindowIDs::Magnetometer);
+    addWindowItem(WindowIDs::HighGAccelerometer);
+    menu.addSeparator();
+    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("AHRS"), nullptr);
+    addWindowItem(WindowIDs::ThreeDView);
     addWindowItem(WindowIDs::EulerAngles);
     addWindowItem(WindowIDs::LinearAcceleration);
     addWindowItem(WindowIDs::EarthAcceleration);
-    addWindowItem(WindowIDs::HighGAccelerometer);
+    menu.addSeparator();
+    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("SERIAL ACCESSORY"), nullptr);
+    addWindowItem(WindowIDs::SerialAccessoryTerminal);
+    addWindowItem(WindowIDs::SerialAccessoryCsvs);
+    menu.addSeparator();
+    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("STATUS"), nullptr);
     addWindowItem(WindowIDs::Temperature);
     addWindowItem(WindowIDs::BatteryPercentage);
     addWindowItem(WindowIDs::BatteryVoltage);
     addWindowItem(WindowIDs::RssiPercentage);
     addWindowItem(WindowIDs::RssiPower);
+    menu.addSeparator();
+    menu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("CONNNECTION"), nullptr);
     addWindowItem(WindowIDs::ReceivedMessageRate);
     addWindowItem(WindowIDs::ReceivedDataRate);
 
@@ -454,25 +464,36 @@ juce::PopupMenu MenuStrip::getWindowLayoutMenu()
             windowLayout.appendChild(row, nullptr);
         });
     };
+
     addSingleWindowItem(WindowIDs::DeviceSettings);
-    addSingleWindowItem(WindowIDs::ThreeDView);
-    addSingleWindowItem(WindowIDs::SerialAccessoryTerminal);
     singleWindowMenu.addSeparator();
-    singleWindowMenu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("GRAPHS"), nullptr);
+    singleWindowMenu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("SENSORS"), nullptr);
     addSingleWindowItem(WindowIDs::Gyroscope);
     addSingleWindowItem(WindowIDs::Accelerometer);
     addSingleWindowItem(WindowIDs::Magnetometer);
+    addSingleWindowItem(WindowIDs::HighGAccelerometer);
+    singleWindowMenu.addSeparator();
+    singleWindowMenu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("AHRS"), nullptr);
+    addSingleWindowItem(WindowIDs::ThreeDView);
     addSingleWindowItem(WindowIDs::EulerAngles);
     addSingleWindowItem(WindowIDs::LinearAcceleration);
     addSingleWindowItem(WindowIDs::EarthAcceleration);
-    addSingleWindowItem(WindowIDs::HighGAccelerometer);
+    singleWindowMenu.addSeparator();
+    singleWindowMenu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("SERIAL ACCESSORY"), nullptr);
+    addSingleWindowItem(WindowIDs::SerialAccessoryTerminal);
+    addSingleWindowItem(WindowIDs::SerialAccessoryCsvs);
+    singleWindowMenu.addSeparator();
+    singleWindowMenu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("STATUS"), nullptr);
     addSingleWindowItem(WindowIDs::Temperature);
     addSingleWindowItem(WindowIDs::BatteryPercentage);
     addSingleWindowItem(WindowIDs::BatteryVoltage);
     addSingleWindowItem(WindowIDs::RssiPercentage);
     addSingleWindowItem(WindowIDs::RssiPower);
+    singleWindowMenu.addSeparator();
+    singleWindowMenu.addCustomItem(-1, std::make_unique<PopupMenuHeader>("CONNNECTION"), nullptr);
     addSingleWindowItem(WindowIDs::ReceivedMessageRate);
     addSingleWindowItem(WindowIDs::ReceivedDataRate);
+
     menu.addSubMenu("Single Window", singleWindowMenu);
 
     menu.addSeparator();

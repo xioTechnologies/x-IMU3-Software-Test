@@ -32,6 +32,7 @@ protected:
             connection.addEulerAnglesCallback(eulerAnglesCallback);
             connection.addLinearAccelerationCallback(linearAccelerationCallback);
             connection.addEarthAccelerationCallback(earthAccelerationCallback);
+            connection.addAhrsStatusCallback(ahrsStatusCallback);
             connection.addHighGAccelerometerCallback(highGAccelerometerCallback);
             connection.addTemperatureCallback(temperatureCallback);
             connection.addBatteryCallback(batteryCallback);
@@ -95,9 +96,9 @@ private:
     {
         printf(TIMESTAMP_FORMAT FLOAT_FORMAT " a.u." FLOAT_FORMAT " a.u." FLOAT_FORMAT " a.u.\n",
                message.timestamp,
-               message.x_axis,
-               message.y_axis,
-               message.z_axis);
+               message.x,
+               message.y,
+               message.z);
         // std::cout << XIMU3_magnetometer_message_to_string(message) << std::endl; // alternative to above
     };
 
@@ -105,10 +106,10 @@ private:
     {
         printf(TIMESTAMP_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT "\n",
                message.timestamp,
-               message.w_element,
-               message.x_element,
-               message.y_element,
-               message.z_element);
+               message.w,
+               message.x,
+               message.y,
+               message.z);
         // std::cout << XIMU3_quaternion_message_to_string(message) << std::endl; // alternative to above
     };
 
@@ -116,15 +117,15 @@ private:
     {
         printf(TIMESTAMP_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT "\n",
                message.timestamp,
-               message.xx_element,
-               message.xy_element,
-               message.xz_element,
-               message.yx_element,
-               message.yy_element,
-               message.yz_element,
-               message.zx_element,
-               message.zy_element,
-               message.zz_element);
+               message.xx,
+               message.xy,
+               message.xz,
+               message.yx,
+               message.yy,
+               message.yz,
+               message.zx,
+               message.zy,
+               message.zz);
         // std::cout << XIMU3_rotation_matrix_message_to_string(message) << std::endl; // alternative to above
     };
 
@@ -142,13 +143,13 @@ private:
     {
         printf(TIMESTAMP_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT " g" FLOAT_FORMAT " g" FLOAT_FORMAT " g\n",
                message.timestamp,
-               message.w_element,
-               message.x_element,
-               message.y_element,
-               message.z_element,
-               message.x_axis,
-               message.y_axis,
-               message.z_axis);
+               message.quaternion_w,
+               message.quaternion_x,
+               message.quaternion_y,
+               message.quaternion_z,
+               message.acceleration_x,
+               message.acceleration_y,
+               message.acceleration_z);
         // std::cout << XIMU3_linear_acceleration_message_to_string(message) << std::endl; // alternative to above
     };
 
@@ -156,23 +157,34 @@ private:
     {
         printf(TIMESTAMP_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT " g" FLOAT_FORMAT " g" FLOAT_FORMAT " g\n",
                message.timestamp,
-               message.w_element,
-               message.x_element,
-               message.y_element,
-               message.z_element,
-               message.x_axis,
-               message.y_axis,
-               message.z_axis);
+               message.quaternion_w,
+               message.quaternion_x,
+               message.quaternion_y,
+               message.quaternion_z,
+               message.acceleration_x,
+               message.acceleration_y,
+               message.acceleration_z);
         // std::cout << XIMU3_earth_acceleration_message_to_string(message) << std::endl; // alternative to above
+    };
+
+    std::function<void(ximu3::XIMU3_AhrsStatusMessage message)> ahrsStatusCallback = [](auto message)
+    {
+        printf(TIMESTAMP_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT FLOAT_FORMAT "\n",
+               message.timestamp,
+               message.initialising,
+               message.angular_rate_recovery,
+               message.acceleration_recovery,
+               message.magnetic_recovery);
+        // std::cout << XIMU3_ahrs_status_message_to_string(message) << std::endl; // alternative to above
     };
 
     std::function<void(ximu3::XIMU3_HighGAccelerometerMessage message)> highGAccelerometerCallback = [](auto message)
     {
         printf(TIMESTAMP_FORMAT FLOAT_FORMAT " g" FLOAT_FORMAT " g" FLOAT_FORMAT " g\n",
                message.timestamp,
-               message.x_axis,
-               message.y_axis,
-               message.z_axis);
+               message.x,
+               message.y,
+               message.z);
         // std::cout << XIMU3_high_g_accelerometer_message_to_string(message) << std::endl; // alternative to above
     };
 

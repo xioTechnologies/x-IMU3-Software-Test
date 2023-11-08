@@ -1,10 +1,10 @@
-#include "../DevicePanel/DevicePanel.h"
+#include "DevicePanel/DevicePanel.h"
 #include "DeviceSettingsWindow.h"
 #include "Dialogs/AreYouSureDialog.h"
 #include "Dialogs/ErrorDialog.h"
 
 DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, DevicePanel& devicePanel_)
-        : Window(devicePanel_, windowLayout_, type_, "Device Settings Menu", std::bind(&DeviceSettingsWindow::getMenu, this))
+        : Window(windowLayout_, type_, devicePanel_, "Device Settings Menu", std::bind(&DeviceSettingsWindow::getMenu, this))
 {
     addAndMakeVisible(settingsTree);
     addAndMakeVisible(readAllButton);

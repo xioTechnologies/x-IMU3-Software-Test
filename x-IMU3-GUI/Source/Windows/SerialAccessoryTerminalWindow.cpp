@@ -1,11 +1,13 @@
-#include "../Convert.h"
+#include "Convert.h"
 #include "DevicePanel/DevicePanel.h"
+#include "Dialogs/SendingCommandDialog.h"
 #include "SerialAccessoryTerminalWindow.h"
 
 SerialAccessoryTerminalWindow::SerialAccessoryTerminalWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, DevicePanel& devicePanel_)
-        : Window(devicePanel_, windowLayout_, type_, "Serial Accessory Terminal Menu", std::bind(&SerialAccessoryTerminalWindow::getMenu, this))
+        : Window(windowLayout_, type_, devicePanel_, "Serial Accessory Terminal Menu", std::bind(&SerialAccessoryTerminalWindow::getMenu, this))
 {
     addAndMakeVisible(serialAccessoryTerminal);
+    serialAccessoryTerminal.addMouseListener(this, true);
 
     addAndMakeVisible(sendValue);
     sendValue.setEditableText(true);
@@ -15,18 +17,9 @@ SerialAccessoryTerminalWindow::SerialAccessoryTerminalWindow(const juce::ValueTr
     addAndMakeVisible(sendButton);
     sendButton.onClick = [this]
     {
-        sendValue.setEnabled(false);
-        sendButton.setEnabled(false);
-        sendButton.setToggleState(false, juce::dontSendNotification);
+        DialogQueue::getSingleton().pushFront(std::make_unique<SendingCommandDialog>(CommandMessage("accessory", removeEscapeCharacters(sendValue.getText())), std::vector<DevicePanel*> { &devicePanel }));
 
         serialAccessoryTerminal.add(uint64_t(-1), removeEscapeCharacters(sendValue.getText()));
-
-        devicePanel.sendCommands({ CommandMessage("accessory", removeEscapeCharacters(sendValue.getText())) }, this, [&](const auto& responses, const auto&)
-        {
-            sendValue.setEnabled(true);
-            sendButton.setEnabled(true);
-            sendButton.setToggleState(responses.empty(), juce::dontSendNotification);
-        });
 
         for (const auto serial : serialHistory)
         {
@@ -84,6 +77,14 @@ void SerialAccessoryTerminalWindow::resized()
     sendValue.setBounds(sendCommandBounds);
 
     serialAccessoryTerminal.setBounds(bounds);
+}
+
+void SerialAccessoryTerminalWindow::mouseDown(const juce::MouseEvent& mouseEvent)
+{
+    if (mouseEvent.mods.isPopupMenu())
+    {
+        getMenu().show();
+    }
 }
 
 juce::String SerialAccessoryTerminalWindow::removeEscapeCharacters(const juce::String& input)

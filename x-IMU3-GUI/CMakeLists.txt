@@ -61,7 +61,7 @@ cmake_minimum_required(VERSION 3.15)
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(X_IMU3_GUI VERSION 1.2.5)
+project(X_IMU3_GUI VERSION 1.3.1)
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've
@@ -180,4 +180,4 @@ target_include_directories(x-IMU3-GUI
 
 add_dependencies(x-IMU3-GUI freetype)
 
-set_property(TARGET x-IMU3-GUI PROPERTY CXX_STANDARD 17)
+set_property(TARGET x-IMU3-GUI PROPERTY CXX_STANDARD 20)
