@@ -156,6 +156,9 @@ jobs:
           CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
           CIBW_BEFORE_BUILD_LINUX: yum install -y libudev-devel
 
+      - name: Run "python --version"
+        run: python --version
+
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Publish Python package
         env:
