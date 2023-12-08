@@ -126,7 +126,12 @@ jobs:
 #          - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
 #          - [ windows-latest, x86_64-pc-windows-msvc, win_amd64 ]
 
-        python-version: [ "cp38-", "cp39-", "cp310-", "cp311-", "cp312-" ]
+        python-version:
+          - [ "3.8", "cp38-" ]
+          - [ "3.9", "cp39-" ]
+          - [ "3.10", "cp310-" ]
+          - [ "3.11", "cp311-" ]
+          - [ "3.12", "cp312-" ]
 
     steps:
       - uses: actions/checkout@v3
@@ -139,7 +144,7 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version[0] }}
 
       - name: Install Python dependencies
         run: |
@@ -157,7 +162,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.2
         env:
           CIBW_ARCHS: all
-          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
+          CIBW_BUILD: ${{ matrix.python-version[1] }}${{ matrix.target[2] }}
           CIBW_BEFORE_BUILD_LINUX: yum install -y libudev-devel
 
       - name: Run "python --version"
