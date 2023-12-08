@@ -12,7 +12,7 @@ SerialAccessoryTerminalWindow::SerialAccessoryTerminalWindow(const juce::ValueTr
     addAndMakeVisible(sendValue);
     sendValue.setEditableText(true);
 
-    loadSendHistory();
+    loadRecents();
 
     addAndMakeVisible(sendButton);
     sendButton.onClick = [this]
@@ -21,24 +21,24 @@ SerialAccessoryTerminalWindow::SerialAccessoryTerminalWindow(const juce::ValueTr
 
         serialAccessoryTerminal.add(uint64_t(-1), removeEscapeCharacters(sendValue.getText()));
 
-        for (const auto serial : serialHistory)
+        for (const auto data : recentSerialAccessoryData)
         {
-            if (serial.getProperty("serial") == sendValue.getText())
+            if (data["data"] == sendValue.getText())
             {
-                serialHistory.removeChild(serial, nullptr);
+                recentSerialAccessoryData.removeChild(data, nullptr);
                 break;
             }
         }
 
-        while (serialHistory.getNumChildren() >= 12)
+        while (recentSerialAccessoryData.getNumChildren() >= 12)
         {
-            serialHistory.removeChild(serialHistory.getChild(serialHistory.getNumChildren() - 1), nullptr);
+            recentSerialAccessoryData.removeChild(recentSerialAccessoryData.getChild(recentSerialAccessoryData.getNumChildren() - 1), nullptr);
         }
 
-        serialHistory.addChild({ "Serial", {{ "serial", sendValue.getText() }}}, 0, nullptr);
-        file.replaceWithText(serialHistory.toXmlString());
+        recentSerialAccessoryData.addChild({ "Data", {{ "data", sendValue.getText() }}}, 0, nullptr);
+        file.replaceWithText(recentSerialAccessoryData.toXmlString());
 
-        loadSendHistory();
+        loadRecents();
     };
 
     callbackID = devicePanel.getConnection()->addSerialAccessoryCallback(callback = [&, self = SafePointer<juce::Component>(this)](auto message)
@@ -145,22 +145,19 @@ juce::String SerialAccessoryTerminalWindow::removeEscapeCharacters(const juce::S
     return output;
 }
 
-void SerialAccessoryTerminalWindow::loadSendHistory()
+void SerialAccessoryTerminalWindow::loadRecents()
 {
-    serialHistory = juce::ValueTree::fromXml(file.loadFileAsString());
-    if (serialHistory.isValid() == false)
+    recentSerialAccessoryData = juce::ValueTree::fromXml(file.loadFileAsString());
+    if (recentSerialAccessoryData.isValid() == false)
     {
-        serialHistory = juce::ValueTree("SerialHistory");
+        recentSerialAccessoryData = juce::ValueTree("RecentSerialAccessoryData");
     }
 
     sendValue.clear(juce::dontSendNotification);
-
-    juce::StringArray items;
-    for (const auto serial : serialHistory)
+    for (const auto data : recentSerialAccessoryData)
     {
-        items.add(serial["serial"]);
+        sendValue.addItem(data["data"], sendValue.getNumItems() + 1);
     }
-    sendValue.addItemList(items, 1);
 
     sendValue.setText(sendValue.getNumItems() > 0 ? sendValue.getItemText(0) : "Hello World!", juce::dontSendNotification);
 }
