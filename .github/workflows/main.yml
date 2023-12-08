@@ -157,6 +157,8 @@ jobs:
           CIBW_BEFORE_BUILD_LINUX: yum install -y libudev-devel
 
       - uses: actions/setup-python@v4 # fix intermittent python command not found on macOS
+        with:
+          python-version: '3.12'
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Publish Python package
