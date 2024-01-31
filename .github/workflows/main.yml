@@ -29,17 +29,17 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, file-name, static-file-extension, dynamic-file-extension ]
-          - [ macos-latest, x86_64-apple-darwin, libximu3, a, dylib ]
-          - [ macos-latest, aarch64-apple-darwin, libximu3, a, dylib ]
-          - [ macos-latest, aarch64-apple-ios, libximu3, a, dylib ]
-          - [ macos-latest, aarch64-apple-ios-sim, libximu3, a, dylib ]
-          - [ macos-latest, x86_64-apple-ios, libximu3, a, dylib ]
+#          - [ macos-latest, x86_64-apple-darwin, libximu3, a, dylib ]
+#          - [ macos-latest, aarch64-apple-darwin, libximu3, a, dylib ]
+#          - [ macos-latest, aarch64-apple-ios, libximu3, a, dylib ]
+#          - [ macos-latest, aarch64-apple-ios-sim, libximu3, a, dylib ]
+#          - [ macos-latest, x86_64-apple-ios, libximu3, a, dylib ]
           - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a, so ]
           - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a, so ]
           - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a, so ]
           - [ ubuntu-latest, aarch64-linux-android, libximu3, a, so ]
-          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a, dll ]
-          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib, dll ]
+#          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a, dll ]
+#          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib, dll ]
 
     steps:
       - uses: actions/checkout@v4
