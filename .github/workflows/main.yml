@@ -66,9 +66,8 @@ jobs:
         name: Zip
         uses: vimtor/action-zip@v1.1
         with:
-          files: ${{ matrix.target[2] }}.${{ matrix.target[3] }} ${{ matrix.target[2] }}.${{ matrix.target[4] }}
-          dest: ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
-        working-directory: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/
+          files: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }} x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[4] }}
+          dest: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Upload to release
