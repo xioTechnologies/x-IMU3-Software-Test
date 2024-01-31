@@ -4,7 +4,7 @@
 
 class ApplicationSettings : private juce::DeletedAtShutdown, private juce::ValueTree::Listener
 {
-    juce::ValueTree tree { "Settings" };
+    juce::ValueTree tree { "ApplicationSettings" };
 
 public:
     struct
@@ -16,7 +16,7 @@ public:
         juce::CachedValue<bool> tcp { tree, "tcp", nullptr, false };
         juce::CachedValue<bool> udp { tree, "udp", nullptr, true };
         juce::CachedValue<bool> bluetooth { tree, "bluetooth", nullptr, true };
-    } searchForConnections { tree.getOrCreateChildWithName("SearchForConnections", nullptr) };
+    } availableConnections { tree.getOrCreateChildWithName("AvailableConnections", nullptr) };
 
     struct
     {
@@ -56,7 +56,7 @@ public:
     }
 
 private:
-    const juce::File file = getDirectory().getChildFile("Settings.xml");
+    const juce::File file = getDirectory().getChildFile("Application Settings.xml");
 
     ApplicationSettings()
     {
@@ -68,7 +68,7 @@ private:
         tree.removeListener(this);
 
         auto rootTree = juce::ValueTree::fromXml(file.loadFileAsString());
-        searchForConnections.tree.copyPropertiesFrom(rootTree.getOrCreateChildWithName(searchForConnections.tree.getType(), nullptr), nullptr);
+        availableConnections.tree.copyPropertiesFrom(rootTree.getOrCreateChildWithName(availableConnections.tree.getType(), nullptr), nullptr);
         commands.tree.copyPropertiesFrom(rootTree.getOrCreateChildWithName(commands.tree.getType(), nullptr), nullptr);
         deviceSettings.tree.copyPropertiesFrom(rootTree.getOrCreateChildWithName(deviceSettings.tree.getType(), nullptr), nullptr);
 
@@ -89,7 +89,7 @@ struct juce::VariantConverter<uint32_t>
 {
     static uint32_t fromVar(const juce::var& value)
     {
-        return (uint32_t) (int) value;
+        return (uint32_t) ((int) value);
     }
 
     static juce::var toVar(uint32_t value)

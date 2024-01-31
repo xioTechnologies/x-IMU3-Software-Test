@@ -1,7 +1,7 @@
 #include "ApplicationSettings.h"
 #include "SendingCommandDialog.h"
 
-SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const std::vector<DevicePanel*>& devicePanels)
+SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const std::vector<ConnectionPanel*>& connectionPanels)
         : Dialog(BinaryData::progress_svg, "Sending Command " + command.json, "Retry", "Cancel", &closeWhenCompleteButton, std::numeric_limits<int>::max(), true)
 {
     addAndMakeVisible(table);
@@ -9,17 +9,17 @@ SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const 
 
     const int tagColumnWidth = UILayout::tagWidth + 5;
     table.getHeader().addColumn("", (int) ColumnIDs::tag, tagColumnWidth, tagColumnWidth, tagColumnWidth);
-    table.getHeader().addColumn("", (int) ColumnIDs::connection, 1);
-    table.getHeader().addColumn("", (int) ColumnIDs::complete, 70, 70, 70);
+    table.getHeader().addColumn("", (int) ColumnIDs::titleAndError, 1);
+    table.getHeader().addColumn("", (int) ColumnIDs::icon, 50, 50, 50);
     table.getHeader().setStretchToFitActive(true);
     table.setHeaderHeight(0);
     table.getViewport()->setScrollBarsShown(true, false);
     table.updateContent();
     table.setWantsKeyboardFocus(false);
 
-    for (auto* const devicePanel : devicePanels)
+    for (auto* const connectionPanel : connectionPanels)
     {
-        rows.push_back({ *devicePanel });
+        rows.push_back({ *connectionPanel });
     }
 
     closeWhenCompleteButton.setClickingTogglesState(true);
@@ -39,41 +39,50 @@ SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const 
             }
 
             row.state = Row::State::inProgress;
+            row.error.clear();
 
-            row.devicePanel.sendCommands({ command }, this, [&, row = &row](const auto&, const auto& failedCommands)
+            juce::Timer::callAfterDelay(sendDelay, [&, row = &row]
             {
-                row->state = (failedCommands.empty() == false) ? Row::State::failed : Row::State::complete;
-                table.updateContent();
-
-                for (const auto& row_ : rows)
+                row->connectionPanel.sendCommands({ command }, this, [&, row](const auto& responses)
                 {
-                    if (row_.state == Row::State::inProgress)
+                    if (responses.empty())
+                    {
+                        row->error = "Unable to confirm command";
+                    }
+                    else if (const auto error = responses[0].getError())
+                    {
+                        row->error = *error;
+                    }
+                    row->state = row->error.isEmpty() ? Row::State::complete : Row::State::failed;
+
+                    table.updateContent();
+
+                    if (findRow(Row::State::inProgress))
                     {
                         return;
                     }
-                }
 
-                for (size_t index = 0; index < rows.size(); index++)
-                {
-                    if (rows[index].state == Row::State::failed)
+                    if (const auto index = findRow(Row::State::failed))
                     {
                         setOkButton(true);
                         setCancelButton(true);
-                        table.scrollToEnsureRowIsOnscreen((int) index);
+                        table.scrollToEnsureRowIsOnscreen(*index);
                         return;
                     }
-                }
 
-                okCallback = [&]
-                {
-                    return true;
-                };
-                setOkButton(true, "Close");
-                setCancelButton(false);
+                    okCallback = [&]
+                    {
+                        return true;
+                    };
+                    setOkButton(true, "Close");
+                    setCancelButton(false);
 
-                startTimer(1000);
+                    startTimer(1000);
+                });
             });
         }
+
+        sendDelay = 250; // delay retry sends to improve UX
 
         setOkButton(false);
         setCancelButton(false);
@@ -85,7 +94,7 @@ SendingCommandDialog::SendingCommandDialog(const CommandMessage& command, const 
 
     okCallback();
 
-    setSize(600, calculateHeight(0) + margin + (int) devicePanels.size() * table.getRowHeight());
+    setSize(600, calculateHeight(0) + margin + (int) connectionPanels.size() * table.getRowHeight());
 }
 
 void SendingCommandDialog::resized()
@@ -93,6 +102,18 @@ void SendingCommandDialog::resized()
     Dialog::resized();
 
     table.setBounds(getContentBounds(true));
+}
+
+std::optional<int> SendingCommandDialog::findRow(const Row::State state) const
+{
+    for (const auto [index, row] : juce::enumerate(rows))
+    {
+        if (row.state == state)
+        {
+            return (int) index;
+        }
+    }
+    return {};
 }
 
 int SendingCommandDialog::getNumRows()
@@ -107,7 +128,7 @@ void SendingCommandDialog::paintRowBackground(juce::Graphics& g, int rowNumber, 
         return; // index may exceed size on Windows if display scaling >100%
     }
 
-    g.setColour(rows[(size_t) rowNumber].devicePanel.getTag());
+    g.setColour(rows[(size_t) rowNumber].connectionPanel.getTag());
     g.fillRect(0, 0, UILayout::tagWidth, height);
 }
 
@@ -125,10 +146,40 @@ juce::Component* SendingCommandDialog::refreshComponentForCell(int rowNumber, in
         case ColumnIDs::tag:
             return nullptr;
 
-        case ColumnIDs::connection:
-            return new SimpleLabel(rows[(size_t) rowNumber].devicePanel.getTitle());
+        case ColumnIDs::titleAndError:
+            class TitleAndError : public juce::Component
+            {
+            public:
+                TitleAndError(const Row& row)
+                        : titleLabel(row.connectionPanel.getTitle()),
+                          errorLabel(row.error, UIFonts::getDefaultFont(), juce::Justification::centredRight)
+                {
+                    addAndMakeVisible(titleLabel);
+                    addAndMakeVisible(errorLabel);
+                    errorLabel.setColour(juce::Label::textColourId, UIColours::warning);
+                }
 
-        case ColumnIDs::complete:
+                void resized() override
+                {
+                    auto bounds = getLocalBounds();
+                    if (errorLabel.getText().isNotEmpty())
+                    {
+                        errorLabel.setBounds(bounds.removeFromRight((int) std::ceil(errorLabel.getTextWidth())));
+                        bounds.removeFromRight(10);
+                    }
+                    titleLabel.setBounds(bounds);
+                }
+
+                SimpleLabel titleLabel;
+                SimpleLabel errorLabel;
+
+            private:
+                JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TitleAndError)
+            };
+
+            return new TitleAndError(rows[(size_t) rowNumber]);
+
+        case ColumnIDs::icon:
             switch (rows[(size_t) rowNumber].state)
             {
                 case Row::State::inProgress:

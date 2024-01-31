@@ -3,16 +3,16 @@
 #include "CommandMessage.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Widgets/Icon.h"
+#include "Widgets/IconAndText.h"
 #include "Widgets/IconButton.h"
 #include "Widgets/SimpleLabel.h"
-#include "Widgets/StatusIcon.h"
 #include "Ximu3.hpp"
 
-class DevicePanel;
+class ConnectionPanel;
 
-class DevicePanelContainer;
+class ConnectionPanelContainer;
 
-class DevicePanelHeader : public juce::Component
+class ConnectionPanelHeader : public juce::Component
 {
 public:
     enum class State
@@ -22,9 +22,9 @@ public:
         connectionFailed,
     };
 
-    DevicePanelHeader(DevicePanel& devicePanel_, DevicePanelContainer& devicePanelContainer_);
+    ConnectionPanelHeader(ConnectionPanel& connectionPanel_, ConnectionPanelContainer& connectionPanelContainer_);
 
-    ~DevicePanelHeader() override;
+    ~ConnectionPanelHeader() override;
 
     void paint(juce::Graphics& g) override;
 
@@ -47,8 +47,8 @@ public:
     std::function<void()> onRetry;
 
 private:
-    DevicePanel& devicePanel;
-    DevicePanelContainer& devicePanelContainer;
+    ConnectionPanel& connectionPanel;
+    ConnectionPanelContainer& connectionPanelContainer;
     const std::shared_ptr<ximu3::Connection> connection;
 
     std::shared_ptr<std::atomic<bool>> destroyed = std::make_shared<std::atomic<bool>>(false);
@@ -58,8 +58,8 @@ private:
     IconButton retryButton { BinaryData::refresh_svg, "Retry" };
     IconButton strobeButton { BinaryData::location_svg, "Locate Device (Strobe LED)" };
     SimpleLabel title;
-    StatusIcon rssiIcon { BinaryData::wifi_unknown_svg, "Wi-Fi RSSI" };
-    StatusIcon batteryIcon { BinaryData::battery_unknown_svg, "Battery Level" };
+    RssiIconAndText rssiIcon;
+    BatteryIconAndText batteryIcon;
 
     juce::SharedResourcePointer<ximu3::NetworkAnnouncement> networkAnnouncement;
     std::function<void(ximu3::XIMU3_NetworkAnnouncementMessage)> networkAnnouncementCallback;
@@ -73,9 +73,5 @@ private:
 
     void updateTitle(const juce::String& status);
 
-    void updateRssi(const int percentage);
-
-    void updateBattery(const int percentage, const ximu3::XIMU3_ChargingStatus status);
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevicePanelHeader)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConnectionPanelHeader)
 };

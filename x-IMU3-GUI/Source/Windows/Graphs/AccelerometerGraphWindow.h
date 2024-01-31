@@ -9,13 +9,11 @@
 class AccelerometerGraphWindow : public GraphWindow
 {
 public:
-    AccelerometerGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer);
+    AccelerometerGraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_, GLRenderer& glRenderer);
 
     ~AccelerometerGraphWindow() override;
 
 private:
-    static juce::ValueTree settingsTree_;
-
     std::vector<uint64_t> callbackIDs;
     std::function<void(ximu3::XIMU3_InertialMessage)> inertialCallback;
 };

@@ -6,28 +6,28 @@
 #include "Widgets/SimpleLabel.h"
 #include "Ximu3.hpp"
 
-class DevicePanel;
+class ConnectionPanel;
 
-class DevicePanelFooter : public juce::Component
+class ConnectionPanelFooter : public juce::Component, private juce::Timer
 {
 public:
-    DevicePanelFooter(DevicePanel& devicePanel_);
+    ConnectionPanelFooter(ConnectionPanel& connectionPanel_);
 
-    ~DevicePanelFooter() override;
+    ~ConnectionPanelFooter() override;
 
     void paint(juce::Graphics&) override;
 
     void resized() override;
 
 private:
-    DevicePanel& devicePanel;
+    ConnectionPanel& connectionPanel;
 
     SimpleLabel statisticsLabel { "", UIFonts::getSmallFont() };
 
     SimpleLabel latestMessageLabel { "", UIFonts::getSmallFont(), juce::Justification::centredRight };
 
     IconButton notificationsButton { BinaryData::speech_grey_svg, "Notification Messages", nullptr, false, BinaryData::speech_white_svg };
-    IconButton errorsButton { BinaryData::warning_grey_svg, "Error Messages", nullptr, false, BinaryData::warning_orange_svg };
+    IconButton errorsButton { BinaryData::error_grey_svg, "Error Messages", nullptr, false, BinaryData::error_red_svg };
     SimpleLabel numberOfNotificationsLabel { "0", UIFonts::getSmallFont(), juce::Justification::right };
     SimpleLabel numberOfErrorsLabel { "0", UIFonts::getSmallFont(), juce::Justification::right };
 
@@ -42,5 +42,7 @@ private:
 
     void messagesChanged();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DevicePanelFooter)
+    void timerCallback() override;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConnectionPanelFooter)
 };

@@ -9,13 +9,11 @@
 class EulerAnglesGraphWindow : public GraphWindow
 {
 public:
-    EulerAnglesGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer);
+    EulerAnglesGraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_, GLRenderer& glRenderer);
 
     ~EulerAnglesGraphWindow() override;
 
 private:
-    static juce::ValueTree settingsTree_;
-
     std::vector<uint64_t> callbackIDs;
     std::function<void(ximu3::XIMU3_QuaternionMessage)> quaternionCallback;
     std::function<void(ximu3::XIMU3_RotationMatrixMessage)> rotationMatrixCallback;

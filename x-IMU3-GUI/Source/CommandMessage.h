@@ -37,8 +37,20 @@ public:
         return json;
     }
 
+    std::optional<juce::String> getError() const
+    {
+        if (const auto* const object = value.getDynamicObject(); object != nullptr && object->hasProperty("error"))
+        {
+            return object->getProperty("error").toString();
+        }
+        return {};
+    }
+
     static juce::String normaliseKey(const juce::String& key)
     {
         return std::regex_replace(key.toLowerCase().toStdString(), std::regex("[^0-9a-z]"), "");
     }
+
+private:
+    JUCE_LEAK_DETECTOR(CommandMessage)
 };

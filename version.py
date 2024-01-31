@@ -1,7 +1,7 @@
 import os
 import re
 
-version = "1.3.10"
+version = "1.3.9"
 
 
 def replace(file_path, string):
@@ -24,7 +24,7 @@ for root, _, files in os.walk(os.path.dirname(os.path.realpath(__file__))):
             replace(file_path, "version=\".*\"")
 
         if file == "CMakeLists.txt":
-            replace(file_path, "project\(X_IMU3_GUI VERSION .*\)")
+            replace(file_path, "project\(x-IMU3-Software VERSION .*\)")
 
         if file == "AssemblyInfo.cpp":
             replace(file_path, "AssemblyVersionAttribute\(\".*\"\)")

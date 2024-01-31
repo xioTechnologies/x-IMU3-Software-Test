@@ -9,13 +9,11 @@
 class RssiPowerGraphWindow : public GraphWindow
 {
 public:
-    RssiPowerGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer);
+    RssiPowerGraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_, GLRenderer& glRenderer);
 
     ~RssiPowerGraphWindow() override;
 
 private:
-    static juce::ValueTree settingsTree_;
-
     std::vector<uint64_t> callbackIDs;
     std::function<void(ximu3::XIMU3_RssiMessage)> rssiCallback;
 };

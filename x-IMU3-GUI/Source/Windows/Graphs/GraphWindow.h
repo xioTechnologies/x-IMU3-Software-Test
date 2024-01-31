@@ -5,15 +5,14 @@
 #include "Windows/Window.h"
 #include "Ximu3.hpp"
 
-class GraphWindow : public Window, private juce::ValueTree::Listener
+class GraphWindow : public Window, private juce::AsyncUpdater
 {
 public:
-    GraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, DevicePanel& devicePanel_,
+    GraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_,
                 GLRenderer& glRenderer,
                 const juce::String& yAxis,
                 std::vector<juce::String> legendStrings_,
                 std::vector<juce::Colour> legendColours_,
-                juce::ValueTree settingsTree_,
                 bool defaultHorizontalAutoscale_);
 
     void paint(juce::Graphics& g) override;
@@ -40,7 +39,6 @@ private:
     const std::vector<juce::String> legendStrings;
     const std::vector<juce::Colour> legendColours;
     const bool defaultHorizontalAutoscale;
-    juce::ValueTree settingsTree;
     const int numberOfChannels = (int) legendStrings.size();
 
     Graph graph;
@@ -65,7 +63,9 @@ private:
 
     void zoomVertical(const float multiplier);
 
-    juce::PopupMenu getMenu();
+    juce::PopupMenu getMenu() override;
 
     void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
+
+    void handleAsyncUpdate() override;
 };

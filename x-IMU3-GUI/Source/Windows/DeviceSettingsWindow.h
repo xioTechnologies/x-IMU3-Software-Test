@@ -10,7 +10,7 @@
 class DeviceSettingsWindow : public Window
 {
 public:
-    DeviceSettingsWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type, DevicePanel& devicePanel_);
+    DeviceSettingsWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type, ConnectionPanel& connectionPanel_);
 
     ~DeviceSettingsWindow() override;
 
@@ -19,13 +19,13 @@ public:
     void resized() override;
 
 private:
-    DeviceSettings settingsTree;
+    DeviceSettings deviceSettings;
 
     IconButton readAllButton { BinaryData::download_svg, "Read Settings from Device", nullptr, false, BinaryData::download_warning_svg, "Read Settings from Device (Failed)" };
     IconButton writeAllButton { BinaryData::upload_svg, "Write Settings to Device", nullptr, false, BinaryData::upload_warning_svg, "Write Settings to Device (Failed)" };
     IconButton saveToFileButton { BinaryData::save_svg, "Save Settings to File" };
     IconButton loadFromFileButton { BinaryData::open_svg, "Load Settings from File" };
-    IconButton defaultsButton { BinaryData::default_svg, "Restore Defaults" };
+    IconButton defaultsButton { BinaryData::default_svg, "Restore Defaults on Device" };
 
     const std::vector<juce::Component*> buttons { &readAllButton, &writeAllButton, &saveToFileButton, &loadFromFileButton, &defaultsButton };
 
@@ -37,7 +37,7 @@ private:
 
     void disableInProgress();
 
-    juce::PopupMenu getMenu();
+    juce::PopupMenu getMenu() override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceSettingsWindow)
 };

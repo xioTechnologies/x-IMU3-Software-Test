@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CommandMessage.h"
-#include "DevicePanel/DevicePanel.h"
+#include "ConnectionPanel/ConnectionPanel.h"
 #include "Dialog.h"
 #include "Widgets/CustomToggleButton.h"
 #include "Widgets/SimpleLabel.h"
@@ -11,7 +11,7 @@ class SendingCommandDialog : public Dialog,
                              private juce::Timer
 {
 public:
-    SendingCommandDialog(const CommandMessage& command, const std::vector<DevicePanel*>& devicePanels);
+    SendingCommandDialog(const CommandMessage& command, const std::vector<ConnectionPanel*>& connectionPanels);
 
     void resized() override;
 
@@ -19,8 +19,8 @@ private:
     enum class ColumnIDs
     {
         tag = 1,
-        connection,
-        complete,
+        titleAndError,
+        icon,
     };
 
     struct Row
@@ -32,14 +32,19 @@ private:
             complete,
         };
 
-        DevicePanel& devicePanel;
+        ConnectionPanel& connectionPanel;
         State state = State::inProgress;
+        juce::String error {};
     };
 
     juce::TableListBox table { "", this };
     std::vector<Row> rows;
 
     CustomToggleButton closeWhenCompleteButton { "Close When Complete" };
+
+    int sendDelay = 0;
+
+    std::optional<int> findRow(const Row::State state) const;
 
     int getNumRows() override;
 

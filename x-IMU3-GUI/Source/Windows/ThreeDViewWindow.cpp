@@ -1,11 +1,10 @@
-#include "./DevicePanelContainer.h"
+#include "./ConnectionPanelContainer.h"
 #include "Convert.h"
 #include "ThreeDViewWindow.h"
 
-ThreeDViewWindow::ThreeDViewWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer, juce::ValueTree settingsTree_)
-        : Window(windowLayout_, type_, devicePanel_, "3D View Menu", std::bind(&ThreeDViewWindow::getMenu, this)),
-          threeDView(glRenderer),
-          settingsTree(settingsTree_)
+ThreeDViewWindow::ThreeDViewWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_, GLRenderer& glRenderer)
+        : Window(windowLayout_, type_, connectionPanel_, "3D View Menu"),
+          threeDView(glRenderer)
 {
     addAndMakeVisible(threeDView);
 
@@ -21,7 +20,7 @@ ThreeDViewWindow::ThreeDViewWindow(const juce::ValueTree& windowLayout_, const j
 
     addAndMakeVisible(loadingLabel);
 
-    quaternionCallbackID = devicePanel.getConnection()->addQuaternionCallback(quaternionCallback = [&](auto message)
+    quaternionCallbackID = connectionPanel.getConnection()->addQuaternionCallback(quaternionCallback = [&](auto message)
     {
         threeDView.update(message.x, message.y, message.z, message.w);
 
@@ -32,7 +31,7 @@ ThreeDViewWindow::ThreeDViewWindow(const juce::ValueTree& windowLayout_, const j
         yaw = eulerAngles.z;
     });
 
-    rotationMatrixCallbackID = devicePanel.getConnection()->addRotationMatrixCallback(rotationMatrixCallback = [&](auto message)
+    rotationMatrixCallbackID = connectionPanel.getConnection()->addRotationMatrixCallback(rotationMatrixCallback = [&](auto message)
     {
         const auto quaternion = Convert::toQuaternion(message.xx, message.xy, message.xz,
                                                       message.yx, message.yy, message.yz,
@@ -41,7 +40,7 @@ ThreeDViewWindow::ThreeDViewWindow(const juce::ValueTree& windowLayout_, const j
         quaternionCallback({ message.timestamp, quaternion.scalar, quaternion.vector.x, quaternion.vector.y, quaternion.vector.z });
     });
 
-    eulerAnglesCallbackID = devicePanel.getConnection()->addEulerAnglesCallback(eulerAnglesCallback = [&](auto message)
+    eulerAnglesCallbackID = connectionPanel.getConnection()->addEulerAnglesCallback(eulerAnglesCallback = [&](auto message)
     {
         const auto quaternion = Convert::toQuaternion(message.roll, message.pitch, message.yaw);
 
@@ -52,24 +51,23 @@ ThreeDViewWindow::ThreeDViewWindow(const juce::ValueTree& windowLayout_, const j
         yaw = message.yaw;
     });
 
-    linearAccelerationCallbackID = devicePanel.getConnection()->addLinearAccelerationCallback(linearAccelerationCallback = [&](auto message)
+    linearAccelerationCallbackID = connectionPanel.getConnection()->addLinearAccelerationCallback(linearAccelerationCallback = [&](auto message)
     {
         quaternionCallback({ message.timestamp, message.quaternion_w, message.quaternion_x, message.quaternion_y, message.quaternion_z });
     });
 
-    earthAccelerationCallbackID = devicePanel.getConnection()->addEarthAccelerationCallback(earthAccelerationCallback = [&](auto message)
+    earthAccelerationCallbackID = connectionPanel.getConnection()->addEarthAccelerationCallback(earthAccelerationCallback = [&](auto message)
     {
         quaternionCallback({ message.timestamp, message.quaternion_w, message.quaternion_x, message.quaternion_y, message.quaternion_z });
     });
 
-    ahrsStatusMessageCallbackID = devicePanel.getConnection()->addAhrsStatusCallback(ahrsStatusMessageCallback = [&](ximu3::XIMU3_AhrsStatusMessage message)
+    ahrsStatusMessageCallbackID = connectionPanel.getConnection()->addAhrsStatusCallback(ahrsStatusMessageCallback = [&](ximu3::XIMU3_AhrsStatusMessage message)
     {
         angularRateRecoveryState = juce::exactlyEqual(message.angular_rate_recovery, 0.0f) == false;
         accelerationRecoveryState = juce::exactlyEqual(message.acceleration_recovery, 0.0f) == false;
         magneticRecoveryState = juce::exactlyEqual(message.magnetic_recovery, 0.0f) == false;
     });
 
-    settingsTree.addListener(this);
     threeDView.setSettings(readFromValueTree());
 
     startTimerHz(25);
@@ -78,12 +76,12 @@ ThreeDViewWindow::ThreeDViewWindow(const juce::ValueTree& windowLayout_, const j
 
 ThreeDViewWindow::~ThreeDViewWindow()
 {
-    devicePanel.getConnection()->removeCallback(quaternionCallbackID);
-    devicePanel.getConnection()->removeCallback(rotationMatrixCallbackID);
-    devicePanel.getConnection()->removeCallback(eulerAnglesCallbackID);
-    devicePanel.getConnection()->removeCallback(linearAccelerationCallbackID);
-    devicePanel.getConnection()->removeCallback(earthAccelerationCallbackID);
-    devicePanel.getConnection()->removeCallback(ahrsStatusMessageCallbackID);
+    connectionPanel.getConnection()->removeCallback(quaternionCallbackID);
+    connectionPanel.getConnection()->removeCallback(rotationMatrixCallbackID);
+    connectionPanel.getConnection()->removeCallback(eulerAnglesCallbackID);
+    connectionPanel.getConnection()->removeCallback(linearAccelerationCallbackID);
+    connectionPanel.getConnection()->removeCallback(earthAccelerationCallbackID);
+    connectionPanel.getConnection()->removeCallback(ahrsStatusMessageCallbackID);
 }
 
 void ThreeDViewWindow::resized()
@@ -141,7 +139,7 @@ void ThreeDViewWindow::mouseDown(const juce::MouseEvent& mouseEvent)
 
 void ThreeDViewWindow::mouseDrag(const juce::MouseEvent& mouseEvent)
 {
-    if (devicePanel.getDevicePanelContainer().getCurrentlyShowingDragOverlay() != nullptr)
+    if (connectionPanel.getConnectionPanelContainer().getCurrentlyShowingDragOverlay() != nullptr)
     {
         return;
     }
@@ -240,11 +238,16 @@ void ThreeDViewWindow::updateAhrsStatusVisibilities()
 
 juce::PopupMenu ThreeDViewWindow::getMenu()
 {
-    juce::PopupMenu menu;
+    juce::PopupMenu menu = Window::getMenu();
 
     menu.addItem("Restore Defaults", true, false, [&]
     {
+        const auto size = settingsTree.getProperty(WindowIDs::size);
         settingsTree.removeAllProperties(nullptr);
+        if (size.isVoid() == false)
+        {
+            settingsTree.setProperty(WindowIDs::size, size, nullptr);
+        }
     });
 
     menu.addSeparator();
@@ -391,8 +394,13 @@ void ThreeDViewWindow::timerCallback()
     magneticRecoveryIcon.setIcon(magneticRecoveryState.load() ? BinaryData::magnet_white_svg : BinaryData::magnet_grey_svg);
 }
 
-void ThreeDViewWindow::valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier& property)
+void ThreeDViewWindow::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
+    if (treeWhosePropertyHasChanged != settingsTree)
+    {
+        return;
+    }
+
     if (property.toString() == "eulerAnglesEnabled")
     {
         updateEulerAnglesVisibilities();

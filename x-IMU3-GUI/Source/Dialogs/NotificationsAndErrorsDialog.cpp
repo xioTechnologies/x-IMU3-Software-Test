@@ -1,5 +1,5 @@
 #include <BinaryData.h>
-#include "DevicePanel/DevicePanel.h"
+#include "ConnectionPanel/ConnectionPanel.h"
 #include "NotificationsAndErrorsDialog.h"
 #include "Widgets/Icon.h"
 
@@ -10,7 +10,7 @@ juce::String NotificationsAndErrorsDialog::Message::getIcon() const
         case Message::Type::notification:
             return unread ? BinaryData::speech_white_svg : BinaryData::speech_grey_svg;
         case Message::Type::error:
-            return unread ? BinaryData::warning_orange_svg : BinaryData::warning_grey_svg;
+            return unread ? BinaryData::error_red_svg : BinaryData::error_grey_svg;
     }
     return {}; // avoid compiler warning
 }
@@ -34,27 +34,27 @@ juce::Colour NotificationsAndErrorsDialog::Message::getColour() const
         case Message::Type::notification:
             return UIColours::foreground;
         case Message::Type::error:
-            return UIColours::warning;
+            return UIColours::error;
     }
     return {}; // avoid compiler warning
 }
 
-NotificationsAndErrorsDialog::NotificationsAndErrorsDialog(std::vector<Message>& messages_, const std::function<void()>& onClear, const DevicePanel& devicePanel)
-        : Dialog(BinaryData::speech_white_svg, "Notifications and Errors from " + devicePanel.getTitle(), "Close", "", &clearAllButton, 80, true, devicePanel.getTag()),
+NotificationsAndErrorsDialog::NotificationsAndErrorsDialog(std::vector<Message>& messages_, const std::function<void()>& onClear, const ConnectionPanel& connectionPanel)
+        : Dialog(BinaryData::speech_white_svg, "Notifications and Errors from " + connectionPanel.getTitle(), "Close", "", &clearButton, 70, true, connectionPanel.getTag()),
           messages(messages_)
 {
-    addAndMakeVisible(clearAllButton);
-    clearAllButton.onClick = [&, onClear = onClear]
+    addAndMakeVisible(clearButton);
+    addAndMakeVisible(typeLabel);
+    addAndMakeVisible(timestampLabel);
+    addAndMakeVisible(messageLabel);
+    addAndMakeVisible(table);
+
+    clearButton.onClick = [&, onClear = onClear]
     {
         messages.clear();
         onClear();
     };
 
-    addAndMakeVisible(typeLabel);
-    addAndMakeVisible(timestampLabel);
-    addAndMakeVisible(messageLabel);
-
-    addAndMakeVisible(table);
     table.getHeader().addColumn("", (int) ColumnID::type, 70, 70, 70);
     table.getHeader().addColumn("", (int) ColumnID::timestamp, 100, 100, 100);
     table.getHeader().addColumn("", (int) ColumnID::message, 1);

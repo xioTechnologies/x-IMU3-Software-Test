@@ -1,21 +1,19 @@
-#include "DevicePanel/DevicePanel.h"
+#include "ConnectionPanel/ConnectionPanel.h"
 #include "GraphWindow.h"
 #include "Widgets/PopupMenuHeader.h"
 
 const juce::String GraphWindow::degreeSymbol = (juce::CharPointer_UTF8("\xc2\xba"));
 
-GraphWindow::GraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, DevicePanel& devicePanel_,
+GraphWindow::GraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_,
                          GLRenderer& glRenderer,
                          const juce::String& yAxis,
                          std::vector<juce::String> legendStrings_,
                          std::vector<juce::Colour> legendColours_,
-                         juce::ValueTree settingsTree_,
                          bool defaultHorizontalAutoscale_)
-        : Window(windowLayout_, type_, devicePanel_, "", std::bind(&GraphWindow::getMenu, this)),
+        : Window(windowLayout_, type_, connectionPanel_, ""),
           legendStrings(legendStrings_),
           legendColours(legendColours_),
           defaultHorizontalAutoscale(defaultHorizontalAutoscale_),
-          settingsTree(settingsTree_),
           graph(glRenderer, legendColours_, labelHeight, rightMargin),
           xLabel("Time (s)", UIFonts::getDefaultFont(), juce::Justification::centred),
           yLabel(yAxis, UIFonts::getDefaultFont(), juce::Justification::centred)
@@ -26,7 +24,6 @@ GraphWindow::GraphWindow(const juce::ValueTree& windowLayout_, const juce::Ident
     addAndMakeVisible(xLabel);
     addAndMakeVisible(yLabel);
 
-    settingsTree.addListener(this);
     graph.setSettings(readFromValueTree());
 }
 
@@ -219,16 +216,16 @@ void GraphWindow::zoomVertical(const float multiplier)
 
 juce::PopupMenu GraphWindow::getMenu()
 {
-    juce::PopupMenu menu;
+    juce::PopupMenu menu = Window::getMenu();
 
     menu.addItem("Restore Defaults", true, false, [this]
     {
-        settingsTree.removeProperty("paused", nullptr);
-
-        Graph::Settings settings;
-        settings.horizontalAutoscale = defaultHorizontalAutoscale;
-        settings.enabledChannels.resize((size_t) numberOfChannels, true);
-        writeToValueTree(settings);
+        const auto size = settingsTree.getProperty(WindowIDs::size);
+        settingsTree.removeAllProperties(nullptr);
+        if (size.isVoid() == false)
+        {
+            settingsTree.setProperty(WindowIDs::size, size, nullptr);
+        }
     });
     menu.addItem("Scale to Fit (Double Click)", (graph.getSettings().horizontalAutoscale == false) || (graph.getSettings().verticalAutoscale == false), false, [this]
     {
@@ -348,6 +345,11 @@ juce::PopupMenu GraphWindow::getMenu()
 
 void GraphWindow::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property)
 {
+    if (treeWhosePropertyHasChanged != settingsTree)
+    {
+        return;
+    }
+
     if (property.toString() == "scaleToFit")
     {
         graph.scaleToFit();
@@ -371,5 +373,10 @@ void GraphWindow::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHas
         repaint();
     }
 
+    triggerAsyncUpdate();
+}
+
+void GraphWindow::handleAsyncUpdate()
+{
     graph.setSettings(readFromValueTree());
 }

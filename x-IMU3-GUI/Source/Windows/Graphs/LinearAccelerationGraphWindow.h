@@ -9,13 +9,11 @@
 class LinearAccelerationGraphWindow : public GraphWindow
 {
 public:
-    LinearAccelerationGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer);
+    LinearAccelerationGraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_, GLRenderer& glRenderer);
 
     ~LinearAccelerationGraphWindow() override;
 
 private:
-    static juce::ValueTree settingsTree_;
-
     std::vector<uint64_t> callbackIDs;
     std::function<void(ximu3::XIMU3_LinearAccelerationMessage)> linearAccelerationCallback;
 };

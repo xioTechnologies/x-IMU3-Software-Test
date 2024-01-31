@@ -9,13 +9,11 @@
 class HighGAccelerometerGraphWindow : public GraphWindow
 {
 public:
-    HighGAccelerometerGraphWindow(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, GLRenderer& glRenderer);
+    HighGAccelerometerGraphWindow(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_, GLRenderer& glRenderer);
 
     ~HighGAccelerometerGraphWindow() override;
 
 private:
-    static juce::ValueTree settingsTree_;
-
     std::vector<uint64_t> callbackIDs;
     std::function<void(ximu3::XIMU3_HighGAccelerometerMessage)> highGAccelerometerCallback;
 };

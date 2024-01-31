@@ -3,12 +3,13 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "WindowHeader.h"
 
-class DevicePanel;
+class ConnectionPanel;
 
-class Window : public juce::Component
+class Window : public juce::Component,
+               private juce::ValueTree::Listener
 {
 public:
-    Window(const juce::ValueTree& windowLayout, const juce::Identifier& type_, DevicePanel& devicePanel_, const juce::String& menuButtonTooltip, std::function<juce::PopupMenu()> getPopup);
+    Window(const juce::ValueTree& windowLayout_, const juce::Identifier& type_, ConnectionPanel& connectionPanel_, const juce::String& menuButtonTooltip);
 
     void resized() override;
 
@@ -17,11 +18,19 @@ public:
     const juce::Identifier& getType() const;
 
 protected:
-    DevicePanel& devicePanel;
+    juce::ValueTree settingsTree;
+    ConnectionPanel& connectionPanel;
+
+    virtual juce::PopupMenu getMenu();
 
 private:
+    juce::ValueTree windowLayout;
     const juce::Identifier type;
     WindowHeader header;
+
+    void closeWindow(const juce::Identifier& type_);
+
+    void valueTreeChildAdded(juce::ValueTree&, juce::ValueTree&) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Window)
 };
