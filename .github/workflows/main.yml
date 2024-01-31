@@ -28,14 +28,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: # [ os, rust-target, library-file-name, library-file-extension ]
-          - [ macos-latest, x86_64-apple-darwin, libximu3, a ]
-          - [ macos-latest, aarch64-apple-darwin, libximu3, a ]
-          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a ]
-          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a ]
-          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a ]
-          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a ]
-          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib ]
+        target: # [ os, rust-target, file-name, static-file-extension, dynamic-file-extension ]
+          - [ macos-latest, x86_64-apple-darwin, libximu3, a, dylib ]
+          - [ macos-latest, aarch64-apple-darwin, libximu3, a, dylib ]
+          - [ macos-latest, aarch64-apple-ios, libximu3, a, dylib ]
+          - [ macos-latest, aarch64-apple-ios-sim, libximu3, a, dylib ]
+          - [ macos-latest, x86_64-apple-ios, libximu3, a, dylib ]
+          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a, so ]
+          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a, so ]
+          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a, so ]
+          - [ ubuntu-latest, aarch64-linux-android, libximu3, a, so ]
+          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a, dll ]
+          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib, dll ]
 
     steps:
       - uses: actions/checkout@v4
@@ -62,8 +66,9 @@ jobs:
         name: Zip
         uses: vimtor/action-zip@v1.1
         with:
-          files: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
-          dest: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+          files: ${{ matrix.target[2] }}.${{ matrix.target[3] }} ${{ matrix.target[2] }}.${{ matrix.target[4] }}
+          dest: ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+        working-directory: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Upload to release
