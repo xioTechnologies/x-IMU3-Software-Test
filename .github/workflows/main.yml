@@ -49,7 +49,6 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          PKG_CONFIG_PATH=/usr/lib/i686-unknown-linux-gnu/pkgconfig/
           sudo apt-get install -y libudev-dev:i386
 
       - name: Build
@@ -58,6 +57,7 @@ jobs:
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
           rustup target add ${{ matrix.target[1] }}
+          PKG_CONFIG_PATH=/usr/lib/i686-unknown-linux-gnu/pkgconfig/
           cargo build --release --target ${{ matrix.target[1] }}
 
       - uses: actions/upload-artifact@v4
