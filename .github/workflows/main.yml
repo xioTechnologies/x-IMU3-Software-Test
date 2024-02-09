@@ -48,7 +48,7 @@ jobs:
         name: Install ubuntu dependency
         run: |
           sudo apt-get install -y libudev-dev
-          sudo apt-get install -y libudev0:i386
+          sudo apt-get install -y libudev-dev:arm64
 
       - name: Build
         working-directory: x-IMU3-API/Rust/
