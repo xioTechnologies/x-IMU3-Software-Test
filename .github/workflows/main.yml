@@ -44,8 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - if: matrix.target[0] == 'ubuntu-latest'
-        name: Install ubuntu dependency
+      - name: Install ubuntu dependency
         run: |
           sudo dpkg --add-architecture ${{ matrix.target[5] }}
           sudo apt-get update
