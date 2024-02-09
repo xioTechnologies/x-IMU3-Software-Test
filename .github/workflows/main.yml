@@ -44,22 +44,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - if: matrix.target[0] == 'ubuntu-latest'
-        name: Install ubuntu dependency
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y libudev-dev:i386
-
       - name: Build
         working-directory: x-IMU3-API/Rust/
-        env:
-          PKG_CONFIG_SYSROOT_DIR: /
         run: |
-          rustup target add ${{ matrix.target[1] }}
-          PKG_CONFIG_PATH_i686-unknown-linux=/usr/lib/i686-linux-gnu/pkgconfig
-          PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu=/
-          cargo build --release --target ${{ matrix.target[1] }}
+          cargo install cross
+          cross build --target ${{ matrix.target[1] }}
+
+#      - if: matrix.target[0] == 'ubuntu-latest'
+#        name: Install ubuntu dependency
+#        run: |
+#          sudo dpkg --add-architecture i386
+#          sudo apt-get update
+#          sudo apt-get install -y libudev-dev:i386
+#
+#      - name: Build
+#        working-directory: x-IMU3-API/Rust/
+#        env:
+#          PKG_CONFIG_SYSROOT_DIR: /
+#        run: |
+#          rustup target add ${{ matrix.target[1] }}
+#          PKG_CONFIG_PATH_i686-unknown-linux=/usr/lib/i686-linux-gnu/pkgconfig
+#          PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu=/
+#          cargo build --release --target ${{ matrix.target[1] }}
 
       - uses: actions/upload-artifact@v4
         name: Upload to artifacts
