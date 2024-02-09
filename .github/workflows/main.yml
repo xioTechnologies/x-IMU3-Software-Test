@@ -48,9 +48,8 @@ jobs:
         name: Install ubuntu dependency
         run: |
           sudo dpkg --add-architecture ${{ matrix.target[5] }}
-          sudo rm -f /etc/apt/sources.list.d/archive_uri-*
-          sudo apt-get update
-#          sudo apt-get install -y gcc-multilib libudev-dev:${{ matrix.target[5] }}
+#          sudo apt-get update
+          sudo apt-get install -y gcc-multilib libudev-dev:${{ matrix.target[5] }}
 
 #      - name: Build
 #        working-directory: x-IMU3-API/Rust/
