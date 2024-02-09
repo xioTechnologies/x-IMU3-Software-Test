@@ -48,7 +48,7 @@ jobs:
         name: Install ubuntu dependency
         run: |
           sudo dpkg --add-architecture arm64
-          sudo apt-get dist-upgrade
+          sudo mv /etc/apt/sources.list.d/* ~/solution
           sudo apt-get update
           sudo apt-get install -y libudev-dev:arm64
 
