@@ -63,7 +63,7 @@ jobs:
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
           rustup target add ${{ matrix.target[1] }}
-          PKG_CONFIG_PATH_i686-unknown-linux=/usr/lib/i386-linux-gnu/pkgconfig
+          PKG_CONFIG_PATH_i686-unknown-linux-gnu=/usr/lib/i386-linux-gnu/pkgconfig
           PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu=/
           cargo build --release --target ${{ matrix.target[1] }}
 
