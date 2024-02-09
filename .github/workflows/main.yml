@@ -61,8 +61,9 @@ jobs:
         working-directory: x-IMU3-API/Rust/
         env:
           PKG_CONFIG_SYSROOT_DIR: /
-          PKG_CONFIG_SYSROOT_DIR_: /usr/lib/i386-linux-gnu/pkgconfig
+          PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
           PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
+          PKG_CONFIG_ALLOW_CROSS: 1
         run: |
           rustup target add ${{ matrix.target[1] }}
           cargo build --release --target ${{ matrix.target[1] }}
