@@ -48,8 +48,7 @@ jobs:
         name: Install ubuntu dependency
         run: |
           sudo dpkg --add-architecture ${{ matrix.target[5] }}
-          sudo sed -i "s/archive.ubuntu.com/old-releases.ubuntu.com/" /etc/apt/sources.list
-          sudo sed -i "s/security.ubuntu.com/old-releases.ubuntu.com/" /etc/apt/sources.list
+          sudo sed -i "s/archive.ubuntu.com/mirrors.mit.edu/" /etc/apt/sources.list
           sudo apt-get update
           sudo apt-get install -y gcc-multilib libudev-dev:${{ matrix.target[5] }}
 
