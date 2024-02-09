@@ -47,6 +47,7 @@ jobs:
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
         run: |
+          sudo rm /etc/apt/sources.list
           sudo echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted" >> /etc/apt/sources.list
           sudo echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted" >> /etc/apt/sources.list
           sudo echo "deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy universe" >> /etc/apt/sources.list
