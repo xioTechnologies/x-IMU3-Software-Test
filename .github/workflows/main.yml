@@ -47,6 +47,22 @@ jobs:
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
         run: |
+          echo deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal main restricted > arm64-sources.list
+          echo deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal-updates main restricted >> arm64-sources.list
+          echo deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal universe >> arm64-sources.list
+          echo deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal-updates universe >> arm64-sources.list
+          echo deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal multiverse >> arm64-sources.list
+          echo deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal-updates multiverse >> arm64-sources.list
+          echo deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ focal-backports main restricted universe multiverse >> arm64-sources.list
+          echo deb [arch=amd64] http://security.ubuntu.com/ubuntu/ focal-security main restricted >> arm64-sources.list
+          echo deb [arch=amd64] http://security.ubuntu.com/ubuntu/ focal-security universe >> arm64-sources.list
+          echo deb [arch=amd64] http://security.ubuntu.com/ubuntu/ focal-security multiverse >> arm64-sources.list
+          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main >> arm64-sources.list
+          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal universe >> arm64-sources.list
+          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main >> arm64-sources.list
+          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main >> arm64-sources.list
+          sudo mv arm64-sources.list /etc/apt/sources.list.d/
+          
           sudo dpkg --add-architecture ${{ matrix.target[5] }}
           sudo apt-get clean
           sudo apt-get update
