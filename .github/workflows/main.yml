@@ -64,7 +64,6 @@ jobs:
           sudo mv arm64-sources.list /etc/apt/sources.list.d/
           
           sudo dpkg --add-architecture ${{ matrix.target[5] }}
-          sudo apt-get clean
           sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/arm64-sources.list
           sudo apt-get install -y --no-install-recommends gcc-multilib libudev-dev:${{ matrix.target[5] }}
 
