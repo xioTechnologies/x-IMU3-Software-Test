@@ -44,6 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      #   https://github.com/p-wysocki/openvino/blob/b36599d60e2b360a8ed55a1dffea4b7a8894aab0/.github/workflows/linux_arm64.yml#L105
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
         run: |
@@ -64,6 +65,7 @@ jobs:
           sudo mv arm64-sources.list /etc/apt/sources.list.d/
           
           sudo dpkg --add-architecture ${{ matrix.target[5] }}
+          sudo apt --fix-broken install
           sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/arm64-sources.list
           sudo apt-get install -y --no-install-recommends gcc-multilib libudev-dev:${{ matrix.target[5] }}
 
