@@ -46,7 +46,9 @@ jobs:
 
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
-        run: sudo apt-get install -y libudev-dev
+        run: |
+          sudo apt-get install -y libudev-dev
+          sudo apt-get install -y libudev-dev:i386
 
       - name: Build
         working-directory: x-IMU3-API/Rust/
