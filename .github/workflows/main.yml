@@ -55,7 +55,7 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y build-essential:i386 libudev-dev:i386
+          sudo apt-get install -y gcc-multilib libudev-dev:i386
 
       - name: Build
         working-directory: x-IMU3-API/Rust/
