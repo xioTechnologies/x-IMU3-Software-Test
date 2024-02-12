@@ -58,7 +58,7 @@ jobs:
             cargo install cargo-ndk
             cargo ndk -t ${{ matrix.target[1] }} build --release --crate-type=dylib
           else
-            cargo build --release --target ${{ matrix.target[1] }} --crate-type=dylib
+            cargo rustc --release --target ${{ matrix.target[1] }} --crate-type=dylib
           fi
 
       - uses: actions/upload-artifact@v4
