@@ -34,10 +34,10 @@ jobs:
 #          - [ macos-latest, aarch64-apple-ios, libximu3, a, dylib ]
 #          - [ macos-latest, aarch64-apple-ios-sim, libximu3, a, dylib ]
 #          - [ macos-latest, x86_64-apple-ios, libximu3, a, dylib ]
-#          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a, so, i386, i386-linux-gnu ]
-          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a, so, arm64, aarch64-linux-gnu ]
-#          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a, so, amd64, x86_64-linux-gnu ]
-          - [ ubuntu-latest, aarch64-linux-android, libximu3, a, so, arm64, aarch64-linux-gnu ]
+          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a, so]
+          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a, so]
+          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a, so]
+          - [ ubuntu-latest, aarch64-linux-android, libximu3, a, so]
 #          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a, dll ]
 #          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib, dll ]
 
@@ -47,14 +47,16 @@ jobs:
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
         run: |
-          sudo apt-get install -y libudev-dev
-          sudo apt-get install -y libudev-dev:arm64
+          sudo apt-get install -y libudev-dev libudev-dev:i386 libudev-dev:arm64
           sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: Build
         working-directory: x-IMU3-API/Rust/
         env:
           PKG_CONFIG_SYSROOT_DIR: /
+          PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
+          PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
+          PKG_CONFIG_ALLOW_CROSS: 1
         run: |
           rustup target add ${{ matrix.target[1] }}
           if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
