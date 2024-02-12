@@ -47,6 +47,12 @@ jobs:
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
         run: |
+          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main >> arm64-sources.list
+          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal universe >> arm64-sources.list
+          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main >> arm64-sources.list
+          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main >> arm64-sources.list
+          sudo mv arm64-sources.list /etc/apt/sources.list.d/
+          
           sudo dpkg --add-architecture i386
           sudo dpkg --add-architecture arm64
           sudo apt-get update
