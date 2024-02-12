@@ -72,7 +72,7 @@ jobs:
           apt-get install -y curl
 
       - run: |
-          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
           source $HOME/.cargo/env       
 
       #          echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
