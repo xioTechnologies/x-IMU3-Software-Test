@@ -64,7 +64,9 @@ jobs:
 
       -  run: |
           apt-get install -y --no-install-recommends libudev-dev:${{ matrix.target[5] }}
-          
+
+      - run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh      
       
 
       - name: Build
