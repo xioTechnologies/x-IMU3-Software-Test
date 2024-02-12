@@ -21,18 +21,42 @@ jobs:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #        run: gh release create ${{ github.ref_name }}
 
-  rust-android-ios:
-    runs-on: ${{ matrix.target[0] }}
-#    needs: create-release
+  rust-ios:
+    runs-on: macos-latest
+    #    needs: create-release
 
     strategy:
       fail-fast: false
       matrix:
-        target: # [ os, rust-target, file-name, static-file-extension, dynamic-file-extension, linux-arch-short, linux-arch-long ]
-#          - [ macos-latest, aarch64-apple-ios, libximu3, dylib ]
-#          - [ macos-latest, aarch64-apple-ios-sim, libximu3, dylib ]
-#          - [ macos-latest, x86_64-apple-ios, libximu3, dylib ]
-          - [ ubuntu-latest, aarch64-linux-android, libximu3, so ]
+        target:
+          - aarch64-apple-ios
+          - aarch64-apple-ios-sim
+          - x86_64-apple-ios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        working-directory: x-IMU3-API/Rust/
+        env:
+          PKG_CONFIG_SYSROOT_DIR: /
+        run: |
+          rustup target add ${{ matrix.target }}
+          sed -i '' 's/staticlib/dylib/g' Cargo.toml
+          cargo build --release --target ${{ matrix.target }}
+
+      - uses: actions/upload-artifact@v4
+        name: Upload to artifacts
+        with:
+          name: rust-${{ matrix.target }}
+          path: x-IMU3-API/Rust/target/${{ matrix.target }}/release/libximu3.dylib
+
+  rust-android:
+    runs-on: macos-latest
+    #    needs: create-release
+
+    strategy:
+      fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
@@ -40,32 +64,24 @@ jobs:
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
         run: |
-          sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install gcc-multilib
-          sudo apt-get install -y libudev-dev libudev-dev:i386
+          sudo apt-get install -y libudev-dev        
 
       - name: Build
         working-directory: x-IMU3-API/Rust/
         env:
           PKG_CONFIG_SYSROOT_DIR: /
-          PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
-          PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
-          PKG_CONFIG_ALLOW_CROSS: 1
         run: |
-          rustup target add ${{ matrix.target[1] }}
-          if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
-            cargo install cargo-ndk
-            cargo ndk -t ${{ matrix.target[1] }} build --release extraCargoBuildArguments="--crate-type=dylib"
-          else
-            cargo rustc --release --target ${{ matrix.target[1] }} --crate-type=dylib
-          fi
+          rustup target add aarch64-linux-android
+          sed -i '' 's/staticlib/dylib/g' Cargo.toml
+          cargo install cargo-ndk
+          cargo ndk -t ${{ matrix.target[1] }} build --release
 
       - uses: actions/upload-artifact@v4
         name: Upload to artifacts
         with:
-          name: rust-${{ matrix.target[1] }}
-          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
+          name: rust-aarch64-linux-android
+          path: x-IMU3-API/Rust/target/aarch64-linux-android/release/libximu3.so
 
 
 
