@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, jelle/wip ]
     tags: [ "*" ]
   pull_request:
     branches: [ main ]
@@ -35,78 +35,32 @@ jobs:
 #          - [ macos-latest, aarch64-apple-ios-sim, libximu3, a, dylib ]
 #          - [ macos-latest, x86_64-apple-ios, libximu3, a, dylib ]
 #          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a, so, i386, i386-linux-gnu ]
-          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a, so, arm64, aarch64-linux-gnu ]
+#          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a, so, arm64, aarch64-linux-gnu ]
 #          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a, so, amd64, x86_64-linux-gnu ]
-#          - [ ubuntu-latest, aarch64-linux-android, libximu3, a, so, arm64, aarch64-linux-gnu ]
+          - [ ubuntu-latest, aarch64-linux-android, libximu3, a, so, arm64, aarch64-linux-gnu ]
 #          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a, dll ]
 #          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib, dll ]
-
-    container:
-      image: debian:12
 
     steps:
       - uses: actions/checkout@v4
 
-        #   https://github.com/p-wysocki/openvino/blob/b36599d60e2b360a8ed55a1dffea4b7a8894aab0/.github/workflows/linux_arm64.yml#L105
-
-#      -  run: |
-#          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main >> arm64-sources.list
-#          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal universe >> arm64-sources.list
-#          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main >> arm64-sources.list
-#          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main >> arm64-sources.list
-#          sudo mv arm64-sources.list /etc/apt/sources.list.d/
-
-      -  run: |
-          dpkg --add-architecture ${{ matrix.target[5] }}
-
-      -  run: |
-          apt-get update
-
-      -  run: |
-          apt-get install -y libudev-dev
-          apt-get install -y libudev-dev:${{ matrix.target[5] }}
-
-      -  run: |
-          apt-get install -y gcc-aarch64-linux-gnu
-#          apt-get install -y g++-aarch64-linux-gnu
-
-      -  run: |
-          apt-get install -y gcc-multilib
-
-      -  run: |
-          apt-get install -y curl
-
-      -  run: |
-          apt-get install -y pkg-config
-
-      -  run: |
-           curl https://sh.rustup.rs -sSf | sh -s -- -y
-
-           
-           
-           
-           #      - run: |
-#          sudo su
-#          curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal
-          
-
-#      - run: |
-#          env PATH=$HOME/.cargo/bin:$PATH bash get-deps
-
-      #          echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
-      
+      - if: matrix.target[0] == 'ubuntu-latest'
+        name: Install ubuntu dependency
+        run: sudo apt-get install -y libudev-dev
 
       - name: Build
         working-directory: x-IMU3-API/Rust/
         env:
           PKG_CONFIG_SYSROOT_DIR: /
-          PKG_CONFIG_PATH_aarch64-unknown-linux-gnu: /usr/lib/aarch64-linux-gnu/pkgconfig
-          PKG_CONFIG_SYSROOT_DIR_aarch64-unknown-linux-gnu: /
-          PKG_CONFIG_ALLOW_CROSS: 1
         run: |
-          . "$HOME/.cargo/env"
           rustup target add ${{ matrix.target[1] }}
           cargo build --release --target ${{ matrix.target[1] }}
+
+      - uses: actions/upload-artifact@v4
+        name: Upload to artifacts
+        with:
+          name: rust-${{ matrix.target[1] }}
+          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
 #
 #      - uses: actions/upload-artifact@v4
 #        name: Upload to artifacts
