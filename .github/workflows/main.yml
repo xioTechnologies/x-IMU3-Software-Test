@@ -73,8 +73,9 @@ jobs:
 
       - run: |
           curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+          source $HOME/.cargo/env       
 
-#          echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+      #          echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
       
 
       - name: Build
