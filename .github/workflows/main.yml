@@ -63,6 +63,11 @@ jobs:
           sudo apt-get install -y --no-install-recommends dpkg-dev
 
       -  run: |
+          sudo apt-get install --no-install-recommends -y gcc-12-aarch64-linux-gnu g++-12-aarch64-linux-gnu           
+           
+           
+
+      -  run: |
           sudo apt-get install -y --no-install-recommends libudev-dev:${{ matrix.target[5] }}
           
       
