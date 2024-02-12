@@ -71,9 +71,12 @@ jobs:
       -  run: |
           apt-get install -y curl
 
-      - run: |
-          sudo su
-          curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal 
+      -  run: |
+          apt-get install -y rustc
+
+#      - run: |
+#          sudo su
+#          curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal
           
 
 #      - run: |
