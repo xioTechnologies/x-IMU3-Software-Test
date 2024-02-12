@@ -72,8 +72,8 @@ jobs:
           apt-get install -y curl
 
       - run: |
-          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
-          . "$HOME/.cargo/env"
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal 
+          
 
 #      - run: |
 #          env PATH=$HOME/.cargo/bin:$PATH bash get-deps
