@@ -34,38 +34,38 @@ jobs:
           - [ macos-latest, x86_64-apple-ios, libximu3, dylib ]
           - [ ubuntu-latest, aarch64-linux-android, libximu3, so ]
 
-      steps:
-        - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-        - if: matrix.target[0] == 'ubuntu-latest'
-          name: Install ubuntu dependency
-          run: |
-            sudo dpkg --add-architecture i386
-            sudo apt-get update
-            sudo apt-get install gcc-multilib
-            sudo apt-get install -y libudev-dev libudev-dev:i386
+      - if: matrix.target[0] == 'ubuntu-latest'
+        name: Install ubuntu dependency
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install gcc-multilib
+          sudo apt-get install -y libudev-dev libudev-dev:i386
 
-        - name: Build
-          working-directory: x-IMU3-API/Rust/
-          env:
-            PKG_CONFIG_SYSROOT_DIR: /
-            PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
-            PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
-            PKG_CONFIG_ALLOW_CROSS: 1
-          run: |
-            rustup target add ${{ matrix.target[1] }}
-            if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
-              cargo install cargo-ndk
-              cargo ndk -t ${{ matrix.target[1] }} build --release --crate-type=dylib
-            else
-              cargo build --release --target ${{ matrix.target[1] }} --crate-type=dylib
-            fi
+      - name: Build
+        working-directory: x-IMU3-API/Rust/
+        env:
+          PKG_CONFIG_SYSROOT_DIR: /
+          PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
+          PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
+          PKG_CONFIG_ALLOW_CROSS: 1
+        run: |
+          rustup target add ${{ matrix.target[1] }}
+          if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
+            cargo install cargo-ndk
+            cargo ndk -t ${{ matrix.target[1] }} build --release --crate-type=dylib
+          else
+            cargo build --release --target ${{ matrix.target[1] }} --crate-type=dylib
+          fi
 
-        - uses: actions/upload-artifact@v4
-          name: Upload to artifacts
-          with:
-            name: rust-${{ matrix.target[1] }}
-            path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
+      - uses: actions/upload-artifact@v4
+        name: Upload to artifacts
+        with:
+          name: rust-${{ matrix.target[1] }}
+          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
 
 
 
