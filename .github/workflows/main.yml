@@ -72,7 +72,7 @@ jobs:
           apt-get install -y curl
 
       -  run: |
-           sudo snap install rustup
+           snap install rustup
 
 #      - run: |
 #          sudo su
