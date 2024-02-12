@@ -44,10 +44,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r26b
-
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
         run: sudo apt-get install -y libudev-dev
@@ -58,6 +54,7 @@ jobs:
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
           rustup target add ${{ matrix.target[1] }}
+          cargo install cargo-ndk
           cargo build --release --target ${{ matrix.target[1] }}
 
       - uses: actions/upload-artifact@v4
