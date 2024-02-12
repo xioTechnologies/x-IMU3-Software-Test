@@ -75,7 +75,7 @@ jobs:
           rustup target add aarch64-linux-android
           sed -i '' 's/staticlib/dylib/g' Cargo.toml
           cargo install cargo-ndk
-          cargo ndk -t ${{ matrix.target[1] }} build --release
+          cargo ndk -t aarch64-linux-android build --release
 
       - uses: actions/upload-artifact@v4
         name: Upload to artifacts
