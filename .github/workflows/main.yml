@@ -49,12 +49,12 @@ jobs:
 
         #   https://github.com/p-wysocki/openvino/blob/b36599d60e2b360a8ed55a1dffea4b7a8894aab0/.github/workflows/linux_arm64.yml#L105
 
-      -  run: |
-          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main >> arm64-sources.list
-          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal universe >> arm64-sources.list
-          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main >> arm64-sources.list
-          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main >> arm64-sources.list
-          sudo mv arm64-sources.list /etc/apt/sources.list.d/        
+#      -  run: |
+#          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal main >> arm64-sources.list
+#          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal universe >> arm64-sources.list
+#          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-updates main >> arm64-sources.list
+#          echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main >> arm64-sources.list
+#          sudo mv arm64-sources.list /etc/apt/sources.list.d/
 
       -  run: |
           sudo dpkg --add-architecture ${{ matrix.target[5] }}
