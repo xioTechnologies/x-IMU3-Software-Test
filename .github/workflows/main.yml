@@ -55,7 +55,7 @@ jobs:
           
           sudo dpkg --add-architecture i386
           sudo dpkg --add-architecture arm64
-          sudo apt-get update
+          sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/arm64-sources.list
           sudo apt-get install gcc-multilib
           sudo apt-get install -y libudev-dev libudev-dev:i386 libudev-dev:arm64
           sudo apt-get install -y gcc-aarch64-linux-gnu
