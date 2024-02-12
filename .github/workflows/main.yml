@@ -70,8 +70,9 @@ jobs:
 #
 
       - run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh      
-          echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+          curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
+
+#          echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
       
 
       - name: Build
