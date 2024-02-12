@@ -53,13 +53,16 @@ jobs:
           echo deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports/ focal-security main >> arm64-sources.list
           sudo mv arm64-sources.list /etc/apt/sources.list.d/
           
-          sudo dpkg --add-architecture i386
+          if [[ ${{ matrix.target[1] }} == i686-unknown-linux-gnu ]]; then
+            sudo dpkg --add-architecture i386
+          fi
           sudo dpkg --add-architecture arm64
           sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/arm64-sources.list
           if [[ ${{ matrix.target[1] }} == i686-unknown-linux-gnu ]]; then
             sudo apt-get install gcc-multilib
+            sudo apt-get install -y libudev-dev:i386
           fi
-          sudo apt-get install -y libudev-dev libudev-dev:i386 libudev-dev:arm64
+          sudo apt-get install -y libudev-dev libudev-dev:arm64
           sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: Build
