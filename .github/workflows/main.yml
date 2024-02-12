@@ -73,7 +73,7 @@ jobs:
 
       - run: |
           curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y
-          export PATH="$PATH:$HOME/.cargo/bin"
+          source "$HOME/.cargo/env"
 
 #      - run: |
 #          env PATH=$HOME/.cargo/bin:$PATH bash get-deps
