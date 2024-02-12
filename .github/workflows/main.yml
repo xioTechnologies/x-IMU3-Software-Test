@@ -64,7 +64,6 @@ jobs:
 
       -  run: |
           apt-get install -y libudev-dev:${{ matrix.target[5] }}
-          apt-get install -y build-essential:${{ matrix.target[5] }}
 
       -  run: |
           apt-get install -y gcc-multilib
