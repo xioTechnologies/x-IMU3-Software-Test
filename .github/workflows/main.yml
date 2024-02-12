@@ -65,12 +65,13 @@ jobs:
       -  run: |
           apt-get install -y libudev-dev:${{ matrix.target[5] }}
 
-      -  run: |
-          apt-get install -y build-essential   
-           
+#      -  run: |
+#          apt-get install -y build-essential
+#
 
       - run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh      
+          echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
       
 
       - name: Build
