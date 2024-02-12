@@ -60,30 +60,22 @@ jobs:
           dpkg --add-architecture ${{ matrix.target[5] }}
 
       -  run: |
-          apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/arm64-sources.list
-
-      -  run: |
-          apt-get install -y --no-install-recommends dpkg-dev
-
-      -  run: |
-          apt-get install --no-install-recommends -y gcc-12-aarch64-linux-gnu g++-12-aarch64-linux-gnu           
-           
-           
+          apt-get update
 
       -  run: |
           apt-get install -y --no-install-recommends libudev-dev:${{ matrix.target[5] }}
           
       
 
-#      - name: Build
-#        working-directory: x-IMU3-API/Rust/
-#        env:
-#          PKG_CONFIG_SYSROOT_DIR: /
-#          PKG_CONFIG_PATH: /usr/lib/${{ matrix.target[6] }}/pkgconfig
-#          PKG_CONFIG_ALLOW_CROSS: 1
-#        run: |
-#          rustup target add ${{ matrix.target[1] }}
-#          cargo build --release --target ${{ matrix.target[1] }}
+      - name: Build
+        working-directory: x-IMU3-API/Rust/
+        env:
+          PKG_CONFIG_SYSROOT_DIR: /
+          PKG_CONFIG_PATH: /usr/lib/${{ matrix.target[6] }}/pkgconfig
+          PKG_CONFIG_ALLOW_CROSS: 1
+        run: |
+          rustup target add ${{ matrix.target[1] }}
+          cargo build --release --target ${{ matrix.target[1] }}
 #
 #      - uses: actions/upload-artifact@v4
 #        name: Upload to artifacts
