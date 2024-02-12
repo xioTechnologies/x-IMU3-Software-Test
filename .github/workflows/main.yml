@@ -56,7 +56,7 @@ jobs:
           
           sudo dpkg --add-architecture ${{ matrix.target[5] }}
           sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/arm64-sources.list
-          sudo apt-get install -y libudev-dev:${{ matrix.target[5] }}
+#          sudo apt-get install -y libudev-dev:${{ matrix.target[5] }}
 
 #      - name: Build
 #        working-directory: x-IMU3-API/Rust/
