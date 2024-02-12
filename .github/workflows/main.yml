@@ -44,6 +44,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26b
+
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
         run: sudo apt-get install -y libudev-dev
