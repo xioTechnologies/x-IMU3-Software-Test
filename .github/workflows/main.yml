@@ -67,7 +67,7 @@ jobs:
           apt-get install -y libudev-dev:${{ matrix.target[5] }}
 
       -  run: |
-          apt-get install -y gcc-aarch64-linux-gnu:${{ matrix.target[5] }}
+          apt-get install -y gcc-aarch64-linux-gnu
 #          apt-get install -y g++-aarch64-linux-gnu
 
       -  run: |
