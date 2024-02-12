@@ -57,7 +57,7 @@ jobs:
 #          sudo mv arm64-sources.list /etc/apt/sources.list.d/
 
       -  run: |
-          sudo dpkg --add-architecture ${{ matrix.target[5] }}
+          dpkg --add-architecture ${{ matrix.target[5] }}
 
       -  run: |
           sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/arm64-sources.list
