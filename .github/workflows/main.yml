@@ -68,6 +68,7 @@ jobs:
 
       -  run: |
           apt-get install -y gcc-aarch64-linux-gnu
+          apt-get install -y g++-aarch64-linux-gnu 
 
       -  run: |
           apt-get install -y gcc-multilib
