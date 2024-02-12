@@ -67,6 +67,8 @@ jobs:
           apt-get install -y libudev-dev
           apt-get install -y libssh-dev
           apt-get install -y libssh-dev:${{ matrix.target[5] }}
+          apt-get install -y dpkg-dev
+          apt-get install -y dpkg-dev:${{ matrix.target[5] }}
           apt-get install -y build-essential:${{ matrix.target[5] }}
 
       -  run: |
