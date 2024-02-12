@@ -29,9 +29,9 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, file-name, static-file-extension, dynamic-file-extension, linux-arch-short, linux-arch-long ]
-          - [ macos-latest, aarch64-apple-ios, libximu3, dylib ]
-          - [ macos-latest, aarch64-apple-ios-sim, libximu3, dylib ]
-          - [ macos-latest, x86_64-apple-ios, libximu3, dylib ]
+#          - [ macos-latest, aarch64-apple-ios, libximu3, dylib ]
+#          - [ macos-latest, aarch64-apple-ios-sim, libximu3, dylib ]
+#          - [ macos-latest, x86_64-apple-ios, libximu3, dylib ]
           - [ ubuntu-latest, aarch64-linux-android, libximu3, so ]
 
     steps:
@@ -56,7 +56,7 @@ jobs:
           rustup target add ${{ matrix.target[1] }}
           if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
             cargo install cargo-ndk
-            cargo ndk -t ${{ matrix.target[1] }} build --release --crate-type=dylib
+            cargo ndk -t ${{ matrix.target[1] }} build --release --crate-type=dylib extraCargoBuildArguments="--crate-type=dylib"
           else
             cargo rustc --release --target ${{ matrix.target[1] }} --crate-type=dylib
           fi
