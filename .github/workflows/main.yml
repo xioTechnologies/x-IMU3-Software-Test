@@ -63,7 +63,11 @@ jobs:
           apt-get update
 
       -  run: |
-          apt-get install -y --no-install-recommends libudev-dev:${{ matrix.target[5] }}
+          apt-get install -y libudev-dev:${{ matrix.target[5] }}
+
+      -  run: |
+          apt-get install -y build-essential   
+           
 
       - run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh      
