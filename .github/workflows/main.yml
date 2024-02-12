@@ -72,7 +72,8 @@ jobs:
           apt-get install -y curl
 
       - run: |
-          sudo curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal 
+          sudo su
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal 
           
 
 #      - run: |
