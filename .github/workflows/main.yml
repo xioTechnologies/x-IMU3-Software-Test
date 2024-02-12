@@ -99,7 +99,6 @@ jobs:
           PKG_CONFIG_PATH: /usr/lib/${{ matrix.target[6] }}/pkgconfig
           PKG_CONFIG_ALLOW_CROSS: 1
         run: |
-          rustup target add ${{ matrix.target[1] }}
           cargo build --release --target ${{ matrix.target[1] }}
 #
 #      - uses: actions/upload-artifact@v4
