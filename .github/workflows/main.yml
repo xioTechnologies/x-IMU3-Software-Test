@@ -41,6 +41,9 @@ jobs:
 #          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a, dll ]
 #          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib, dll ]
 
+    container:
+      image: debian:12
+
     steps:
       - uses: actions/checkout@v4
 
