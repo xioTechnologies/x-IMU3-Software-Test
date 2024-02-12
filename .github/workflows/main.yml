@@ -56,7 +56,7 @@ jobs:
         env:
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
-          if [[ ${{ matrix.target[1] }} == aarch64-linux-android; then
+          if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
             cargo install cargo-ndk
             cargo ndk -t ${{ matrix.target[1] }} build --release
           else
