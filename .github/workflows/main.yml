@@ -46,16 +46,16 @@ jobs:
 
       - if: matrix.target[0] == 'ubuntu-latest'
         name: Install ubuntu dependency
-        run: sudo apt-get install -y libudev-dev
-
-      - run: rustup target add ${{ matrix.target[1] }}
-        name: Add rust target
+        run: |
+          sudo apt-get install -y libudev-dev
+          sudo apt-get install -y aarch64-linux-gnu-gcc
 
       - name: Build
         working-directory: x-IMU3-API/Rust/
         env:
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
+          rustup target add ${{ matrix.target[1] }}
           if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
             cargo install cargo-ndk
             cargo ndk -t ${{ matrix.target[1] }} build --release
