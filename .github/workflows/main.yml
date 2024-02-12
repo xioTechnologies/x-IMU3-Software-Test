@@ -55,7 +55,7 @@ jobs:
         run: |
           rustup target add ${{ matrix.target[1] }}
           cargo install cargo-ndk
-          cargo ndk build --release --target ${{ matrix.target[1] }}
+          cargo ndk -t ${{ matrix.target[1] }} build --release
 
       - uses: actions/upload-artifact@v4
         name: Upload to artifacts
