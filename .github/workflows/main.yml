@@ -21,7 +21,7 @@ jobs:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #        run: gh release create ${{ github.ref_name }}
 
-  rust:
+  rust-android-ios:
     runs-on: ${{ matrix.target[0] }}
 #    needs: create-release
 
@@ -29,51 +29,99 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, file-name, static-file-extension, dynamic-file-extension, linux-arch-short, linux-arch-long ]
-#          - [ macos-latest, x86_64-apple-darwin, libximu3, a, dylib ]
-#          - [ macos-latest, aarch64-apple-darwin, libximu3, a, dylib ]
-#          - [ macos-latest, aarch64-apple-ios, libximu3, a, dylib ]
-#          - [ macos-latest, aarch64-apple-ios-sim, libximu3, a, dylib ]
-#          - [ macos-latest, x86_64-apple-ios, libximu3, a, dylib ]
-          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a, so]
-          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a, so]
-          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a, so]
-          - [ ubuntu-latest, aarch64-linux-android, libximu3, a, so]
-#          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a, dll ]
-#          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib, dll ]
+          - [ macos-latest, aarch64-apple-ios, libximu3, dylib ]
+          - [ macos-latest, aarch64-apple-ios-sim, libximu3, dylib ]
+          - [ macos-latest, x86_64-apple-ios, libximu3, dylib ]
+          - [ ubuntu-latest, aarch64-linux-android, libximu3, so ]
 
-    steps:
-      - uses: actions/checkout@v4
+      steps:
+        - uses: actions/checkout@v4
 
-      - if: matrix.target[0] == 'ubuntu-latest'
-        name: Install ubuntu dependency
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install gcc-multilib
-          sudo apt-get install -y libudev-dev libudev-dev:i386
-          sudo apt-get install -y gcc-aarch64-linux-gnu
+        - if: matrix.target[0] == 'ubuntu-latest'
+          name: Install ubuntu dependency
+          run: |
+            sudo dpkg --add-architecture i386
+            sudo apt-get update
+            sudo apt-get install gcc-multilib
+            sudo apt-get install -y libudev-dev libudev-dev:i386
 
-      - name: Build
-        working-directory: x-IMU3-API/Rust/
-        env:
-          PKG_CONFIG_SYSROOT_DIR: /
-          PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
-          PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
-          PKG_CONFIG_ALLOW_CROSS: 1
-        run: |
-          rustup target add ${{ matrix.target[1] }}
-          if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
-            cargo install cargo-ndk
-            cargo ndk -t ${{ matrix.target[1] }} build --release
-          else
-            cargo build --release --target ${{ matrix.target[1] }}
-          fi
+        - name: Build
+          working-directory: x-IMU3-API/Rust/
+          env:
+            PKG_CONFIG_SYSROOT_DIR: /
+            PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
+            PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
+            PKG_CONFIG_ALLOW_CROSS: 1
+          run: |
+            rustup target add ${{ matrix.target[1] }}
+            if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
+              cargo install cargo-ndk
+              cargo ndk -t ${{ matrix.target[1] }} build --release --crate-type=dylib
+            else
+              cargo build --release --target ${{ matrix.target[1] }} --crate-type=dylib
+            fi
 
-      - uses: actions/upload-artifact@v4
-        name: Upload to artifacts
-        with:
-          name: rust-${{ matrix.target[1] }}
-          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
+        - uses: actions/upload-artifact@v4
+          name: Upload to artifacts
+          with:
+            name: rust-${{ matrix.target[1] }}
+            path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
+
+
+
+#  rust:
+#    runs-on: ${{ matrix.target[0] }}
+##    needs: create-release
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        target: # [ os, rust-target, file-name, static-file-extension, dynamic-file-extension, linux-arch-short, linux-arch-long ]
+##          - [ macos-latest, x86_64-apple-darwin, libximu3, dylib ]
+##          - [ macos-latest, aarch64-apple-darwin, libximu3, dylib ]
+##          - [ macos-latest, aarch64-apple-ios, libximu3, a, dylib ]
+##          - [ macos-latest, aarch64-apple-ios-sim, libximu3, a, dylib ]
+##          - [ macos-latest, x86_64-apple-ios, libximu3, a, dylib ]
+#          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3, a, so]
+#          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3, a, so]
+#          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3, a, so]
+#          - [ ubuntu-latest, aarch64-linux-android, libximu3, a, so]
+##          - [ windows-latest, x86_64-pc-windows-gnu, libximu3, a, dll ]
+##          - [ windows-latest, x86_64-pc-windows-msvc, ximu3, lib, dll ]
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - if: matrix.target[0] == 'ubuntu-latest'
+#        name: Install ubuntu dependency
+#        run: |
+#          sudo dpkg --add-architecture i386
+#          sudo apt-get update
+#          sudo apt-get install gcc-multilib
+#          sudo apt-get install -y libudev-dev libudev-dev:i386
+#          sudo apt-get install -y gcc-aarch64-linux-gnu
+#
+#      - name: Build
+#        working-directory: x-IMU3-API/Rust/
+#        env:
+#          PKG_CONFIG_SYSROOT_DIR: /
+#          PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
+#          PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
+#          PKG_CONFIG_ALLOW_CROSS: 1
+#        run: |
+#          rustup target add ${{ matrix.target[1] }}
+#          if [[ ${{ matrix.target[1] }} == aarch64-linux-android ]]; then
+#            cargo install cargo-ndk
+#            cargo ndk -t ${{ matrix.target[1] }} build --release
+#          else
+#            cargo build --release --target ${{ matrix.target[1] }}
+#          fi
+#
+#      - uses: actions/upload-artifact@v4
+#        name: Upload to artifacts
+#        with:
+#          name: rust-${{ matrix.target[1] }}
+#          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
 #
 #      - uses: actions/upload-artifact@v4
 #        name: Upload to artifacts
