@@ -53,21 +53,28 @@ jobs:
           sudo apt-get install -y libudev-dev libudev-dev:i386
           sudo apt-get install -y gcc-aarch64-linux-gnu
 
-      - name: Build
+      - name: Add rustup target
+        run: rustup target add ${{ matrix.target[1] }}
+
+      - if: ${{ matrix.target[1] }} != 'aarch64-linux-android'
+        name: Build
         working-directory: x-IMU3-API/Rust/
         env:
           PKG_CONFIG_SYSROOT_DIR: /
           PKG_CONFIG_PATH_i686-unknown-linux-gnu: /usr/lib/i386-linux-gnu/pkgconfig
           PKG_CONFIG_SYSROOT_DIR_i686-unknown-linux-gnu: /
           PKG_CONFIG_ALLOW_CROSS: 1
+        run: cargo build --release --target ${{ matrix.target[1] }}
+
+      - if: ${{ matrix.target[1] }} == 'aarch64-linux-android'
+        name: Build for Android
+        working-directory: x-IMU3-API/Rust/
+        env:
+          PKG_CONFIG_SYSROOT_DIR: /
+          PKG_CONFIG_ALLOW_CROSS: 1
         run: |
-          rustup target add ${{ matrix.target[1] }}
-          if [[ "${{ matrix.target[1] }}" == "aarch64-linux-android" ]]; then
-            cargo install cargo-ndk
-            cargo ndk -t ${{ matrix.target[1] }} build --release
-          else
-            cargo build --release --target ${{ matrix.target[1] }}
-          fi
+          cargo install cargo-ndk
+          cargo ndk -t ${{ matrix.target[1] }} build --release          
 
       - uses: actions/upload-artifact@v4
         name: Upload to artifacts
