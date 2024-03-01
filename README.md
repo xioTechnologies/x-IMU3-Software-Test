@@ -30,10 +30,6 @@ This is main software repository for the [x-IMU3](https://x-io.co.uk/x-imu3/). T
 - [x-IMU3 GUI for macOS (Apple Silicon)](https://github.com/xioTechnologies/x-IMU3-Software/releases/latest/download/x-IMU3-GUI-Apple-Silicon.dmg)
 - [x-IMU3 GUI for Ubuntu ](https://github.com/xioTechnologies/x-IMU3-Software/releases/latest/download/x-IMU3-GUI)
 
-## Branch Protection
+## Licence
 
-The GitHub repository applies the following branch protection rules to the main branch. All commits must be made to a non-protected branch and submitted via a pull request before they can be merged into the the main branch.
-
-- *Require a pull request before merging*
-- *Require linear history*
-- *Include administrators*
+The x-IMU3 Software is covered by the [MIT Licence](https://opensource.org/licenses/MIT) with the exception of the x-IMU3 GUI which uses [JUCE](https://juce.com/) and so is covered by the [GNU GPLv3 License](https://www.gnu.org/licenses/gpl-3.0) as per the [JUCE 7 EULA](https://juce.com/legal/juce-7-license/).
