@@ -57,7 +57,7 @@ jobs:
         run: rustup target add ${{ matrix.target[1] }}
 
       - if: matrix.target[1] != 'aarch64-unknown-linux-gnu' && matrix.target[1] != 'aarch64-linux-android'
-        name: Build
+        name: Build (excluding Ubuntu ARM64 and Android)
         working-directory: x-IMU3-API/Rust/
         env:
           PKG_CONFIG_SYSROOT_DIR: /
@@ -91,7 +91,7 @@ jobs:
           path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
 
       - if: matrix.target[1] != 'aarch64-unknown-linux-gnu'
-        name: Zip
+        name: Zip (excluding Ubuntu ARM64)
         uses: vimtor/action-zip@v1.1
         with:
           files: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }} x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[4] }}
