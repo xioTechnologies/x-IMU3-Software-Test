@@ -26,8 +26,8 @@ ConnectionsTable::ConnectionsTable()
     table.getHeader().addColumn("", (int) ColumnIDs::device, 1);
     table.getHeader().addColumn("", (int) ColumnIDs::connection, 140);
     table.getHeader().addColumn("", (int) ColumnIDs::rssi, 25, 25, 25);
-    table.getHeader().addColumn("", (int) ColumnIDs::battery, 25,25, 25);
-    table.getHeader().addColumn("", (int) ColumnIDs::margin, 5,5, 5);
+    table.getHeader().addColumn("", (int) ColumnIDs::battery, 25, 25, 25);
+    table.getHeader().addColumn("", (int) ColumnIDs::margin, 5, 5, 5);
     table.getHeader().setStretchToFitActive(true);
     table.setHeaderHeight(0);
     table.getViewport()->setScrollBarsShown(true, false);
@@ -40,7 +40,7 @@ void ConnectionsTable::resized()
 
     auto bounds = getLocalBounds();
     selectAllButton.setBounds(bounds.removeFromTop(headerHeight));
-    selectAllLabel.setBounds(table.getHeader().getColumnPosition((int) ColumnIDs::device - 1).withHeight(headerHeight));
+    selectAllLabel.setBounds(selectAllButton.getBounds().withLeft(table.getHeader().getColumnPosition(((int) ColumnIDs::device - 1)).getX()));
     table.setBounds(bounds);
     noConnectionsFoundLabel.setBounds(bounds);
 }
@@ -166,7 +166,7 @@ juce::Component* ConnectionsTable::refreshComponentForCell(int rowNumber, int co
             }
             break;
 
-        default:
+        case ColumnIDs::margin:
             break;
     }
 

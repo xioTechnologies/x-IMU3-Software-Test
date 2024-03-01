@@ -1,7 +1,7 @@
 #pragma once
 
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <BinaryData.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "Ximu3.hpp"
 
 class Icon : public juce::Component,
@@ -45,7 +45,7 @@ class RssiIcon : public Icon
 public:
     const juce::String title = "Wi-Fi RSSI";
 
-    RssiIcon(const float scale = 1.0f) : Icon("", "", scale)
+    RssiIcon(const float scale_ = 1.0f) : Icon("", "", scale_)
     {
         unavailable();
     }
@@ -71,7 +71,7 @@ class BatteryIcon : public Icon
 public:
     const juce::String title = "Battery Level";
 
-    BatteryIcon(const float scale = 1.0f) : Icon("", "", scale)
+    BatteryIcon(const float scale_ = 1.0f) : Icon("", "", scale_)
     {
         unavailable();
     }
