@@ -220,7 +220,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
-        run: python -m twine upload --verbose --repository pypi wheelhouse/* --skip-existing
+        run: python -m twine upload --verbose --repository testpypi wheelhouse/* --skip-existing
 
   gui:
     runs-on: ${{ matrix.target[0] }}
