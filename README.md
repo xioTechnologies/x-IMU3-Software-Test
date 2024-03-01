@@ -2,7 +2,7 @@
 [![build](https://img.shields.io/github/actions/workflow/status/xioTechnologies/x-IMU3-Software/main.yml?branch=main)](https://github.com/xioTechnologies/x-IMU3-Software/actions/workflows/main.yml)
 [![pypi](https://img.shields.io/pypi/v/ximu3.svg)](https://pypi.org/project/ximu3/)
 [![python](https://img.shields.io/pypi/pyversions/ximu3.svg)](https://pypi.org/project/ximu3/)
-[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 # x-IMU3 Software
 
