@@ -94,21 +94,21 @@ jobs:
         name: Zip (excluding Ubuntu ARM64)
         uses: vimtor/action-zip@v1.2
         with:
-          files: x-IMU3-API/C/Ximu3.h x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }} x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[4] }}
-          dest: ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+          files: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }} x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[4] }}
+          dest: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
 
       - if: matrix.target[1] == 'aarch64-unknown-linux-gnu'
         name: Zip for Ubuntu ARM64
         uses: vimtor/action-zip@v1.2
         with:
-          files: x-IMU3-API/C/Ximu3.h x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
-          dest: ${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
+          files: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}.${{ matrix.target[3] }}
+          dest: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Upload to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.ref_name }} "${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip"
+        run: gh release upload ${{ github.ref_name }} "x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}-${{ matrix.target[1] }}.zip"
 
   rust-publish:
     runs-on: ubuntu-latest
@@ -220,7 +220,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
-        run: python -m twine upload --verbose --repository testpypi wheelhouse/* --skip-existing
+        run: python -m twine upload --verbose --repository pypi wheelhouse/* --skip-existing
 
   gui:
     runs-on: ${{ matrix.target[0] }}
