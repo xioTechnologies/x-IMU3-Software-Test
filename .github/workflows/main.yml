@@ -90,7 +90,7 @@ jobs:
           name: rust-${{ matrix.target[1] }}
           path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}
 
-      - name: Zip (excluding Ubuntu ARM64)
+      - name: Zip
         uses: vimtor/action-zip@v1.2
         with:
           files: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }} x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[3] }}
