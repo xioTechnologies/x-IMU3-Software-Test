@@ -303,9 +303,55 @@ jobs:
         name: Rename file for Ubuntu
         run: mv "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI${{ matrix.target[3] }}" "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI${{ matrix.target[3] }}"
 
+      # https://docs.digicert.com/zh/digicert-keylocker/ci-cd-integrations/plugins/github-custom-action-for-keypair-signing.html
+      - if: matrix.target[0] == 'windows-latest'
+        name: Setup Certificate for windows
+        run: |
+          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
+          cat  /d/Certificate_pkcs12.p12
+        shell: bash
+
+      - if: matrix.target[0] == 'windows-latest'
+        name: Set variables for windows
+        id: variables
+        run: |
+          dir
+          echo "::set-output name=version::${GITHUB_REF#refs/tags/v}"
+          echo "::set-output name=KEYPAIR_NAME::gt-standard-keypair"
+          echo "::set-output name=CERTIFICATE_NAME::gt-certificate"
+          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
+          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
+          echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV"
+          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
+          echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
+          echo "C:\Program Files\DigiCert\DigiCert Keylocker Tools" >> $GITHUB_PATH
+        shell: bash
+
+      - if: matrix.target[0] == 'windows-latest'
+        name: Setup Keylocker KSP for windows
+        run: |
+          curl -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/Keylockertools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o Keylockertools-windows-x64.msi 
+          msiexec /i Keylockertools-windows-x64.msi /quiet /qn
+          smksp_registrar.exe list 
+          smctl.exe keypair ls 
+          C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
+        shell: cmd
+
+      - if: matrix.target[0] == 'windows-latest'
+        name: Certificates Sync for windows
+        run: |
+          smctl windows certsync
+        shell: cmd
+
       - if: matrix.target[0] == 'windows-latest'
         name: Create installer for Windows
-        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" WindowsInstaller.iss'
+        run: |
+          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI.exe"
+          signtool.exe verify /v /pa "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI.exe"
+          '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" WindowsInstaller.iss'
+          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI${{ matrix.target[3] }}"
+          signtool.exe verify /v /pa "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI${{ matrix.target[3] }}"
 
       - if: startsWith(github.ref, 'refs/tags/v')
         name: Upload to release
