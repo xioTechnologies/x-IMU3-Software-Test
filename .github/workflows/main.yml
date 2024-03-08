@@ -349,7 +349,7 @@ jobs:
         run: |
           signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI.exe"
           signtool.exe verify /v /pa "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI.exe"
-          '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" WindowsInstaller.iss'
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" WindowsInstaller.iss
           signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI${{ matrix.target[3] }}"
           signtool.exe verify /v /pa "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI${{ matrix.target[3] }}"
 
