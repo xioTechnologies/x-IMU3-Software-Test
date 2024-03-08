@@ -298,6 +298,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Download from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-x86_64-pc-windows-msvc
+          path: x-IMU3-API/Rust/target/release
+
       - name: Build CMake targets
         run: |
           mkdir cmake-build-release
