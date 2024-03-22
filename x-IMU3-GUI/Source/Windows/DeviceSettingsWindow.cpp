@@ -45,7 +45,7 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
         readAllButton.onClick();
     }
 
-    writeAllButton.onClick = [this]
+    writeAllButton.onClick = deviceSettings.onChange = [this]
     {
         const auto commands = deviceSettings.getWriteCommands();
 
@@ -69,10 +69,10 @@ DeviceSettingsWindow::DeviceSettingsWindow(const juce::ValueTree& windowLayout_,
 
             writeAllButton.setToggleState(commands.size() != responses.size(), juce::dontSendNotification);
 
-            disableInProgress();
-
             connectionPanel.sendCommands({{ "save", {}}}, this, [&](const auto& responses_)
             {
+                disableInProgress();
+
                 if (responses_.empty())
                 {
                     DialogQueue::getSingleton().pushBack(std::make_unique<ErrorDialog>("Unable to confirm save command."));
@@ -228,9 +228,17 @@ juce::PopupMenu DeviceSettingsWindow::getMenu()
 {
     juce::PopupMenu menu = Window::getMenu();
 
+    menu.addItem("Hide Unused Settings", true, ApplicationSettings::getSingleton().deviceSettings.hideUnusedSettings, [&]
+    {
+        ApplicationSettings::getSingleton().deviceSettings.hideUnusedSettings = !ApplicationSettings::getSingleton().deviceSettings.hideUnusedSettings;
+    });
     menu.addItem("Read Settings When Window Opens", true, ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens, [&]
     {
         ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens = !ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens;
+    });
+    menu.addItem("Write Settings When Value Is Modified", true, ApplicationSettings::getSingleton().deviceSettings.writeSettingsWhenValueIsModified, [&]
+    {
+        ApplicationSettings::getSingleton().deviceSettings.writeSettingsWhenValueIsModified = !ApplicationSettings::getSingleton().deviceSettings.writeSettingsWhenValueIsModified;
     });
 
     return menu;

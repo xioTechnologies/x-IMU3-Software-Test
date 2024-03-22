@@ -120,30 +120,39 @@ void CommandsGroup::resized()
     closeSendingCommandDialogWhenCompleteButton.setBounds(bounds.removeFromTop(UILayout::textComponentHeight));
 }
 
-DeviceSettingsGroup::DeviceSettingsGroup() : ApplicationSettingsGroup("Device Settings", 2)
+DeviceSettingsGroup::DeviceSettingsGroup() : ApplicationSettingsGroup("Device Settings", 3)
 {
-    addAndMakeVisible(readSettingsWhenWindowOpens);
     addAndMakeVisible(hideUnusedSettingsButton);
-
-    readSettingsWhenWindowOpens.onClick = [this]
-    {
-        ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens = readSettingsWhenWindowOpens.getToggleState();
-    };
+    addAndMakeVisible(readSettingsWhenWindowOpensButton);
+    addAndMakeVisible(writeSettingsWhenValueIsModifiedButton);
 
     hideUnusedSettingsButton.onClick = [this]
     {
         ApplicationSettings::getSingleton().deviceSettings.hideUnusedSettings = hideUnusedSettingsButton.getToggleState();
     };
 
-    readSettingsWhenWindowOpens.setToggleState(ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens, juce::dontSendNotification);
+    readSettingsWhenWindowOpensButton.onClick = [this]
+    {
+        ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens = readSettingsWhenWindowOpensButton.getToggleState();
+    };
+
+    writeSettingsWhenValueIsModifiedButton.onClick = [this]
+    {
+        ApplicationSettings::getSingleton().deviceSettings.writeSettingsWhenValueIsModified = writeSettingsWhenValueIsModifiedButton.getToggleState();
+    };
+
     hideUnusedSettingsButton.setToggleState(ApplicationSettings::getSingleton().deviceSettings.hideUnusedSettings, juce::dontSendNotification);
+    readSettingsWhenWindowOpensButton.setToggleState(ApplicationSettings::getSingleton().deviceSettings.readSettingsWhenWindowOpens, juce::dontSendNotification);
+    writeSettingsWhenValueIsModifiedButton.setToggleState(ApplicationSettings::getSingleton().deviceSettings.writeSettingsWhenValueIsModified, juce::dontSendNotification);
 }
 
 void DeviceSettingsGroup::resized()
 {
     auto bounds = getContentBounds();
 
-    readSettingsWhenWindowOpens.setBounds(bounds.removeFromTop(UILayout::textComponentHeight));
-    bounds.removeFromTop(rowMargin);
     hideUnusedSettingsButton.setBounds(bounds.removeFromTop(UILayout::textComponentHeight));
+    bounds.removeFromTop(rowMargin);
+    readSettingsWhenWindowOpensButton.setBounds(bounds.removeFromTop(UILayout::textComponentHeight));
+    bounds.removeFromTop(rowMargin);
+    writeSettingsWhenValueIsModifiedButton.setBounds(bounds.removeFromTop(UILayout::textComponentHeight));
 }
