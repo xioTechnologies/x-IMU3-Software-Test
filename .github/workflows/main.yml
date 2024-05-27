@@ -29,18 +29,17 @@ jobs:
       fail-fast: false
       matrix:
         target: # [ os, rust-target, file-name, static-file-name, dynamic-file-name ]
-          #          - [ macos-latest, x86_64-apple-darwin, libximu3.a, libximu3.dylib ]
-          #          - [ macos-latest, aarch64-apple-darwin, libximu3.a, libximu3.dylib ]
-          #          - [ macos-latest, aarch64-apple-ios, libximu3.a, libximu3.dylib ]
-          #          - [ macos-latest, aarch64-apple-ios-sim, libximu3.a, libximu3.dylib ]
-          #          - [ macos-latest, x86_64-apple-ios, libximu3.a, libximu3.dylib ]
-          #          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3.a, libximu3.so ]
-          #          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3.a, libximu3.so ]
-          #          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3.a, libximu3.so ]
-          #          - [ ubuntu-latest, aarch64-linux-android, libximu3.a, libximu3.so ]
-          - [ ubuntu-latest, x86_64-linux-android, libximu3.a, libximu3.so ]
-    #          - [ windows-latest, x86_64-pc-windows-gnu, libximu3.a, ximu3.dll ]
-    #          - [ windows-latest, x86_64-pc-windows-msvc, ximu3.lib, ximu3.dll ]
+          - [ macos-latest, x86_64-apple-darwin, libximu3.a, libximu3.dylib ]
+          - [ macos-latest, aarch64-apple-darwin, libximu3.a, libximu3.dylib ]
+          - [ macos-latest, aarch64-apple-ios, libximu3.a, libximu3.dylib ]
+          - [ macos-latest, aarch64-apple-ios-sim, libximu3.a, libximu3.dylib ]
+          - [ macos-latest, x86_64-apple-ios, libximu3.a, libximu3.dylib ]
+          - [ ubuntu-latest, i686-unknown-linux-gnu, libximu3.a, libximu3.so ]
+          - [ ubuntu-latest, aarch64-unknown-linux-gnu, libximu3.a, libximu3.so ]
+          - [ ubuntu-latest, x86_64-unknown-linux-gnu, libximu3.a, libximu3.so ]
+          - [ ubuntu-latest, aarch64-linux-android, libximu3.a, libximu3.so ]
+          - [ windows-latest, x86_64-pc-windows-gnu, libximu3.a, ximu3.dll ]
+          - [ windows-latest, x86_64-pc-windows-msvc, ximu3.lib, ximu3.dll ]
 
     steps:
       - uses: actions/checkout@v4
@@ -57,7 +56,7 @@ jobs:
       - name: Add rustup target
         run: rustup target add ${{ matrix.target[1] }}
 
-      - if: matrix.target[1] != 'aarch64-unknown-linux-gnu' && matrix.target[1] != 'aarch64-linux-android' && matrix.target[1] != 'x86_64-linux-android'
+      - if: matrix.target[1] != 'aarch64-unknown-linux-gnu' && matrix.target[1] != 'aarch64-linux-android'
         name: Build (excluding Ubuntu ARM64 and Android)
         working-directory: x-IMU3-API/Rust/
         env:
@@ -75,7 +74,7 @@ jobs:
           PKG_CONFIG_ALLOW_CROSS: 1
         run: cargo rustc --release --target ${{ matrix.target[1] }} --crate-type staticlib
 
-      - if: matrix.target[1] == 'aarch64-linux-android' || matrix.target[1] == 'x86_64-linux-android'
+      - if: matrix.target[1] == 'aarch64-linux-android'
         name: Build for Android
         working-directory: x-IMU3-API/Rust/
         env:
@@ -85,17 +84,11 @@ jobs:
           cargo install cargo-ndk
           cargo ndk -t ${{ matrix.target[1] }} build --release
 
-#      - uses: actions/upload-artifact@v4
-#        name: Upload to artifacts
-#        with:
-#          name: rust-${{ matrix.target[1] }}-static
-#          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}
-
       - uses: actions/upload-artifact@v4
         name: Upload to artifacts
         with:
-          name: rust-${{ matrix.target[1] }}-dynamic
-          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[3] }}
+          name: rust-${{ matrix.target[1] }}
+          path: x-IMU3-API/Rust/target/${{ matrix.target[1] }}/release/${{ matrix.target[2] }}
 
       - name: Zip
         uses: vimtor/action-zip@v1.2
@@ -108,302 +101,303 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ github.ref_name }} "x-IMU3-API-${{ matrix.target[1] }}.zip"
-#
-#  rust-publish:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Dry run
-#        working-directory: x-IMU3-API/Rust/
-#        run: cargo publish --no-verify --dry-run
-#
-#      - if: startsWith(github.ref, 'refs/tags/v')
-#        name: Publish crate
-#        working-directory: x-IMU3-API/Rust/
-#        env:
-#          CARGO_REGISTRY_TOKEN: ${{ secrets.RUST_TOKEN }}
-#        run: cargo publish --no-verify
-#
-#  c-sharp:
-#    runs-on: windows-latest
-#    needs: [ create-release, rust ]
-#
-#    strategy:
-#      fail-fast: false
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Download from artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: rust-x86_64-pc-windows-msvc
-#          path: x-IMU3-API/Rust/target/release
-#
-#      - name: Add msbuild to PATH
-#        uses: microsoft/setup-msbuild@v2
-#
-#      - name: Run examples
-#        working-directory: Examples/CSharp/x-IMU3-Examples/
-#        run: msbuild x-IMU3-Examples.sln -property:Configuration=Release
-#
-#  python:
-#    runs-on: ${{ matrix.target[0] }}
-#    needs: rust
-#
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        target: # [ os, rust-target, cibuildwheel-platform ]
-#          - [ macos-latest, x86_64-apple-darwin, macosx_x86_64 ]
-#          - [ macos-latest, aarch64-apple-darwin, macosx_arm64 ]
-#          - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
-#          - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
-#          - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
-#          - [ windows-latest, x86_64-pc-windows-msvc, win_amd64 ]
-#
-#        python-version: [ "cp38-", "cp39-", "cp310-", "cp311-", "cp312-" ]
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Download from artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: rust-${{ matrix.target[1] }}
-#          path: x-IMU3-API/Rust/target/release
-#
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          python -m pip install -U urllib3 requests
-#
-#      - if: matrix.target[0] == 'ubuntu-latest'
-#        name: Set up QEMU
-#        uses: docker/setup-qemu-action@v3
-#        with:
-#          platforms: all
-#
-#      - name: Build wheel
-#        uses: pypa/cibuildwheel@v2.17.0
-#        env:
-#          CIBW_ARCHS: all
-#          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
-#          CIBW_BEFORE_BUILD_LINUX: yum install -y libudev-devel
-#
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: python-${{ matrix.python-version }}${{ matrix.target[2] }}
-#          path: wheelhouse/*
-#
-#  python-publish:
-#    runs-on: ubuntu-latest
-#    needs: python
-#
-#    steps:
-#      - uses: actions/download-artifact@v4
-#        with:
-#          pattern: python-*
-#          path: wheelhouse
-#          merge-multiple: true
-#
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          python -m pip install twine
-#
-#      - if: startsWith(github.ref, 'refs/tags/v')
-#        name: Publish package
-#        env:
-#          TWINE_USERNAME: __token__
-#          TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
-#        run: python -m twine upload --verbose --repository pypi wheelhouse/* --skip-existing
-#
-#  gui-macos:
-#    runs-on: macos-latest
-#    needs: [ create-release, rust ]
-#
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        target: # [ rust-target, cmake-architecture, gui-extension  ]
-#          - [ x86_64-apple-darwin, x86_64, "-Intel.dmg" ]
-#          - [ aarch64-apple-darwin, arm64, "-Apple-Silicon.dmg" ]
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Install certificate # https://docs.github.com/en/actions/deployment/deploying-xcode-applications/installing-an-apple-certificate-on-macos-runners-for-xcode-development#add-a-step-to-your-workflow
-#        env:
-#          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-#          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-#          KEYCHAIN_PASSWORD: ""
-#        run: |
-#          # create variables
-#          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-#          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-#
-#          # import certificate from secrets
-#          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-#
-#          # create temporary keychain
-#          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-#          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-#          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-#
-#          # import certificate to keychain
-#          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-#          security list-keychain -d user -s $KEYCHAIN_PATH
-#
-#      - name: Download from artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: rust-${{ matrix.target[0] }}
-#          path: x-IMU3-API/Rust/target/release
-#
-#      - name: Build CMake targets
-#        run: |
-#          mkdir cmake-build-release
-#          cd cmake-build-release
-#          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target[1] }}
-#          cmake --build . --config Release
-#
-#      - name: Sign and notarize
-#        working-directory: cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/
-#        run: |
-#          codesign --options runtime --timestamp --sign 29X883CFTW "x-IMU3 GUI.app"
-#          brew install create-dmg
-#          create-dmg \
-#          --volname "x-IMU3-GUI${{ matrix.target[2] }}" \
-#          --background "../../../../installer_background.png" \
-#          --window-pos 200 120 \
-#          --window-size 600 320 \
-#          --icon-size 100 \
-#          --icon "x-IMU3 GUI.app" 140 130 \
-#          --hide-extension "x-IMU3 GUI.app" \
-#          --app-drop-link 450 125 \
-#          "x-IMU3-GUI${{ matrix.target[2] }}" \
-#          "x-IMU3 GUI.app"
-#          xcrun notarytool submit "x-IMU3-GUI${{ matrix.target[2] }}" --team-id 29X883CFTW --apple-id ${{ secrets.AC_USERNAME }} --password ${{ secrets.AC_PASSWORD }} --wait
-#          xcrun stapler staple "x-IMU3-GUI${{ matrix.target[2] }}"
-#
-#      - if: startsWith(github.ref, 'refs/tags/v')
-#        name: Upload to release
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        run: gh release upload ${{ github.ref_name }} "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI${{ matrix.target[2] }}"
-#
-#  gui-windows:
-#    runs-on: windows-latest
-#    needs: [ create-release, rust ]
-#
-#    strategy:
-#      fail-fast: false
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Download from artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: rust-x86_64-pc-windows-msvc
-#          path: x-IMU3-API/Rust/target/release
-#
-#      - name: Build CMake targets
-#        run: |
-#          mkdir cmake-build-release
-#          cd cmake-build-release
-#          cmake .. -DCMAKE_BUILD_TYPE=Release
-#          cmake --build . --config Release
-#
-#      # https://docs.digicert.com/zh/digicert-keylocker/ci-cd-integrations/plugins/github-custom-action-for-keypair-signing.html
-#      - name: Setup Certificate
-#        run: |
-#          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
-#        shell: bash
-#
-#      - name: Set variables
-#        id: variables
-#        run: |
-#          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
-#          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
-#          echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV"
-#          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
-#          echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
-#          echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
-#          echo "C:\Program Files\DigiCert\DigiCert Keylocker Tools" >> $GITHUB_PATH
-#        shell: bash
-#
-#      - name: Setup Keylocker KSP
-#        run: |
-#          curl -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/Keylockertools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o Keylockertools-windows-x64.msi
-#          msiexec /i Keylockertools-windows-x64.msi /quiet /qn
-#          smksp_registrar.exe list
-#          smctl.exe keypair ls
-#          C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
-#        shell: cmd
-#
-#      - name: Certificates Sync
-#        run: |
-#          smctl windows certsync
-#        shell: cmd
-#
-#      - name: Create installer
-#        run: |
-#          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI.exe"
-#          signtool.exe verify /v /pa "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI.exe"
-#          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" WindowsInstaller.iss
-#          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI-Setup.exe"
-#          signtool.exe verify /v /pa "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI-Setup.exe"
-#
-#      - if: startsWith(github.ref, 'refs/tags/v')
-#        name: Upload to release
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        run: gh release upload ${{ github.ref_name }} "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI-Setup.exe"
-#
-#  gui-ubuntu:
-#    runs-on: ubuntu-latest
-#    needs: [ create-release, rust ]
-#
-#    strategy:
-#      fail-fast: false
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Download from artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: rust-x86_64-unknown-linux-gnu
-#          path: x-IMU3-API/Rust/target/release
-#
-#      - name: Install dependencies # https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install -y libasound2-dev libjack-jackd2-dev \
-#          ladspa-sdk \
-#          libcurl4-openssl-dev \
-#          libfreetype6-dev \
-#          libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
-#          libwebkit2gtk-4.0-dev \
-#          libglu1-mesa-dev mesa-common-dev \
-#          libudev-dev \
-#
-#      - name: Build CMake targets
-#        run: |
-#          mkdir cmake-build-release
-#          cd cmake-build-release
-#          cmake .. -DCMAKE_BUILD_TYPE=Release
-#          cmake --build . --config Release
-#
-#      - name: Rename file
-#        run: mv "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI" "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI"
-#
-#      - if: startsWith(github.ref, 'refs/tags/v')
-#        name: Upload to release
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        run: gh release upload ${{ github.ref_name }} "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI"
+
+  rust-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dry run
+        working-directory: x-IMU3-API/Rust/
+        run: cargo publish --no-verify --dry-run
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Publish crate
+        working-directory: x-IMU3-API/Rust/
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.RUST_TOKEN }}
+        run: cargo publish --no-verify
+
+  c-sharp:
+    runs-on: windows-latest
+    needs: [ create-release, rust ]
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-x86_64-pc-windows-msvc
+          path: x-IMU3-API/Rust/target/release
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Run examples
+        working-directory: Examples/CSharp/x-IMU3-Examples/
+        run: msbuild x-IMU3-Examples.sln -property:Configuration=Release
+
+  python:
+    runs-on: ${{ matrix.target[0] }}
+    needs: rust
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target: # [ os, rust-target, cibuildwheel-platform ]
+          - [ macos-latest, x86_64-apple-darwin, macosx_x86_64 ]
+          - [ macos-latest, aarch64-apple-darwin, macosx_arm64 ]
+          - [ ubuntu-latest, i686-unknown-linux-gnu, manylinux_i686 ]
+          - [ ubuntu-latest, aarch64-unknown-linux-gnu, manylinux_aarch64 ]
+          - [ ubuntu-latest, x86_64-unknown-linux-gnu, manylinux_x86_64 ]
+          - [ windows-latest, x86_64-pc-windows-msvc, win_amd64 ]
+
+        python-version: [ "cp310-", "cp311-", "cp312-" ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-${{ matrix.target[1] }}
+          path: x-IMU3-API/Rust/target/release
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -U urllib3 requests
+
+      - if: matrix.target[0] == 'ubuntu-latest'
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Build wheel
+        uses: pypa/cibuildwheel@v2.17.0
+        env:
+          CIBW_ARCHS: all
+          CIBW_BUILD: ${{ matrix.python-version }}${{ matrix.target[2] }}
+          CIBW_BEFORE_BUILD_LINUX: yum install -y libudev-devel
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-${{ matrix.python-version }}${{ matrix.target[2] }}
+          path: wheelhouse/*
+
+  python-publish:
+    runs-on: ubuntu-latest
+    needs: python
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: python-*
+          path: wheelhouse
+          merge-multiple: true
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install twine
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Publish package
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYTHON_TOKEN }}
+        run: python -m twine upload --verbose --repository pypi wheelhouse/* --skip-existing
+
+  gui-macos:
+    runs-on: macos-latest
+    needs: [ create-release, rust ]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target: # [ rust-target, cmake-architecture, gui-extension  ]
+          - [ x86_64-apple-darwin, x86_64, "-Intel.dmg" ]
+          - [ aarch64-apple-darwin, arm64, "-Apple-Silicon.dmg" ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install certificate # https://docs.github.com/en/actions/deployment/deploying-xcode-applications/installing-an-apple-certificate-on-macos-runners-for-xcode-development#add-a-step-to-your-workflow
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ""
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Download from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-${{ matrix.target[0] }}
+          path: x-IMU3-API/Rust/target/release
+
+      - name: Build CMake targets
+        run: |
+          sudo xcode-select -s /Applications/Xcode_15.1.app/Contents/Developer # temporary fix to prevent macOS runner from using Xcode 15.0. See line 72 in juce_CompilerSupport.h
+          mkdir cmake-build-release
+          cd cmake-build-release
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target[1] }}
+          cmake --build . --config Release
+
+      - name: Sign and notarize
+        working-directory: cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/
+        run: |
+          codesign --options runtime --timestamp --sign 29X883CFTW "x-IMU3 GUI.app"
+          brew install create-dmg
+          create-dmg \
+          --volname "x-IMU3-GUI${{ matrix.target[2] }}" \
+          --background "../../../../installer_background.png" \
+          --window-pos 200 120 \
+          --window-size 600 320 \
+          --icon-size 100 \
+          --icon "x-IMU3 GUI.app" 140 130 \
+          --hide-extension "x-IMU3 GUI.app" \
+          --app-drop-link 450 125 \
+          "x-IMU3-GUI${{ matrix.target[2] }}" \
+          "x-IMU3 GUI.app"
+          xcrun notarytool submit "x-IMU3-GUI${{ matrix.target[2] }}" --team-id 29X883CFTW --apple-id ${{ secrets.AC_USERNAME }} --password ${{ secrets.AC_PASSWORD }} --wait
+          xcrun stapler staple "x-IMU3-GUI${{ matrix.target[2] }}"
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.ref_name }} "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI${{ matrix.target[2] }}"
+
+  gui-windows:
+    runs-on: windows-latest
+    needs: [ create-release, rust ]
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-x86_64-pc-windows-msvc
+          path: x-IMU3-API/Rust/target/release
+
+      - name: Build CMake targets
+        run: |
+          mkdir cmake-build-release
+          cd cmake-build-release
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+
+      # https://docs.digicert.com/zh/digicert-keylocker/ci-cd-integrations/plugins/github-custom-action-for-keypair-signing.html
+      - name: Setup Certificate
+        run: |
+          echo "${{ secrets.SM_CLIENT_CERT_FILE_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
+        shell: bash
+
+      - name: Set variables
+        id: variables
+        run: |
+          echo "SM_HOST=${{ secrets.SM_HOST }}" >> "$GITHUB_ENV"
+          echo "SM_API_KEY=${{ secrets.SM_API_KEY }}" >> "$GITHUB_ENV"
+          echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV"
+          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SM_CLIENT_CERT_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
+          echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
+          echo "C:\Program Files\DigiCert\DigiCert Keylocker Tools" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Setup Keylocker KSP
+        run: |
+          curl -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/Keylockertools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o Keylockertools-windows-x64.msi 
+          msiexec /i Keylockertools-windows-x64.msi /quiet /qn
+          smksp_registrar.exe list 
+          smctl.exe keypair ls 
+          C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
+        shell: cmd
+
+      - name: Certificates Sync
+        run: |
+          smctl windows certsync
+        shell: cmd
+
+      - name: Create installer
+        run: |
+          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI.exe"
+          signtool.exe verify /v /pa "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI.exe"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" WindowsInstaller.iss
+          signtool.exe sign /sha1 ${{ secrets.SM_CODE_SIGNING_CERT_SHA1_HASH }} /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI-Setup.exe"
+          signtool.exe verify /v /pa "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI-Setup.exe"
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.ref_name }} "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI-Setup.exe"
+
+  gui-ubuntu:
+    runs-on: ubuntu-latest
+    needs: [ create-release, rust ]
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download from artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: rust-x86_64-unknown-linux-gnu
+          path: x-IMU3-API/Rust/target/release
+
+      - name: Install dependencies # https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libjack-jackd2-dev \
+          ladspa-sdk \
+          libcurl4-openssl-dev \
+          libfreetype6-dev \
+          libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
+          libwebkit2gtk-4.0-dev \
+          libglu1-mesa-dev mesa-common-dev \
+          libudev-dev \
+
+      - name: Build CMake targets
+        run: |
+          mkdir cmake-build-release
+          cd cmake-build-release
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+
+      - name: Rename file
+        run: mv "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3 GUI" "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI"
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.ref_name }} "cmake-build-release/x-IMU3-GUI/x-IMU3-GUI_artefacts/Release/x-IMU3-GUI"

@@ -4,7 +4,7 @@ Set(FETCHCONTENT_QUIET FALSE)
 FetchContent_Declare(
         JUCE
         GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-        GIT_TAG 7.0.10
+        GIT_TAG 7.0.12
         GIT_PROGRESS TRUE
         GIT_SHALLOW TRUE
 )
@@ -32,7 +32,7 @@ find_package(Freetype REQUIRED CONFIGS "freetype-config-version.cmake" PATHS "${
 FetchContent_Declare(
         glm
         GIT_REPOSITORY https://github.com/g-truc/glm
-        GIT_TAG 0.9.9.8
+        GIT_TAG 1.0.1
         GIT_PROGRESS TRUE
         GIT_SHALLOW TRUE
 )
