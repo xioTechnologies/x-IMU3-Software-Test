@@ -60,8 +60,7 @@ target_compile_definitions(x-IMU3-GUI
         JUCE_DISPLAY_SPLASH_SCREEN=0
         JUCE_MODAL_LOOPS_PERMITTED=1
         GLM_FORCE_SILENT_WARNINGS
-        GLM_FORCE_SIZE_T_LENGTH # Resolves signed conversion warning on Ubuntu
-        DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+        GLM_FORCE_SIZE_T_LENGTH) # Resolves signed conversion warning on Ubuntu
 
 FILE(GLOB_RECURSE FONT_FILES "Fonts/*.*")
 FILE(GLOB_RECURSE IMAGE_FILES "Images/*.*")
